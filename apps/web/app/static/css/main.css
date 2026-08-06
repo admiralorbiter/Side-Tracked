@@ -3,25 +3,32 @@
 :root {
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   
-  /* Color Palette: Earthy, modern nature theme */
-  --bg-dark: #0f172a;
-  --bg-card: #1e293b;
-  --bg-card-hover: #334155;
+  /* Brand Palette (Hex Codes) */
+  --brand-navy: #001B2E;    /* Prussian Blue / Main Deep Background */
+  --brand-sage: #587D71;    /* Deep Sage / Secondary Muted Accent */
+  --brand-green: #4DAA57;   /* Medium Jungle Green / Primary Action & Brand */
+  --brand-sky: #C1CFDA;     /* Pale Sky / Muted Text & Subtle Borders */
+  --brand-plum: #754668;    /* Mauve Shadow / Weird Route & Special Accents */
+  
+  /* UI Functional Tokens */
+  --bg-dark: var(--brand-navy);
+  --bg-card: #08243b;       /* Slightly lighter Prussian Navy for cards */
+  --bg-card-hover: #0e3454;
   --text-main: #f8fafc;
-  --text-muted: #94a3b8;
+  --text-muted: var(--brand-sky);
   
-  --accent-green: #10b981;
-  --accent-green-glow: rgba(16, 185, 129, 0.25);
-  --accent-amber: #f59e0b;
-  --accent-purple: #8b5cf6;
-  --accent-blue: #3b82f6;
+  --accent-green: var(--brand-green);
+  --accent-green-glow: rgba(77, 170, 87, 0.35);
+  --accent-sage: var(--brand-sage);
+  --accent-plum: var(--brand-plum);
+  --accent-sky: var(--brand-sky);
   
-  --border-card: rgba(255, 255, 255, 0.1);
+  --border-card: rgba(193, 207, 218, 0.18);
   --radius-lg: 16px;
   --radius-md: 12px;
   --radius-sm: 8px;
 
-  --shadow-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --shadow-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
   --transition-fast: 0.2s ease;
 }
 
@@ -46,7 +53,7 @@ header.navbar {
   justify-content: space-between;
   align-items: center;
   padding: 1.25rem 2rem;
-  background: rgba(15, 23, 42, 0.85);
+  background: rgba(0, 27, 46, 0.9);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-card);
   position: sticky;
@@ -65,7 +72,7 @@ header.navbar {
 .brand-icon {
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+  background: linear-gradient(135deg, var(--brand-green), var(--brand-sage));
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -78,16 +85,17 @@ header.navbar {
   font-size: 1.4rem;
   font-weight: 700;
   letter-spacing: -0.02em;
+  color: var(--text-main);
 }
 
 .brand-tagline {
   font-size: 0.85rem;
-  color: var(--text-muted);
+  color: var(--brand-sky);
   font-weight: 400;
 }
 
 nav a {
-  color: var(--text-muted);
+  color: var(--brand-sky);
   text-decoration: none;
   margin-left: 1.5rem;
   font-size: 0.95rem;
@@ -95,7 +103,7 @@ nav a {
 }
 
 nav a:hover {
-  color: var(--accent-green);
+  color: var(--brand-green);
 }
 
 main.container {
@@ -117,7 +125,7 @@ main.container {
 }
 
 .card:hover {
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(193, 207, 218, 0.35);
 }
 
 .intent-header {
@@ -129,13 +137,13 @@ main.container {
   font-size: 2.2rem;
   font-weight: 800;
   margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, #ffffff, #94a3b8);
+  background: linear-gradient(135deg, #ffffff, var(--brand-sky));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .intent-header p {
-  color: var(--text-muted);
+  color: var(--brand-sky);
   font-size: 1.1rem;
 }
 
@@ -156,7 +164,7 @@ main.container {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent-green), #059669);
+  background: linear-gradient(135deg, var(--brand-green), #3f9247);
   color: white;
   box-shadow: 0 4px 14px var(--accent-green-glow);
 }
@@ -173,7 +181,7 @@ main.container {
 }
 
 .btn-secondary:hover {
-  background: #475569;
+  background: #14436b;
 }
 
 .form-group {
@@ -190,7 +198,7 @@ main.container {
 .input-text {
   width: 100%;
   padding: 0.85rem 1rem;
-  background: #0f172a;
+  background: var(--brand-navy);
   border: 1px solid var(--border-card);
   border-radius: var(--radius-sm);
   color: var(--text-main);
@@ -199,7 +207,7 @@ main.container {
 
 .input-text:focus {
   outline: none;
-  border-color: var(--accent-green);
+  border-color: var(--brand-green);
   box-shadow: 0 0 0 3px var(--accent-green-glow);
 }
 
@@ -235,9 +243,10 @@ main.container {
   width: fit-content;
 }
 
-.badge-easy { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
-.badge-birdy { background: rgba(16, 185, 129, 0.2); color: #34d399; }
-.badge-weird { background: rgba(139, 92, 246, 0.2); color: #c084fc; }
+/* Route Badges styled with brand palette */
+.badge-easy { background: rgba(193, 207, 218, 0.2); color: var(--brand-sky); border: 1px solid rgba(193, 207, 218, 0.3); }
+.badge-birdy { background: rgba(77, 170, 87, 0.2); color: #5cd367; border: 1px solid rgba(77, 170, 87, 0.3); }
+.badge-weird { background: rgba(117, 70, 104, 0.3); color: #d69dbf; border: 1px solid rgba(117, 70, 104, 0.4); }
 
 .route-title {
   font-size: 1.3rem;
@@ -249,24 +258,25 @@ main.container {
   display: flex;
   gap: 1rem;
   font-size: 0.9rem;
-  color: var(--text-muted);
+  color: var(--brand-sky);
   margin-bottom: 1rem;
 }
 
 .species-pill {
   display: inline-block;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(88, 125, 113, 0.3);
+  border: 1px solid rgba(88, 125, 113, 0.4);
   padding: 0.2rem 0.6rem;
   border-radius: var(--radius-sm);
   font-size: 0.8rem;
   margin: 0.2rem 0.2rem 0.2rem 0;
-  color: #e2e8f0;
+  color: var(--brand-sky);
 }
 
 footer {
   text-align: center;
   padding: 2rem;
-  color: var(--text-muted);
+  color: var(--brand-sky);
   font-size: 0.85rem;
   border-top: 1px solid var(--border-card);
   margin-top: auto;
