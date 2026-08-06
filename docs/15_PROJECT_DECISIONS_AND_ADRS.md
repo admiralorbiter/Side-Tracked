@@ -59,6 +59,11 @@ Use Flask, Jinja, HTMX, Alpine.js, HTML/CSS, Leaflet.js, and SQLite for the web 
 **Decision:** Adopt Alpine.js alongside HTMX for frontend reactivity.  
 **Rationale:** HTMX handles server partial updates while Alpine handles client-side DOM state (audio play/pause toggles, accordion expansion, tab switching) without needing Node.js, `npm`, or Vite build pipelines. Single command execution (`python main.py` or `flask run`) is preserved.
 
+## D-017 — Pragmatic Web-First Domain Modeling Strategy
+
+**Decision:** Focus initial domain contracts (`packages/ovon_core/domain/`) strictly on web-facing interfaces (`Coordinate`, `TaxonRef`, `LoopRequest`, `RouteOption`, `MediaAsset`, `FieldCue`). Postpone dataset-specific schemas (`ObservationEvent`, `EnvironmentalVector`, `SpatialCellId`) to the exact sprints (Sprints 5 & 6) where raw data files (eBird TSVs, NLCD land cover rasters) are ingested.  
+**Rationale:** Prevents speculative data modeling in a vacuum, avoids zero-value abstractions, and guarantees zero rework when real datasets are integrated.
+
 ## D-006 — Product/core/experiment boundary
 
 - Sidetrack web app depends on stable `ovon_core` contracts.

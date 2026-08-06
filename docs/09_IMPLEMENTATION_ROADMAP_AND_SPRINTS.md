@@ -46,33 +46,29 @@ Create the Sidetrack repository/folder and establish the separation between the 
 - local check command succeeds;
 - product name and language are consistent.
 
-## Sprint 1: Domain contracts
+## Sprint 1: Web domain contracts (Sprint 1A)
 
 ### Goal
 
-Freeze the first stable contracts before building screens around experimental objects.
+Freeze stable web-facing domain contracts (`Coordinate`, `TaxonRef`, `LoopRequest`, `RouteOption`, `MediaAsset`, `FieldCue`) connecting presentation to core logic. Backend dataset schemas (`ObservationEvent`, `EnvironmentalVector`, `SpatialCellId`) are explicitly deferred to Sprints 5 and 6 when raw dataset files (eBird TSVs, NLCD land cover rasters) are ingested (ADR-017).
 
 ### Deliverables
 
-- `TaxonRef` and canonical taxon ID;
-- `Coordinate` and `SpatialCellId`;
-- named `EnvironmentalSchema` and `EnvironmentalVector`;
-- observation event and species outcome models;
-- provenance types;
-- `JourneyIntent`;
-- `LoopRequest`;
+- `TaxonRef` and canonical species ID;
+- `Coordinate` and `BoundingBox` (with distance helpers and boundary validation);
+- `JourneyIntent` Enum;
+- `LoopRequest` (immutable origin, duration, and preferences);
 - `RouteOption`, `RouteSegment`, and `RouteStopAction`;
-- `MediaAsset`, `FieldCue`, and `RouteFieldPack`;
-- typed domain errors.
+- `MediaAsset` (mandatory licensing/attribution enforcement), `FieldCue`, and `RouteFieldPack`;
+- Typed domain errors (`InvalidCoordinateError`, `MissingAttributionError`, etc.).
 
 ### Exit gate
 
-- common and scientific names resolve to one key;
-- recent occurrences cannot be represented as complete checklists;
-- missing coordinates cannot default to zero;
-- feature schemas compare names and units;
-- media assets cannot exist without source/license/creator/attribution;
-- route and media domain objects are immutable.
+- common and scientific names resolve to one canonical key;
+- missing coordinates cannot default to zero `(0, 0)`;
+- media assets fail validation if attribution/licensing fields are missing;
+- route and media domain objects are immutable (`frozen=True`);
+- core package imports zero Flask or web presentation code.
 
 ---
 

@@ -63,18 +63,17 @@ Use this checklist to begin Sidetrack in large, deliberate pieces.
 - [ ] In-route and after-route fixture screens exist.
 - [ ] All error/degraded states exist.
 
-## 6. Stable core contracts
+## 6. Stable web domain contracts (Sprint 1A)
 
-- [ ] Canonical `TaxonRef`.
-- [ ] Coordinate and spatial cell types.
-- [ ] Named environmental schema/vector.
-- [ ] Observation event and species outcome.
-- [ ] Journey intent and loop request.
-- [ ] Route option, stop, and segment.
-- [ ] Provenance types.
-- [ ] Media asset and field cue.
-- [ ] Typed domain errors.
-- [ ] Core imports no Flask or Streamlit.
+- [ ] Canonical `TaxonRef` and species code mapping.
+- [ ] `Coordinate` and `BoundingBox` with distance validation (disallow `0,0`).
+- [ ] `JourneyIntent` Enum and `LoopRequest`.
+- [ ] `RouteOption`, `RouteSegment`, and `RouteStopAction`.
+- [ ] `MediaAsset` with mandatory license allowlist & attribution enforcement.
+- [ ] `FieldCue` and `RouteFieldPack`.
+- [ ] Typed domain errors (`InvalidCoordinateError`, `MissingAttributionError`, etc.).
+- [ ] Core package imports zero Flask or presentation code.
+- [ ] Dataset schemas (`ObservationEvent`, `EnvironmentalVector`, `SpatialCellId`) explicitly deferred to Sprints 5 & 6 (D-017).
 
 ## 7. Species media foundation
 
