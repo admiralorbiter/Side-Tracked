@@ -1,0 +1,45 @@
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+  <div class="intent-header" style="text-align: left; margin-bottom: 1.5rem;">
+    <h2>How long do you want to get sidetracked?</h2>
+    <p>Starting from <strong>{{ origin }}</strong></p>
+  </div>
+
+  <form hx-post="{{ url_for('planner.results') }}" hx-target="#planner-container" hx-swap="innerHTML">
+    <input type="hidden" name="origin" value="{{ origin }}">
+
+    <div class="form-group">
+      <label for="duration-select">Walking Time Budget</label>
+      <select id="duration-select" name="duration" class="input-text" style="cursor: pointer;">
+        <option value="30">30 minutes (~1.2 km)</option>
+        <option value="45" selected>45 minutes (~2.0 km) — Recommended</option>
+        <option value="60">60 minutes (~2.8 km)</option>
+        <option value="90">90 minutes (~4.2 km)</option>
+      </select>
+    </div>
+
+    <!-- Optional collapsed preferences via Alpine.js -->
+    <div x-data="{ expanded: false }" style="margin-top: 1.5rem; border-top: 1px solid var(--border-card); padding-top: 1rem;">
+      <button type="button" @click="expanded = !expanded" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+        <span x-text="expanded ? '− Hide optional preferences' : '+ Anything we should know? (Accessibility/Comfort)'"></span>
+      </button>
+
+      <div x-show="expanded" x-transition style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-muted);">
+        <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <input type="checkbox" name="paved_only" value="true"> Require paved / flat trails only
+        </label>
+        <label style="display: flex; align-items: center; gap: 0.5rem;">
+          <input type="checkbox" name="quiet_mode" value="true"> Favor quiet routes away from traffic noise
+        </label>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+      <button type="button" class="btn btn-secondary" hx-get="{{ url_for('planner.origin') }}" hx-target="#planner-container" hx-swap="innerHTML">
+        ← Back
+      </button>
+      <button type="submit" class="btn btn-primary" style="flex: 1;">
+        Show Me Three Ways To Go ✨
+      </button>
+    </div>
+  </form>
+</div>

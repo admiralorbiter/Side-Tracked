@@ -22,9 +22,10 @@ The primary rule is:
 - blueprints
 - Jinja templates
 - HTMX for partial updates
+- Alpine.js for client-side micro-interactions (zero build step)
 - semantic HTML
-- project CSS
-- minimal JavaScript map adapter
+- project CSS design tokens
+- Leaflet map adapter
 - SQLite
 - Alembic or Flask-Migrate for schema migrations
 
@@ -42,9 +43,9 @@ Flask’s official documentation recommends application factories for larger, te
 
 ### Routing
 
-Target provider: Valhalla.
+Target provider: Native Python in-process graph solver using `OSMnx` + `igraph` + `Shapely`.
 
-Valhalla supports pedestrian, bicycle, automobile, and multimodal routes, time-distance matrices, route geometry, isochrones, map matching, and elevation. The matrix service is appropriate for optimized-route inputs, while isochrones are appropriate for generating reachable candidate regions.
+`OSMnx` downloads and locally caches OpenStreetMap (OSM) pedestrian networks. `igraph` provides sub-millisecond C-backed shortest path finding and matrix calculations in Python memory. This approach operates 100% natively on Windows, macOS, and Linux without Docker or containerized routing services, and enables direct Python-based ecological edge weighting (`weight = length / (1 + ecological_score)`).
 
 ### Database and artifacts
 
@@ -89,7 +90,7 @@ Ecology | Opportunity | Routing | Evidence | Provenance
         ↓
 Repositories and provider adapters
         ↓
-SQLite | Parquet | GeoTIFF | Valhalla | external APIs
+SQLite | Parquet | GeoTIFF | OSMnx / igraph | external APIs
 ```
 
 ### Presentation layer
@@ -138,7 +139,7 @@ The domain package must not import Flask.
 Contains:
 
 - SQLite repositories;
-- Valhalla adapter;
+- `OSMnx` + `igraph` spatial routing solver adapter;
 - geocoder adapter;
 - EBD/SED loaders;
 - GBIF and iNaturalist adapters;
@@ -497,7 +498,7 @@ Do not hard-code API tokens, absolute local paths, or provider URLs in domain mo
 
 - Flask development server
 - SQLite
-- local Valhalla or controlled provider
+- local `OSMnx` + `igraph` spatial network graph
 - local artifact files
 
 ### Small regional deployment

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="planner-container">
+  <div class="intent-header">
+    <h1>How do you want to get sidetracked?</h1>
+    <p>Choose your journey type to generate custom nature routes.</p>
+  </div>
+
+  <div class="routes-grid">
+    <!-- Take a loop from here (Active MVP Intent) -->
+    <div class="card route-card" style="border-color: var(--accent-green);">
+      <div>
+        <span class="route-badge badge-birdy">Active MVP</span>
+        <h2 class="route-title">Take a loop from here</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">
+          Start somewhere, walk for a chosen amount of time, and return to where you began while discovering local birds.
+        </p>
+      </div>
+      <button class="btn btn-primary" 
+              hx-get="{{ url_for('planner.origin') }}" 
+              hx-target="#planner-container" 
+              hx-swap="innerHTML">
+        Start a Loop →
+      </button>
+    </div>
+
+    <!-- Future Intent 1 -->
+    <div class="card route-card" style="opacity: 0.6;">
+      <div>
+        <span class="route-badge" style="background: rgba(148, 163, 184, 0.2); color: #cbd5e1;">Future Release</span>
+        <h2 class="route-title">Add nature to a trip</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+          Compare standard A-to-B navigation with small, high-nature ecological detours.
+        </p>
+      </div>
+      <button class="btn btn-secondary" disabled>Coming Soon</button>
+    </div>
+
+    <!-- Future Intent 2 -->
+    <div class="card route-card" style="opacity: 0.6;">
+      <div>
+        <span class="route-badge" style="background: rgba(148, 163, 184, 0.2); color: #cbd5e1;">Future Release</span>
+        <h2 class="route-title">Find a species</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+          Plan a thoughtful search route for specific seasonal birds without guaranteed sightings.
+        </p>
+      </div>
+      <button class="btn btn-secondary" disabled>Coming Soon</button>
+    </div>
+  </div>
+</div>
+{% endblock %}

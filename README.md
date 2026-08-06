@@ -8,9 +8,9 @@ Sidetrack is a route-first biodiversity discovery application. It helps someone 
 **Initial region:** Greater Kansas City  
 **Initial taxon:** birds  
 **Initial journey:** walking loops that return to the starting point  
-**Product stack:** Flask, Jinja, HTMX, HTML/CSS, SQLite, a small isolated map client, and Python ecological services  
+**Product stack:** Flask, Jinja, HTMX, Alpine.js, HTML/CSS, SQLite, Leaflet map client, and Python ecological/routing services (`OSMnx` + `igraph`)  
 **Research engine:** OVON  
-**Document set version:** 1.0 — August 6, 2026
+**Document set version:** 1.1 — August 6, 2026
 
 ---
 
@@ -137,8 +137,9 @@ The first release proves that the route, field guide, and media experience work 
 - Flask application factory and blueprints
 - Jinja templates
 - HTMX for partial-page interactions
+- Alpine.js for lightweight client-side UI state (zero build step)
 - semantic HTML and CSS
-- one small Leaflet or MapLibre map module
+- Leaflet map module for route rendering
 - standard HTML audio controls or a small accessible audio component
 
 ### Application data
@@ -150,8 +151,8 @@ The first release proves that the route, field guide, and media experience work 
 
 ### Ecological and routing core
 
-- Python first
-- Valhalla as the target pedestrian matrix, isochrone, and route-geometry provider
+- Python first (100% native execution, no external Docker services required)
+- `OSMnx` + `igraph` for pedestrian matrix, isochrone, open-street-network graph loading, and custom ecological loop routing
 - Rust through PyO3 only after profiling finds a stable, meaningful bottleneck
 
 A complete Rust rewrite is not part of the initial plan.

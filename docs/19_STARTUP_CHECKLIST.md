@@ -102,13 +102,14 @@ Use this checklist to begin Sidetrack in large, deliberate pieces.
 
 ## 9. Routing foundation
 
-- [ ] Select routing deployment ADR.
-- [ ] Matrix and geometry use same provider/version.
+- [ ] Select native `OSMnx` + `igraph` spatial solver ADR (D-015).
+- [ ] Load and cache OpenStreetMap pedestrian graph for Greater KC locally.
+- [ ] Matrix, pathfinding, and geometry use same OSM graph snapshot/version.
 - [ ] Closed loop returns to origin.
-- [ ] Exact route fits budget.
+- [ ] Exact route fits time budget.
 - [ ] Route total reconciles.
 - [ ] Straight-line fallback is never labeled exact.
-- [ ] Provider failure state renders.
+- [ ] Graph loading failure state renders.
 
 ## 10. Regional data package
 

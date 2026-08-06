@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Species Search Lab | Sidetrack{% endblock %}
+
+{% block content %}
+<div class="card" style="text-align: center; padding: 3rem;">
+  <span class="route-badge" style="background: rgba(139, 92, 246, 0.2); color: #c084fc;">Research Surface</span>
+  <h1 style="font-size: 2rem; font-weight: 800; margin: 1rem 0 0.5rem 0;">Species Search Lab</h1>
+  <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto 1.5rem auto;">
+    Dedicated research interface for naturalists to find overlooked, seasonal, or uncertain search opportunities across Greater Kansas City.
+  </p>
+  <a href="{{ url_for('planner.index') }}" class="btn btn-primary">Return to Sidetrack Planner</a>
+</div>
+{% endblock %}

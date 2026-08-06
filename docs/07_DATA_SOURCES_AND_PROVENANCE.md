@@ -203,25 +203,24 @@ Maintain OSM attribution and ODbL compliance.
 
 ---
 
-# 7. Valhalla
+# 7. `OSMnx` + `igraph` Spatial Routing
 
-Use Valhalla for:
+Use `OSMnx` + `igraph` for:
 
-- pedestrian route geometry;
+- pedestrian route network graph extraction and local caching;
 - time-distance matrices;
-- isochrones;
-- cycling and driving;
-- later multimodal routes;
-- elevation and map matching.
+- reachable candidate isochrones;
+- in-memory shortest path algorithms and custom ecological edge-weight solving;
+- route geometry export to GeoJSON.
 
-The same provider and graph version should generate:
+The same OSM graph snapshot and solver version should generate:
 
 - optimization matrix;
 - displayed route;
 - route duration;
 - directions.
 
-Store the Valhalla graph build/version or data timestamp in route provenance.
+Store the OSM graph build/version and timestamp in route provenance.
 
 ---
 

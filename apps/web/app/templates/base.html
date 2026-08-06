@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Sidetrack — A Field Guide to Getting Sidetracked{% endblock %}</title>
+  <meta name="description" content="Discover nature, birds, and biodiversity along real walking loops in Greater Kansas City.">
+  
+  <!-- CSS Design Tokens & Layout -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  
+  <!-- HTMX & Alpine.js CDN for zero-build client reactivity -->
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  
+  <!-- Leaflet Maps -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="{{ url_for('static', filename='js/map.js') }}"></script>
+</head>
+<body x-data="{ currentStep: 'intent' }">
+
+  <header class="navbar">
+    <a href="{{ url_for('planner.index') }}" class="brand">
+      <div class="brand-icon">S</div>
+      <div>
+        <div class="brand-title">Sidetrack</div>
+        <div class="brand-tagline">Greater Kansas City</div>
+      </div>
+    </a>
+    <nav>
+      <a href="{{ url_for('planner.index') }}">Plan Loop</a>
+      <a href="{{ url_for('search_lab.index') }}">Search Lab</a>
+      <a href="{{ url_for('admin.status') }}">System Status</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    <p>Sidetrack v0.1 — Powered by OVON Research Core & OpenStreetMap</p>
+    <p style="margin-top: 0.25rem; opacity: 0.7;">Birds of Greater Kansas City • Local-first deterministic discovery</p>
+  </footer>
+
+</body>
+</html>

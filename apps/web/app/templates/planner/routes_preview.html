@@ -1,0 +1,52 @@
+<div>
+  <div class="intent-header" style="text-align: left; margin-bottom: 1.5rem;">
+    <h2>Choose your path from {{ origin }}</h2>
+    <p>3 closed walking loops for a {{ minutes }}-minute budget. All routes return to start.</p>
+  </div>
+
+  <div class="routes-grid">
+    {% for route in routes %}
+    <div class="card route-card">
+      <div>
+        {% if route.name == "The Easy One" %}
+          <span class="route-badge badge-easy">{{ route.badge }}</span>
+        {% elif route.name == "The Birdy One" %}
+          <span class="route-badge badge-birdy">{{ route.badge }}</span>
+        {% else %}
+          <span class="route-badge badge-weird">{{ route.badge }}</span>
+        {% endif %}
+        
+        <h3 class="route-title">{{ route.name }}</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.75rem;">{{ route.tagline }}</p>
+        
+        <div class="route-metrics">
+          <span>⏱️ {{ route.duration }}</span>
+          <span>🚶 {{ route.distance }}</span>
+          <span>🐦 ~{{ route.bird_count }} species</span>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Likely species along loop:</div>
+          {% for sp in route.species_highlights %}
+            <span class="species-pill">{{ sp }}</span>
+          {% endfor %}
+        </div>
+
+        <div style="font-size: 0.85rem; color: #cbd5e1; background: rgba(0,0,0,0.2); padding: 0.6rem; border-radius: 6px; margin-bottom: 1rem;">
+          <strong>Tradeoff:</strong> {{ route.tradeoff }}
+        </div>
+      </div>
+
+      <a href="{{ url_for('routes.detail', route_id=route.id) }}" class="btn btn-primary" style="width: 100%; text-align: center;">
+        Explore Route & Field Pack →
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div style="margin-top: 2rem; text-align: center;">
+    <button class="btn btn-secondary" hx-get="{{ url_for('planner.index') }}" hx-target="#planner-container" hx-swap="innerHTML">
+      ← Start Over
+    </button>
+  </div>
+</div>

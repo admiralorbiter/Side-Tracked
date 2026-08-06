@@ -47,7 +47,17 @@ Technical objective names remain internal. The Weird route is omitted or renamed
 
 ## D-005 — Technology
 
-Use Flask, Jinja, HTMX, HTML/CSS, SQLite, and a small map JavaScript module. Python remains the initial ecological and optimization language. Rust is introduced only after profiling.
+Use Flask, Jinja, HTMX, Alpine.js, HTML/CSS, Leaflet.js, and SQLite for the web layer. Use native Python `OSMnx` + `igraph` + `Shapely` for spatial graph loading and closed-loop routing (zero Docker requirement, 100% native cross-platform execution). Rust is introduced only after profiling.
+
+## D-015 — In-Process Python Routing Solver (OSMnx + igraph)
+
+**Decision:** Ditch Valhalla / containerized routing servers in favor of an in-process Python spatial graph pipeline using `OSMnx` and `igraph`.  
+**Rationale:** Eliminates Docker dependency on Windows, runs natively within the Python environment, and provides direct access to graph edges for custom ecological weighting (`weight = distance / (1 + ecological_score)`).
+
+## D-016 — Client-side UI State via Alpine.js
+
+**Decision:** Adopt Alpine.js alongside HTMX for frontend reactivity.  
+**Rationale:** HTMX handles server partial updates while Alpine handles client-side DOM state (audio play/pause toggles, accordion expansion, tab switching) without needing Node.js, `npm`, or Vite build pipelines. Single command execution (`python main.py` or `flask run`) is preserved.
 
 ## D-006 — Product/core/experiment boundary
 

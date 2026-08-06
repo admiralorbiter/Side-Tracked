@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}{{ route.name }} — Route & Field Pack | Sidetrack{% endblock %}
+
+{% block content %}
+<div>
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+    <div>
+      <span class="route-badge badge-birdy">Closed Walking Loop</span>
+      <h1 style="font-size: 2.2rem; font-weight: 800;">{{ route.name }}</h1>
+      <p style="color: var(--text-muted);">⏱️ {{ route.duration }} • 🚶 {{ route.distance }} • Returns to origin</p>
+    </div>
+    <a href="{{ url_for('planner.index') }}" class="btn btn-secondary">← Back to Planner</a>
+  </div>
+
+  <!-- Interactive Map Placeholder Container -->
+  <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 2rem;">
+    <div id="sidetrack-map" style="height: 320px; width: 100%;"></div>
+  </div>
+
+  <!-- Segment Field Guide Cards -->
+  <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem;">Route Segments & Field Pack</h2>
+
+  {% for seg in route.segments %}
+  <div class="card" style="margin-bottom: 1.25rem;" x-data="{ playingAudio: false }">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+      <h3 style="font-size: 1.2rem; font-weight: 700;">
+        Segment {{ seg.index }}: {{ seg.name }}
+      </h3>
+      <span class="species-pill" style="background: rgba(16,185,129,0.2); color: #34d399;">{{ seg.habitat }} ({{ seg.distance }})</span>
+    </div>
+
+    <div style="margin-bottom: 1rem;">
+      <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Focal Birds on Segment:</div>
+      {% for b in seg.birds %}
+        <span class="species-pill">{{ b }}</span>
+      {% endfor %}
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; background: rgba(0,0,0,0.25); padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem;">
+      <div>
+        <strong style="color: var(--accent-amber); font-size: 0.85rem;">👀 WHERE TO LOOK</strong>
+        <p style="font-size: 0.9rem; color: #cbd5e1; margin-top: 0.2rem;">{{ seg.cue_look }}</p>
+      </div>
+      <div>
+        <strong style="color: var(--accent-green); font-size: 0.85rem;">👂 WHAT TO LISTEN FOR</strong>
+        <p style="font-size: 0.9rem; color: #cbd5e1; margin-top: 0.2rem;">{{ seg.cue_listen }}</p>
+      </div>
+    </div>
+
+    <!-- Accessible Audio Button with Alpine.js reactivity (No autoplay!) -->
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <button @click="playingAudio = !playingAudio" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+        <span x-text="playingAudio ? '⏸ Pause Call' : '▶️ Play Sample Call'"></span>
+      </button>
+      <span x-show="playingAudio" style="font-size: 0.8rem; color: var(--accent-green); animation: pulse 1s infinite;">
+        ♫ Playing segment sample call (Xeno-Canto CC BY-NC)
+      </span>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

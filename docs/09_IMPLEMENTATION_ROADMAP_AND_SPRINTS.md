@@ -159,7 +159,7 @@ Generate a closed walking loop using the same routing graph for optimization cos
 ### Deliverables
 
 - routing provider contract;
-- controlled Valhalla adapter or explicit interim adapter;
+- `OSMnx` + `igraph` spatial graph solver adapter;
 - isochrone, matrix, and route requests;
 - provider cache;
 - route provenance;
