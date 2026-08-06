@@ -1,0 +1,33 @@
+<div class="card" style="max-width: 600px; margin: 0 auto; text-align: center; padding: 3rem;"
+     x-data="{
+       messageIndex: 0,
+       messages: [
+         'Searching Greater Kansas City pedestrian trail networks...',
+         'Evaluating Brush Creek & Loose Park habitat canopy cover...',
+         'Calculating bird encounter opportunities for {{ duration }} min budget...',
+         'Balancing route tradeoffs & return-to-origin walk path...'
+       ]
+     }"
+     x-init="setInterval(() => { messageIndex = (messageIndex + 1) % messages.length }, 1200)"
+     hx-post="{{ url_for('planner.results') }}"
+     hx-trigger="load delay:3.5s"
+     hx-target="#planner-container"
+     hx-swap="innerHTML">
+  
+  <input type="hidden" name="origin" value="{{ origin }}">
+  <input type="hidden" name="duration" value="{{ duration }}">
+  {% if paved_only %}<input type="hidden" name="paved_only" value="true">{% endif %}
+  {% if quiet_mode %}<input type="hidden" name="quiet_mode" value="true">{% endif %}
+
+  <div style="margin-bottom: 1.5rem;">
+    <div style="width: 50px; height: 50px; border: 4px solid var(--border-card); border-top-color: var(--brand-green); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+  </div>
+
+  <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;" tabindex="-1">Planning your Nature Loop</h2>
+  <p style="color: var(--brand-sky); font-size: 1.05rem; min-height: 2.5rem;" x-text="messages[messageIndex]"></p>
+  <p style="font-size: 0.85rem; color: var(--brand-sky); opacity: 0.7; margin-top: 1rem;">Starting from <strong>{{ origin }}</strong> • {{ duration }} min budget</p>
+
+  <style>
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</div>

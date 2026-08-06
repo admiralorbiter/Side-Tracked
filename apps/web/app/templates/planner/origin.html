@@ -1,10 +1,10 @@
 <div class="card" style="max-width: 600px; margin: 0 auto;">
   <div class="intent-header" style="text-align: left; margin-bottom: 1.5rem;">
-    <h2>Where should we start?</h2>
+    <h2 tabindex="-1">Where should we start?</h2>
     <p>Enter an address, public place, or use your current location.</p>
   </div>
 
-  <form hx-post="{{ url_for('planner.duration') }}" hx-target="#planner-container" hx-swap="innerHTML">
+  <form hx-get="{{ url_for('planner.duration') }}" hx-target="#planner-container" hx-swap="innerHTML" hx-push-url="true">
     <div class="form-group">
       <label for="origin-input">Starting Location</label>
       <input type="text" 
@@ -17,9 +17,9 @@
     </div>
 
     <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-      <button type="button" class="btn btn-secondary" hx-get="{{ url_for('planner.index') }}" hx-target="#planner-container" hx-swap="innerHTML">
+      <a href="{{ url_for('planner.index') }}" class="btn btn-secondary">
         ← Back
-      </button>
+      </a>
       <button type="submit" class="btn btn-primary" style="flex: 1;">
         Next: Choose Time Budget →
       </button>

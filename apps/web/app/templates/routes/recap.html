@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Walk Complete — {{ route.name }} | Sidetrack{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 700px; margin: 0 auto; text-align: center; padding: 3rem;">
+  <span class="route-badge badge-birdy">Walk Completed</span>
+  <h1 style="font-size: 2.2rem; font-weight: 800; margin: 1rem 0 0.5rem 0;" tabindex="-1">Walk Recap</h1>
+  <p style="color: var(--brand-sky); font-size: 1.1rem; margin-bottom: 2rem;">
+    You completed <strong>{{ route.name }}</strong> ({{ route.formatted_distance }} in {{ route.formatted_duration }}).
+  </p>
+
+  <div style="background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: var(--radius-md); text-align: left; margin-bottom: 2rem;">
+    <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--brand-green); margin-bottom: 0.75rem;">Habitats Explored:</h3>
+    <ul style="list-style: none; padding: 0;">
+      {% for seg in route.segments %}
+      <li style="margin-bottom: 0.5rem; color: #f8fafc;">
+        🌿 <strong>{{ seg.habitat_name }}</strong> ({{ seg.name }})
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div style="display: flex; gap: 1rem; justify-content: center;">
+    <a href="{{ url_for('planner.index') }}" class="btn btn-primary">Plan Another Nature Loop →</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,10 +1,16 @@
 <div class="card" style="max-width: 600px; margin: 0 auto;">
   <div class="intent-header" style="text-align: left; margin-bottom: 1.5rem;">
-    <h2>How long do you want to get sidetracked?</h2>
+    <h2 tabindex="-1">How long do you want to get sidetracked?</h2>
     <p>Starting from <strong>{{ origin }}</strong></p>
   </div>
 
-  <form hx-post="{{ url_for('planner.results') }}" hx-target="#planner-container" hx-swap="innerHTML">
+  {% if error %}
+  <div style="background: rgba(225, 29, 72, 0.2); border: 1px solid #f43f5e; color: #fecdd3; padding: 0.85rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem; font-size: 0.9rem;">
+    <strong>Location or Time Error:</strong> {{ error }}
+  </div>
+  {% endif %}
+
+  <form hx-post="{{ url_for('planner.planning') }}" hx-target="#planner-container" hx-swap="innerHTML">
     <input type="hidden" name="origin" value="{{ origin }}">
 
     <div class="form-group">
@@ -23,7 +29,7 @@
         <span x-text="expanded ? '− Hide optional preferences' : '+ Anything we should know? (Accessibility/Comfort)'"></span>
       </button>
 
-      <div x-show="expanded" x-transition style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-muted);">
+      <div x-show="expanded" x-transition style="margin-top: 1rem; font-size: 0.9rem; color: var(--brand-sky);">
         <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
           <input type="checkbox" name="paved_only" value="true"> Require paved / flat trails only
         </label>
@@ -34,9 +40,9 @@
     </div>
 
     <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-      <button type="button" class="btn btn-secondary" hx-get="{{ url_for('planner.origin') }}" hx-target="#planner-container" hx-swap="innerHTML">
+      <a href="{{ url_for('planner.origin') }}" class="btn btn-secondary">
         ← Back
-      </button>
+      </a>
       <button type="submit" class="btn btn-primary" style="flex: 1;">
         Show Me Three Ways To Go ✨
       </button>

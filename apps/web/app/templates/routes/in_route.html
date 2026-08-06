@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}In-Route Mode — {{ route.name }} | Sidetrack{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 700px; margin: 0 auto;" x-data="{ currentSegment: 0 }">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <span class="route-badge badge-birdy">Walk Mode Active</span>
+    <a href="{{ url_for('routes.detail', route_id=route.id) }}" class="btn btn-secondary" style="font-size: 0.85rem;">Pause Walk</a>
+  </div>
+
+  <h1 style="font-size: 2rem; font-weight: 800; margin-bottom: 0.25rem;" tabindex="-1">{{ route.name }}</h1>
+  <p style="color: var(--brand-sky); margin-bottom: 1.5rem;">
+    Walking segment <span x-text="currentSegment + 1"></span> of {{ route.segments|length }}
+  </p>
+
+  {% for seg in route.segments %}
+  <div x-show="currentSegment === {{ loop.index0 }}" x-transition>
+    <div style="background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
+      <h2 style="font-size: 1.4rem; font-weight: 700; color: var(--brand-green); margin-bottom: 0.5rem;">
+        Segment {{ seg.index }}: {{ seg.name }}
+      </h2>
+      <p style="color: var(--brand-sky); font-size: 0.95rem; margin-bottom: 1rem;">
+        Habitat: <strong>{{ seg.habitat_name }}</strong> • Distance: <strong>{{ seg.formatted_distance }}</strong>
+      </p>
+
+      <div style="margin-bottom: 1rem;">
+        <strong style="color: var(--brand-sky); font-size: 0.85rem; display: block; margin-bottom: 0.4rem;">👀 WHERE TO LOOK:</strong>
+        <p style="font-size: 1.05rem; color: #f8fafc;">{{ seg.field_cue.where_to_look }}</p>
+      </div>
+
+      <div>
+        <strong style="color: var(--brand-green); font-size: 0.85rem; display: block; margin-bottom: 0.4rem;">👂 WHAT TO LISTEN FOR:</strong>
+        <p style="font-size: 1.05rem; color: #f8fafc;">{{ seg.field_cue.what_to_listen_for }}</p>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; gap: 1rem;">
+      <button type="button" @click="currentSegment--" class="btn btn-secondary" :disabled="currentSegment === 0">
+        ← Previous Leg
+      </button>
+      
+      <button type="button" x-show="currentSegment < {{ route.segments|length - 1 }}" @click="currentSegment++" class="btn btn-primary">
+        Next Leg →
+      </button>
+
+      <a href="{{ url_for('routes.recap', route_id=route.id) }}" x-show="currentSegment === {{ route.segments|length - 1 }}" class="btn btn-primary">
+        Finish Walk & View Recap ✨
+      </a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
