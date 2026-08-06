@@ -56,6 +56,27 @@ def test_bounding_box_invalid():
     with pytest.raises(InvalidCoordinateError):
         BoundingBox(39.5, -94.6, 39.1, -94.4)
 
+def test_spatial_cell_id_h3():
+    from packages.ovon_core.domain import SpatialCellId
+    from packages.ovon_core.spatial import lat_lng_to_h3_cell, is_within_us_bounds
+
+    cell = SpatialCellId(resolution=8, cell_index="882685623ffffff")
+    assert cell.resolution == 8
+    assert cell.to_string() == "h3_res8:882685623ffffff"
+
+    parsed = SpatialCellId.from_h3_string("h3_res8:882685623ffffff")
+    assert parsed.cell_index == "882685623ffffff"
+
+    kc_coord = Coordinate(39.0347, -94.5906)
+    nyc_coord = Coordinate(40.7812, -73.9665)
+    
+    kc_cell = lat_lng_to_h3_cell(kc_coord, resolution=8)
+    assert kc_cell.to_string().startswith("h3_res8:")
+
+    assert is_within_us_bounds(kc_coord) is True
+    assert is_within_us_bounds(nyc_coord) is True
+
+
 # 2. Taxonomy Tests
 def test_taxon_ref_factory():
     taxon = TaxonRef.create(

@@ -7,7 +7,7 @@ from packages.ovon_core.domain.errors import (
     InvalidTimeBudgetError,
     TaxonNotFoundError,
 )
-from packages.ovon_core.domain.spatial import Coordinate, BoundingBox
+from packages.ovon_core.domain.spatial import Coordinate, BoundingBox, SpatialCellId
 from packages.ovon_core.domain.taxonomy import TaxonRef
 from packages.ovon_core.domain.request import JourneyIntent, LoopRequest
 from packages.ovon_core.domain.media import LicenseType, MediaType, MediaAsset, FieldCue, RouteFieldPack
@@ -21,6 +21,7 @@ __all__ = [
     "TaxonNotFoundError",
     "Coordinate",
     "BoundingBox",
+    "SpatialCellId",
     "TaxonRef",
     "JourneyIntent",
     "LoopRequest",
@@ -34,3 +35,4 @@ __all__ = [
     "RouteSegment",
     "RouteOption",
 ]
+

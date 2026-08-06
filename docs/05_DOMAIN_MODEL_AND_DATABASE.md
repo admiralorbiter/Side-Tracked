@@ -44,13 +44,13 @@ Validate ranges and never default missing coordinates to `(0, 0)`.
 
 ### SpatialCellId
 
-A versioned grid identifier:
+A versioned, region-agnostic global grid identifier using the Uber H3 spatial index standard (Resolution 8 default, ~0.73 km² cell area):
 
 ```text
-kc_3km_v1:cell_472
+h3_res8:882685623ffffff
 ```
 
-The grid version is part of the identity.
+The resolution prefix and grid version are part of the identity. While Kansas City (`h3_res8`) serves as our initial pilot dataset package, this format seamlessly indexes any coordinate globally for national public release.
 
 ### EnvironmentalSchema
 

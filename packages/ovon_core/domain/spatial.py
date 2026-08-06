@@ -51,3 +51,31 @@ class BoundingBox:
         """Return True if the coordinate is within this bounding box."""
         return (self.min_latitude <= coord.latitude <= self.max_latitude and
                 self.min_longitude <= coord.longitude <= self.max_longitude)
+
+
+@dataclass(frozen=True, slots=True)
+class SpatialCellId:
+    """Immutable spatial grid cell identifier supporting H3 resolution indexing."""
+    resolution: int
+    cell_index: str
+    grid_version: str = "h3_v1"
+
+    def __post_init__(self) -> None:
+        if not (0 <= self.resolution <= 15):
+            raise InvalidCoordinateError("H3 resolution must be between 0 and 15.")
+        if not self.cell_index.strip():
+            raise InvalidCoordinateError("cell_index cannot be empty.")
+
+    @classmethod
+    def from_h3_string(cls, h3_str: str) -> "SpatialCellId":
+        """Parse 'h3_res8:882685623ffffff' or raw '882685623ffffff' into SpatialCellId."""
+        if ":" in h3_str:
+            parts = h3_str.split(":", 1)
+            prefix, idx = parts[0], parts[1]
+            res = int(prefix.replace("h3_res", "")) if "h3_res" in prefix else 8
+            return cls(resolution=res, cell_index=idx)
+        return cls(resolution=8, cell_index=h3_str)
+
+    def to_string(self) -> str:
+        return f"h3_res{self.resolution}:{self.cell_index}"
+

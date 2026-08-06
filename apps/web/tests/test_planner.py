@@ -37,7 +37,7 @@ def test_planning_state_htmx(client):
     )
     assert response.status_code == 200
     assert b"Planning your Nature Loop" in response.data
-    assert b"Searching Greater Kansas City" in response.data
+    assert b"Searching pedestrian trail networks near Loose Park" in response.data
 
 # Step 5: Route Comparison & Domain Model Output
 def test_results_domain_routes(client):

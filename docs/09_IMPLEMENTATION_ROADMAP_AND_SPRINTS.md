@@ -196,23 +196,24 @@ Accept a starting place without retaining unnecessary personal data.
 - invalid address offers map pin;
 - origin is validated inside the supported region.
 
-## Sprint 6: Frozen regional route package
+## Sprint 6: Regional pilot package (Kansas City) & National Dataset Architecture
 
 ### Goal
 
-Create a deterministic Kansas City package independent of live API variability.
+Create a deterministic Kansas City regional package as our initial offline verification pilot, using H3 spatial indexing and region-agnostic data pipeline schemas built for National Public Release.
 
 ### Deliverables
 
-- candidate entrances/locations;
-- candidate cell IDs;
+- candidate entrances/locations indexed by global Coordinate and H3 cell ID;
+- candidate cell IDs (`h3_res8:<index>`);
 - access and safety status;
 - named environmental vectors;
-- deterministic provisional species surfaces;
+- deterministic provisional species surfaces (Clements / eBird taxonomy);
 - taxonomy version;
 - route graph version;
 - data/model/media manifests;
-- verification CLI.
+- verification CLI;
+- state-partitioned Parquet dataset pipeline structure (`/data/ebird/year=2026/state=MO/`).
 
 ### Exit gate
 
@@ -220,7 +221,7 @@ Create a deterministic Kansas City package independent of live API variability.
 - no random ecological values at request time;
 - all candidates have provenance;
 - sensitive and restricted candidates are filtered;
-- package verifies offline.
+- Kansas City package verifies offline, and schema validates against national region bounds.
 
 ## Sprint 7: One complete loop
 

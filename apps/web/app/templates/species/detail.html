@@ -10,30 +10,40 @@
     <p style="font-style: italic; color: var(--text-muted);">{{ species.scientific_name }}</p>
   </div>
 
-  <div style="background: rgba(0,0,0,0.25); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
-    <strong style="color: var(--text-main); font-size: 0.9rem;">Primary Habitat:</strong>
-    <p style="color: var(--text-muted); font-size: 0.95rem;">{{ species.habitat }}</p>
-  </div>
-
+  {% if cue %}
   <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
-    <div>
-      <h3 style="color: var(--accent-amber); font-size: 1rem;">👀 Where to Look</h3>
-      <p style="color: #cbd5e1; font-size: 0.95rem;">{{ species.where_to_look }}</p>
+    <div style="background: rgba(0,0,0,0.25); padding: 1rem; border-radius: var(--radius-md);">
+      <h3 style="color: var(--accent-amber); font-size: 1rem; margin-bottom: 0.25rem;">👀 Where to Look</h3>
+      <p style="color: #cbd5e1; font-size: 0.95rem;">{{ cue.where_to_look }}</p>
     </div>
 
-    <div>
-      <h3 style="color: var(--accent-green); font-size: 1rem;">👂 What to Listen For</h3>
-      <p style="color: #cbd5e1; font-size: 0.95rem;">{{ species.what_to_listen_for }}</p>
+    <div style="background: rgba(0,0,0,0.25); padding: 1rem; border-radius: var(--radius-md);">
+      <h3 style="color: var(--accent-green); font-size: 1rem; margin-bottom: 0.25rem;">👂 What to Listen For</h3>
+      <p style="color: #cbd5e1; font-size: 0.95rem;">{{ cue.what_to_listen_for }}</p>
     </div>
 
-    <div>
-      <h3 style="color: var(--accent-purple); font-size: 1rem;">🔍 Look-Alikes</h3>
-      <p style="color: #cbd5e1; font-size: 0.95rem;">{{ species.look_alikes }}</p>
+    {% if cue.look_alikes %}
+    <div style="background: rgba(0,0,0,0.25); padding: 1rem; border-radius: var(--radius-md);">
+      <h3 style="color: var(--accent-purple); font-size: 1rem; margin-bottom: 0.25rem;">🔍 Look-Alikes</h3>
+      <p style="color: #cbd5e1; font-size: 0.95rem;">{{ cue.look_alikes }}</p>
     </div>
+    {% endif %}
   </div>
+  {% endif %}
+
+  {% if media and media.url %}
+  <div style="margin-bottom: 1.5rem; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 1rem; border-radius: var(--radius-md);">
+    <strong style="color: var(--accent-green); display: block; margin-bottom: 0.5rem;">🔊 Primary Song / Call Audio Sample</strong>
+    <audio controls style="width: 100%;" aria-label="Play audio for {{ species.common_name }}">
+      <source src="{{ media.url }}" type="audio/mpeg">
+      Your browser does not support the audio element.
+    </audio>
+  </div>
+  {% endif %}
 
   <div style="border-top: 1px solid var(--border-card); padding-top: 1rem; font-size: 0.8rem; color: var(--text-muted);">
-    <strong>Licensing & Provenance:</strong> {{ species.attribution }}
+    <strong>Licensing & Provenance:</strong> {{ media.attribution_text if media else "Canonical eBird species reference" }}
   </div>
 </div>
 {% endblock %}
+
