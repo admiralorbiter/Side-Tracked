@@ -56,22 +56,21 @@
       </div>
     </div>
 
-    <!-- Accessible Audio Control with ARIA Labels (No autoplay!) -->
+    <!-- Accessible Audio Control with HTML5 Audio Player -->
     {% if field_pack.media_assets %}
-      {% set audio = field_pack.media_assets[0] %}
-      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-        <div style="display: flex; align-items: center; gap: 1rem;">
-          <button @click="playingAudio = !playingAudio" 
-                  class="btn btn-secondary" 
-                  style="font-size: 0.85rem; padding: 0.4rem 0.8rem;"
-                  aria-label="Play call for {{ audio.taxon_ref.common_name }}">
-            <span x-text="playingAudio ? '⏸ Pause Call' : '▶️ Play Sample Call'"></span>
-          </button>
-          <span x-show="playingAudio" style="font-size: 0.8rem; color: var(--brand-green);">
-            ♫ Playing sample call ({{ audio.license.value }})
-          </span>
+      {% set audio = field_pack.media_assets[loop.index0 if loop.index0 < field_pack.media_assets|length else 0] %}
+      <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 0.85rem; border-radius: var(--radius-sm); margin-top: 0.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <strong style="color: var(--accent-green); font-size: 0.85rem;">
+            🔊 Focal Audio: {{ audio.taxon_ref.common_name }}
+          </strong>
+          <span style="font-size: 0.75rem; color: var(--brand-sky); opacity: 0.8;">{{ audio.license.value }}</span>
         </div>
-        <div style="font-size: 0.75rem; color: var(--brand-sky); opacity: 0.8;">
+        <audio controls style="width: 100%; height: 36px;" aria-label="Play call for {{ audio.taxon_ref.common_name }}">
+          <source src="{{ audio.url }}" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <div style="font-size: 0.75rem; color: var(--brand-sky); opacity: 0.8; margin-top: 0.4rem;">
           <strong>Attribution:</strong> {{ audio.attribution_text }}
         </div>
       </div>

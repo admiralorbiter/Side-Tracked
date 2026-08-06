@@ -1,24 +1,31 @@
 from dataclasses import dataclass
 from enum import Enum
-from packages.ovon_core.domain.taxonomy import TaxonRef
+
 from packages.ovon_core.domain.media import FieldCue
+from packages.ovon_core.domain.taxonomy import TaxonRef
+
 
 class RoutePersona(str, Enum):
     """Public route personas."""
+
     EASY = "The Easy One"
     BIRDY = "The Birdy One"
     WEIRD = "The Weird One"
 
+
 @dataclass(frozen=True, slots=True)
 class RouteStopAction:
     """Actionable observation stop along a segment."""
+
     name: str
     action_type: str  # e.g., "scan_tree_line", "listen_creek_edge"
     description: str
 
+
 @dataclass(frozen=True, slots=True)
 class RouteSegment:
     """Individual leg of a walking loop."""
+
     index: int
     name: str
     habitat_name: str
@@ -34,9 +41,11 @@ class RouteSegment:
             return f"{self.distance_meters / 1000.0:.1f} km"
         return f"{int(self.distance_meters)}m"
 
+
 @dataclass(frozen=True, slots=True)
 class RouteOption:
     """Complete closed walking loop route choice."""
+
     id: str
     persona: RoutePersona
     name: str

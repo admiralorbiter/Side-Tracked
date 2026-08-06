@@ -1,8 +1,10 @@
 from dataclasses import dataclass
 
+
 @dataclass(frozen=True, slots=True)
 class TaxonRef:
     """Canonical Bird Species Reference."""
+
     taxon_id: str
     common_name: str
     scientific_name: str
@@ -19,7 +21,9 @@ class TaxonRef:
             raise ValueError("scientific_name cannot be empty.")
 
     @classmethod
-    def create(cls, common_name: str, scientific_name: str, ebird_code: str, category: str = "Bird") -> "TaxonRef":
+    def create(
+        cls, common_name: str, scientific_name: str, ebird_code: str, category: str = "Bird"
+    ) -> "TaxonRef":
         """Factory method to construct a canonical TaxonRef with deterministic taxon_id."""
         clean_code = ebird_code.strip().lower()
         canonical_id = f"species:ebird:{clean_code}"
@@ -28,5 +32,5 @@ class TaxonRef:
             common_name=common_name.strip(),
             scientific_name=scientific_name.strip(),
             ebird_code=clean_code,
-            category=category
+            category=category,
         )

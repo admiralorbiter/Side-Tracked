@@ -1,21 +1,27 @@
 from dataclasses import dataclass, field
-from enum import Enum
 from datetime import datetime, timezone
-from packages.ovon_core.domain.spatial import Coordinate
+from enum import Enum
+
 from packages.ovon_core.domain.errors import InvalidTimeBudgetError
+from packages.ovon_core.domain.spatial import Coordinate
+
 
 class JourneyIntent(str, Enum):
     """User journey intent types."""
+
     LOOP_FROM_HERE = "loop_from_here"
     ADD_NATURE_TO_TRIP = "add_nature_to_trip"
     FIND_SPECIES = "find_species"
     SURPRISE_ME = "surprise_me"
 
+
 SUPPORTED_DURATIONS_MINUTES = {30, 45, 60, 90}
+
 
 @dataclass(frozen=True, slots=True)
 class LoopRequest:
     """Immutable User Loop Planning Request."""
+
     origin: Coordinate
     origin_name: str
     duration_minutes: int = 45
