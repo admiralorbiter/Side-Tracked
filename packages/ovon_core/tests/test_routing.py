@@ -126,4 +126,4 @@ def test_calculate_loop_returns_valid_budget_compliant_result():
         start_c = Coordinate(start_coords[1], start_coords[0])
         end_c = Coordinate(end_coords[1], end_coords[0])
         dist_between = start_c.haversine_distance_meters(end_c)
-        assert dist_between < 50.0
+        assert dist_between <= 25.0

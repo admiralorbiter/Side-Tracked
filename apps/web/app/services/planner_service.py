@@ -28,30 +28,274 @@ from packages.ovon_core.routing import (
 )
 
 
-class RoutePlanRepository:
-    """In-memory plan-scoped repository for multi-user isolated route plans."""
+import json
+import os
+import sqlite3
+import uuid
+from datetime import datetime, timedelta, timezone
 
+from packages.ovon_core.domain import (
+    Coordinate,
+    FieldCue,
+    LoopRequest,
+    RouteOption,
+    RoutePersona,
+    RouteSegment,
+    TaxonRef,
+)
+
+
+class RoutePlanRepository:
+    """SQLite-backed plan-scoped repository for multi-user isolated route plans."""
+
+    _db_path: str = "data/route_plans.db"
     _plans: dict[str, tuple[RouteOption, ...]] = {}
 
     @classmethod
-    def save_plan(cls, routes: tuple[RouteOption, ...]) -> str:
+    def set_db_path(cls, path: str) -> None:
+        cls._db_path = path
+
+    @classmethod
+    def _get_connection(cls) -> sqlite3.Connection:
+        if cls._db_path != ":memory:":
+            os.makedirs(os.path.dirname(os.path.abspath(cls._db_path)), exist_ok=True)
+        conn = sqlite3.connect(cls._db_path)
+        conn.row_factory = sqlite3.Row
+        with conn:
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS route_plans (
+                    plan_id TEXT PRIMARY KEY,
+                    created_at TEXT NOT NULL,
+                    expires_at TEXT NOT NULL,
+                    routes_json TEXT NOT NULL,
+                    model_version TEXT NOT NULL,
+                    data_version TEXT NOT NULL
+                )
+                """
+            )
+        return conn
+
+    @classmethod
+    def _serialize_routes(cls, routes: tuple[RouteOption, ...]) -> str:
+        serialized = []
+        for r in routes:
+            seg_list = []
+            for s in r.segments:
+                seg_dict = {
+                    "index": s.index,
+                    "name": s.name,
+                    "habitat_name": s.habitat_name,
+                    "distance_meters": s.distance_meters,
+                    "duration_minutes": s.duration_minutes,
+                    "focal_species": [
+                        {
+                            "common_name": sp.common_name,
+                            "scientific_name": sp.scientific_name,
+                            "ebird_code": sp.ebird_code,
+                            "category": sp.category,
+                            "taxonomy_version": sp.taxonomy_version,
+                            "taxon_id": sp.taxon_id,
+                        }
+                        for sp in s.focal_species
+                    ],
+                    "field_cue": {
+                        "taxon_ref": {
+                            "common_name": s.field_cue.taxon_ref.common_name,
+                            "scientific_name": s.field_cue.taxon_ref.scientific_name,
+                            "ebird_code": s.field_cue.taxon_ref.ebird_code,
+                            "category": s.field_cue.taxon_ref.category,
+                            "taxonomy_version": s.field_cue.taxon_ref.taxonomy_version,
+                            "taxon_id": s.field_cue.taxon_ref.taxon_id,
+                        },
+                        "where_to_look": getattr(s.field_cue, "where_to_look", ""),
+                        "what_to_listen_for": getattr(s.field_cue, "what_to_listen_for", ""),
+                        "look_alikes": getattr(s.field_cue, "look_alikes", ""),
+                    }
+                    if s.field_cue
+                    else None,
+                    "geojson_geometry": s.geojson_geometry,
+                    "observation_point": {
+                        "latitude": s.observation_point.latitude,
+                        "longitude": s.observation_point.longitude,
+                    }
+                    if s.observation_point
+                    else None,
+                    "navigation_instruction": s.navigation_instruction,
+                }
+                seg_list.append(seg_dict)
+
+            r_dict = {
+                "id": r.id,
+                "persona": r.persona.value,
+                "name": r.name,
+                "tagline": r.tagline,
+                "duration_minutes": r.duration_minutes,
+                "distance_meters": r.distance_meters,
+                "badge_label": r.badge_label,
+                "tradeoff_description": r.tradeoff_description,
+                "segments": seg_list,
+                "geojson_geometry": r.geojson_geometry,
+            }
+            serialized.append(r_dict)
+        return json.dumps(serialized)
+
+    @classmethod
+    def _deserialize_routes(cls, json_str: str) -> tuple[RouteOption, ...]:
+        raw_list = json.loads(json_str)
+        routes = []
+        for r_dict in raw_list:
+            segments = []
+            for s_dict in r_dict.get("segments", []):
+                focal_species = tuple(
+                    TaxonRef(
+                        taxon_id=sp["taxon_id"],
+                        common_name=sp["common_name"],
+                        scientific_name=sp["scientific_name"],
+                        ebird_code=sp["ebird_code"],
+                        category=sp.get("category", "Bird"),
+                        taxonomy_version=sp.get("taxonomy_version", "Clements-2025"),
+                    )
+                    for sp in s_dict.get("focal_species", [])
+                )
+                fc_raw = s_dict.get("field_cue")
+                field_cue = None
+                if fc_raw and "taxon_ref" in fc_raw:
+                    sp_ref = fc_raw["taxon_ref"]
+                    t_ref = TaxonRef(
+                        taxon_id=sp_ref["taxon_id"],
+                        common_name=sp_ref["common_name"],
+                        scientific_name=sp_ref["scientific_name"],
+                        ebird_code=sp_ref["ebird_code"],
+                        category=sp_ref.get("category", "Bird"),
+                        taxonomy_version=sp_ref.get("taxonomy_version", "Clements-2025"),
+                    )
+                    field_cue = FieldCue(
+                        taxon_ref=t_ref,
+                        where_to_look=fc_raw.get("where_to_look", fc_raw.get("description", "")),
+                        what_to_listen_for=fc_raw.get("what_to_listen_for", ""),
+                        look_alikes=fc_raw.get("look_alikes", ""),
+                    )
+
+                obs_raw = s_dict.get("observation_point")
+                obs_pt = (
+                    Coordinate(obs_raw["latitude"], obs_raw["longitude"]) if obs_raw else None
+                )
+
+                seg = RouteSegment(
+                    index=s_dict["index"],
+                    name=s_dict["name"],
+                    habitat_name=s_dict["habitat_name"],
+                    distance_meters=float(s_dict["distance_meters"]),
+                    duration_minutes=float(s_dict["duration_minutes"]),
+                    focal_species=focal_species,
+                    field_cue=field_cue,
+                    geojson_geometry=s_dict.get("geojson_geometry"),
+                    observation_point=obs_pt,
+                    navigation_instruction=s_dict.get("navigation_instruction", ""),
+                )
+                segments.append(seg)
+
+            # Match persona enum
+            p_val = r_dict.get("persona")
+            matched_p = RoutePersona.EASY
+            for p in RoutePersona:
+                if p.value == p_val or p.name.lower() == str(p_val).lower():
+                    matched_p = p
+                    break
+
+            opt = RouteOption(
+                id=r_dict["id"],
+                persona=matched_p,
+                name=r_dict["name"],
+                tagline=r_dict["tagline"],
+                duration_minutes=int(r_dict["duration_minutes"]),
+                distance_meters=float(r_dict["distance_meters"]),
+                badge_label=r_dict["badge_label"],
+                tradeoff_description=r_dict["tradeoff_description"],
+                segments=tuple(segments),
+                geojson_geometry=r_dict.get("geojson_geometry"),
+            )
+            routes.append(opt)
+
+        return tuple(routes)
+
+    @classmethod
+    def save_plan(cls, routes: tuple[RouteOption, ...], ttl_hours: int = 24) -> str:
         plan_id = uuid.uuid4().hex[:10]
+        now = datetime.now(timezone.utc)
+        expires_at = now + timedelta(hours=ttl_hours)
+
         cls._plans[plan_id] = routes
+        routes_json = cls._serialize_routes(routes)
+
+        try:
+            conn = cls._get_connection()
+            with conn:
+                conn.execute(
+                    """
+                    INSERT INTO route_plans (plan_id, created_at, expires_at, routes_json, model_version, data_version)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        plan_id,
+                        now.isoformat(),
+                        expires_at.isoformat(),
+                        routes_json,
+                        "v1.0-kc",
+                        "2026.1",
+                    ),
+                )
+            conn.close()
+        except Exception:
+            # Fall back to in-memory plan cache if filesystem/SQLite write fails
+            pass
+
         return plan_id
 
     @classmethod
-    def get_route(cls, plan_id: str, route_id: str) -> RouteOption | None:
-        routes = cls._plans.get(plan_id)
-        if not routes:
+    def get_plan_routes(cls, plan_id: str) -> tuple[RouteOption, ...] | None:
+        if not plan_id:
             return None
-        for r in routes:
-            if r.id == route_id:
-                return r
-        return None
+
+        # Check in-memory process cache first
+        if plan_id in cls._plans:
+            return cls._plans[plan_id]
+
+        try:
+            conn = cls._get_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT routes_json, expires_at FROM route_plans WHERE plan_id = ?", (plan_id,)
+            )
+            row = cursor.fetchone()
+            conn.close()
+
+            if not row:
+                return None
+
+            expires_at = datetime.fromisoformat(row["expires_at"])
+            if datetime.now(timezone.utc) > expires_at:
+                return None
+
+            routes = cls._deserialize_routes(row["routes_json"])
+            cls._plans[plan_id] = routes
+            return routes
+        except Exception:
+            return None
 
     @classmethod
-    def get_plan_routes(cls, plan_id: str) -> tuple[RouteOption, ...] | None:
-        return cls._plans.get(plan_id)
+    def get_route(cls, plan_id: str, route_id: str) -> RouteOption | None:
+        if not plan_id or not route_id:
+            return None
+        routes = cls.get_plan_routes(plan_id)
+        if not routes:
+            return None
+        clean_route_id = route_id.lower().strip()
+        for r in routes:
+            if r.id.lower() == clean_route_id:
+                return r
+        return None
 
 
 class PlanLoopPreview:

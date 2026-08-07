@@ -34,3 +34,34 @@ class TaxonRef:
             ebird_code=clean_code,
             category=category,
         )
+
+
+@dataclass(frozen=True, slots=True)
+class TaxonSupport:
+    """Scientific support record decoupling ecological model support from media completeness."""
+
+    taxonomy_known: bool = True
+    occurrence_data_available: bool = False
+    effort_model_available: bool = False
+    calibrated_model_available: bool = False
+    field_cue_reviewed: bool = False
+    photo_available: bool = False
+    audio_available: bool = False
+    sensitive: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class FieldCueProfile:
+    """Region and season aware field cue profile for a species."""
+
+    taxon_id: str
+    region_scope: str = "US-MO-KC"
+    season_scope: str = "all_year"
+    audience: str = "beginner"
+    where_to_look: str = ""
+    listen_for: str = ""
+    confusion_taxa: tuple[str, ...] = ()
+    source: str = "Sidetrack Field Team"
+    reviewer: str = "Lead Ornithologist"
+    version: str = "v1.0"
+

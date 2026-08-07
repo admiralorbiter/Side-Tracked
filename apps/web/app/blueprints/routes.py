@@ -11,7 +11,7 @@ def detail(route_id):
     route_service = GetRouteDetail()
     field_pack_service = BuildFieldPack()
 
-    route_domain = route_service.execute(route_id)
+    route_domain = route_service.execute(None, route_id)
     if not route_domain:
         abort(404)
 
@@ -25,7 +25,7 @@ def in_route(route_id):
     route_service = GetRouteDetail()
     field_pack_service = BuildFieldPack()
 
-    route_domain = route_service.execute(route_id)
+    route_domain = route_service.execute(None, route_id)
     if not route_domain:
         abort(404)
 
@@ -39,7 +39,7 @@ def recap(route_id):
     route_service = GetRouteDetail()
     field_pack_service = BuildFieldPack()
 
-    route_domain = route_service.execute(route_id)
+    route_domain = route_service.execute(None, route_id)
     if not route_domain:
         abort(404)
 

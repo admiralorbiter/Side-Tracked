@@ -14,25 +14,23 @@ from packages.ovon_core.spatial import polyline_to_h3_cells
 
 
 class GetRouteDetail:
-    """Application Service for retrieving a RouteOption by ID."""
+    """Application Service for retrieving a RouteOption by plan_id and route_id."""
 
-    def execute(self, route_id: str) -> RouteOption | None:
-        """Retrieve distinct route option or None if not found."""
+    def execute(self, plan_id: str | None, route_id: str) -> RouteOption | None:
+        """Retrieve distinct route option scoped to plan_id, or None if missing/expired."""
         from apps.web.app.services.planner_service import RoutePlanRepository
 
-        clean_id = route_id.lower().strip()
-        # First check plan repository for plan-scoped routes across all active plans
-        for plan_routes in RoutePlanRepository._plans.values():
-            for r in plan_routes:
-                if r.id == clean_id:
-                    return r
+        clean_route_id = route_id.lower().strip()
+
+        if plan_id:
+            return RoutePlanRepository.get_route(plan_id, clean_route_id)
 
         if current_app and "active_routes" in current_app.extensions:
-            active: RouteOption | None = current_app.extensions["active_routes"].get(clean_id)
+            active: RouteOption | None = current_app.extensions["active_routes"].get(clean_route_id)
             if active and isinstance(active, RouteOption):
                 return active
 
-        return ALL_FIXTURE_ROUTES.get(clean_id)
+        return ALL_FIXTURE_ROUTES.get(clean_route_id)
 
 
 class BuildFieldPack:
@@ -63,8 +61,19 @@ class BuildFieldPack:
 
         repo = self.media_repo
 
-        # Sample route geometry into H3 spatial cells
+        # Sample route geometry into H3 spatial cells for dynamic ecological opportunity ranking
         traversed_cells = polyline_to_h3_cells(route.geojson_geometry, resolution=8)
+
+        from packages.ovon_core.ecology.recommender import DefaultSegmentSpeciesRecommender, SegmentContext
+
+        recommender = DefaultSegmentSpeciesRecommender(species_surface=self.species_surface)
+        rec_opportunities = recommender.recommend_species(
+            SegmentContext(traversed_h3_cells=traversed_cells)
+        )
+
+        for opp in rec_opportunities:
+            if opp.taxon not in focal_taxa:
+                focal_taxa.append(opp.taxon)
 
         for seg in route.segments:
             for sp in seg.focal_species:

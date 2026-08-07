@@ -647,3 +647,56 @@ media license/attribution verification
 ```
 
 A release candidate adds browser smoke tests and manual route/media checks. No hosted automation platform is assumed by the architecture.
+
+---
+
+# National Species Pipeline Architecture
+
+To scale Sidetrack from Kansas City to a national platform without requiring massive architecture rewrites, species schemas, taxonomy management, evidence ingestion, environmental sampling, and model serving operate under a national data pipeline architecture.
+
+```text
+                    TAXONOMY RELEASES
+                           │
+                           ▼
+                   Taxon Concept Registry (Sidetrack UUID)
+                           │
+         ┌─────────────────┼─────────────────┐
+         │                 │                 │
+         ▼                 ▼                 ▼
+   eBird EBD/SED      GBIF/iNaturalist     Media Sources
+   effort-aware        presence-only        photos/audio
+         │                 │                 │
+         └──────────┬──────┘                 │
+                    ▼                        ▼
+             Normalized Evidence       Media Registry
+                    │
+                    ▼
+       Seasonal Candidate-Taxa Index
+                    │
+                    ▼
+              Model Registry
+                    ▲
+                    │
+       Environmental Feature Store
+      NLCD / 3DEP elevation / water / etc.
+                    │
+                    ▼
+             Segment Species Service
+                    │
+                    ▼
+                 Sidetrack
+```
+
+### Architectural Principles
+
+1. **Taxon Concept Registry**: Internal identity uses a immutable Sidetrack UUID (`concept_id`). Source taxonomies (eBird, GBIF, iNaturalist, Clements, IOC) are mapped as versioned aliases, protecting past observations from taxonomy splits/lumps.
+2. **Separation of Events and Detections**: Sampling events (`observation_event`) hold effort, date, duration, protocol, and complete checklist status. Detections (`taxon_detection`) link to events. Zero-filling for effort-aware models occurs on demand strictly from complete checklists.
+3. **Sparse Storage & Coarse Candidate Lookup**: The system does not materialize an all-species × all-cells × all-weeks table. A lightweight `CandidateTaxaIndex(coarse_cell, week)` filters plausibility (30–100 candidate species per cell/week), while detailed models score only the candidate set.
+4. **Environmental Feature Store**: Environmental samples (NLCD land cover, USGS 3DEP elevation, USGS Hydrography) are computed once and stored in an independent feature store. Route segments sample these features along LineString geometries in local metric projections.
+5. **Graduated Model Tiers**: Species graduate independently across tiers:
+   - Tier 0: `taxonomy_only` (catalog entry without scoring)
+   - Tier 1: `occurrence_context` (presence-only spatial bounds)
+   - Tier 2: `effort_aware_index` (relative encounter index derived from complete checklists)
+   - Tier 3: `calibrated_model` (spatially validated probability model)
+6. **Sensitive Species & Licensing Guard**: Obscured species locations (e.g. eBird sensitive species) are protected at the serving layer and never targeted with pinpoint precision. Derived models are trained off-line under compliance manifests.
+

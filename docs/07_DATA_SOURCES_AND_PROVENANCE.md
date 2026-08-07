@@ -18,16 +18,16 @@ The application must answer three questions for every value:
 |---|---|---:|---|
 | eBird EBD + SED | Complete-checklist encounter modeling | Yes, after complete-checklist validation and zero filling | Raw-data and derived-product terms |
 | eBird recent API | Recent occurrence map | No | API key, rate limits, occurrence-only semantics |
-| eBird Status and Trends | Strong prior/range/abundance research layer | Not directly | Web/app and decision-support terms require review/permission |
-| GBIF | Presence-only occurrences and source comparison | No | Dataset-specific licenses and coordinate quality |
-| iNaturalist | Photo-supported presence-only occurrences | No | Observation licenses, obscured coordinates, attribution |
+| eBird Status and Trends | Strong prior/range/abundance research layer | Not directly | Web/app and decision-support terms require explicit Cornell consent |
+| GBIF | Presence-only occurrences and source comparison | No | Dataset-specific licenses, DOI citations, and coordinate quality |
+| iNaturalist | Photo-supported presence-only occurrences | No | Observation licenses, obscured coordinates, deduplication against GBIF |
+| USGS GAP Analysis | Landscape-scale suitable habitat priors | No | Coarse habitat prediction, NOT a local encounter probability |
 | OpenStreetMap | Route graph, access, POIs | No | ODbL attribution and data provenance |
 | Valhalla | Routing service using OSM/GTFS | N/A | deployment and data freshness |
 | KCATA GTFS | Transit schedules and accessibility fields | N/A | feed update and attribution |
-| Annual NLCD | Land cover, imperviousness, change | N/A | public-domain data, versioning |
-| PAD-US | Protected lands and access context | N/A | access is not guaranteed by polygon membership |
-| NWI | Wetland polygons/class | N/A | spatial update and classification |
-| NHDPlus | Water and hydrology | N/A | spatial resolution and nearest-feature method |
+| Annual NLCD (2025) | Land cover, imperviousness, canopy | N/A | public-domain data, versioning |
+| USGS 3DEP | High-resolution elevation data | N/A | unrestricted public domain data |
+| NHDPlus / Hydrography | Water and stream context | N/A | spatial resolution and nearest-feature method |
 | Daymet/weather | Weather covariates | N/A | temporal resolution and forecast versus historical distinction |
 | BirdCast/NEXRAD | Migration intensity and future dynamic routes | N/A | product terms, temporal/spatial scale |
 | Local municipal data | trails, closures, trees, heat, facilities | N/A | jurisdiction-specific quality and update cadence |

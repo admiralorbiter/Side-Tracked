@@ -18,7 +18,7 @@ from packages.ovon_core.domain.media import (
 from packages.ovon_core.domain.request import JourneyIntent, LoopRequest
 from packages.ovon_core.domain.route import RouteOption, RoutePersona, RouteSegment, RouteStopAction
 from packages.ovon_core.domain.spatial import BoundingBox, Coordinate, SpatialCellId
-from packages.ovon_core.domain.taxonomy import TaxonRef
+from packages.ovon_core.domain.taxonomy import FieldCueProfile, TaxonRef, TaxonSupport
 
 __all__ = [
     "DomainError",
@@ -30,6 +30,8 @@ __all__ = [
     "BoundingBox",
     "SpatialCellId",
     "TaxonRef",
+    "TaxonSupport",
+    "FieldCueProfile",
     "JourneyIntent",
     "LoopRequest",
     "LicenseType",

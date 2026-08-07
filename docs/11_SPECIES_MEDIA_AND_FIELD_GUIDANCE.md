@@ -53,9 +53,44 @@ Every supported taxon should aim for:
 - source/license/creator attribution;
 - content version and reviewer.
 
-A species can remain supported when one media type is missing, provided the interface shows a clear fallback.
+### Decoupling Scientific Support from Media Completeness
 
-## Species selection criteria
+A species being scientifically supported and a species being media-complete are distinct concepts in Sidetrack. The taxonomy catalog and ecological models can know about thousands of species nationwide even if curated photos or audio clips are not yet available for all of them.
+
+```python
+@dataclass(frozen=True)
+class TaxonSupport:
+    taxonomy_known: bool = True
+    occurrence_data_available: bool = False
+    effort_model_available: bool = False
+    calibrated_model_available: bool = False
+    field_cue_reviewed: bool = False
+    photo_available: bool = False
+    audio_available: bool = False
+    sensitive: bool = False
+```
+
+Example: **Black-billed Cuckoo** — taxonomically known, occurrence-supported, provisional ecological guidance, but no approved audio clip yet. The system includes the species in ecological scoring rather than excluding it.
+
+### Region and Season Aware Field Cues
+
+Field cues are structured via `FieldCueProfile` and attached by region, season, and target audience rather than static global text.
+
+```python
+@dataclass(frozen=True)
+class FieldCueProfile:
+    taxon_id: str  # Sidetrack UUID
+    region_scope: str  # e.g., "US-MO-KC", "US-CO"
+    season_scope: str  # e.g., "spring_migration", "breeding", "all_year"
+    audience: str  # e.g., "beginner", "intermediate"
+    where_to_look: str
+    listen_for: str
+    confusion_taxa: tuple[str, ...]
+    source: str
+    reviewer: str
+    version: str
+```
+
 
 Prioritize species that are:
 

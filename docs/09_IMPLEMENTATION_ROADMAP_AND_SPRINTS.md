@@ -300,131 +300,126 @@ Turn geometry into a sequence of ecological experiences.
 - each cue belongs to a relevant segment;
 - timeline is usable without the map.
 
-## Sprint 10: Media-complete field pack
+## Sprint 10: Media-complete field pack & Taxon Support Registry
 
 ### Goal
 
-Expand the curated media pack and make the field guide feel complete.
+Curate 25–50 excellent KC species while introducing the national Taxon Support Registry and region/season-aware field cue profiles. Scientific ecological support and media completeness are formally decoupled.
 
 ### Deliverables
 
-- 25–50 supported Kansas City species;
-- primary image per species when available;
-- song/call clip per supported species when available;
-- field mark, vocalization description, look/listen location, confusion species, and ethics note;
-- beginner and advanced variants;
-- route-specific pack selection;
-- low-bandwidth and missing-media states.
+- 25–50 curated Kansas City species with primary images and audio clips where available;
+- `TaxonSupport` record (`taxonomy_known`, `occurrence_data_available`, `effort_model_available`, `calibrated_model_available`, `field_cue_reviewed`, `photo_available`, `audio_available`, `sensitive`);
+- `FieldCueProfile` schema (`taxon_id`, `region_scope`, `season_scope`, `audience`, `where_to_look`, `listen_for`, `confusion_taxa`, `source`, `reviewer`, `version`);
+- offline candidate → review → approval media pipeline;
+- low-bandwidth and missing-media fallback states without breaking species availability.
 
 ### Exit gate
 
 - media and cue coverage reported in manifest;
+- species without media remain in ecological catalog under `TaxonSupport` state;
 - no species card silently lacks attribution;
-- field pack is not overwhelming in usability review;
 - audio and image accessibility checks pass.
 
-## Sprint 11: In-route and after-route experience
+## Sprint 11: In-route, SQLite route plan persistence, and versioned feedback
 
 ### Goal
 
-Support the actual walk, not only planning.
+Persist route plans to SQLite database with explicit `(plan_id, route_id)` scoping, and support the active walk experience with versioned observation feedback.
 
 ### Deliverables
 
-- current segment view;
-- route progress;
-- quiet mode;
-- tap-to-play cues;
-- no overlapping audio;
-- closure/access report;
-- completion/abandonment recap;
-- seen/heard/unsure feedback;
-- actual duration;
-- field-pack helpfulness prompt.
+- SQLite route plan persistence (`data/route_plans.db`) storing plan creation/expiry, request parameters, route geometries, model and data versions;
+- strict 410 Gone response on expired plan access (no silent cross-plan or static fixture fallbacks);
+- current segment view, route progress tracking, and quiet mode;
+- tap-to-play cues with single-audio playback controller;
+- versioned walk feedback capture (seen / heard / unsure / not noticed, route completion, abandonment, actual duration);
+- feedback treated as versioned user observation, not automatic scientific truth.
 
 ### Exit gate
 
-- in-route screen works one-handed on a small screen;
-- route remains usable with audio disabled;
-- completion and failure outcomes are distinct;
-- no continuous background location retention beyond the active need.
+- in-route screen works one-handed on small mobile displays;
+- expired plan URLs return 410/404 without resolving to another user's walk;
+- route plans persist across application restarts until expiration;
+- completion and failure outcomes are cleanly recorded.
 
 ---
 
-# Phase 4 — Stronger ecological evidence
+# Phase 4 — Stronger ecological evidence & National Backbone
 
 ## Sprint 12: Source-normalized evidence
 
 ### Goal
 
-Build a clean evidence pipeline while keeping source roles separate.
+Build the full bird taxonomy and evidence pipeline with explicit source roles.
 
 ### Deliverables
 
-- canonical taxonomy crosswalk;
-- GBIF presence-only ingestion;
-- iNaturalist presence-only ingestion with media licenses separate;
-- eBird recent occurrence ingestion as presence-only;
-- event date and cyclic week parsing;
-- coordinate-to-grid mapping;
-- duplicate/provider-lineage handling;
-- source provenance.
+- Taxon Concept Registry with Sidetrack UUIDs (`concept_id`) crosswalking eBird codes, GBIF keys, and iNaturalist IDs;
+- GBIF presence-only ingestion with DOI dataset citations;
+- iNaturalist Research Grade presence-only ingestion with deduplication against GBIF;
+- eBird recent occurrence API ingestion as presence-only context;
+- event date and cyclic week parsing mapped to H3 spatial grid cells.
 
 ### Exit gate
 
-- no occurrence endpoint generates non-detections;
-- common/scientific names use one taxon key;
-- dates are preserved;
-- cell assignment depends on geography, not list order;
-- evidence status is not confused with prediction status.
+- no presence-only endpoint generates synthetic non-detections;
+- common/scientific names resolve through concept identifiers;
+- evidence lineage and deduplication verified.
 
 ## Sprint 13: EBD/SED complete-checklist pipeline
 
 ### Goal
 
-Create the first true effort-aware dataset.
+Create the effort-aware dataset pipeline for offline derived models.
 
 ### Deliverables
 
-- named-column parsers;
-- sampling-event and detection tables;
-- complete-checklist filtering;
-- shared-checklist handling;
-- effort bounds;
-- focal-species zero filling;
-- release manifest;
-- restricted raw-data boundary.
+- named-column EBD and SED parsers;
+- explicit table separation between `observation_event` and `taxon_detection`;
+- complete-checklist validation and shared-checklist deduplication;
+- on-demand focal species zero-filling from eligible complete checklists;
+- restricted raw-data boundary and licensing compliance manifest.
 
 ### Exit gate
 
-- event counts reconcile;
-- zeros exist only for eligible complete checklists;
-- raw restricted files are not redistributed;
-- transformations are reproducible.
+- event and detection counts reconcile;
+- zero-filling occurs strictly on eligible complete checklists;
+- raw restricted data remains private and excluded from public redistribution.
 
-## Sprint 14: First calibrated focal species
+## Sprint 14: First calibrated focal species & spatial holdouts
 
 ### Goal
 
-Replace one provisional score with one validated encounter model.
+Train and evaluate the first calibrated focal species model across multiple spatial holdouts to ensure models generalize beyond Kansas City.
 
 ### Deliverables
 
-- frozen species;
-- training feature schema;
-- spatial/temporal holdout;
-- calibration evaluation;
-- model artifact and card;
-- uncertainty surface;
-- app adapter;
-- relative/probability language switch based on model status.
+- single calibrated species model trained on complete-checklist effort data;
+- spatial and temporal holdout evaluation matrix;
+- empirical encounter probability vs provisional relative score language switch;
+- model manifest and reproducibility card.
 
 ### Exit gate
 
-- held-out Brier/log-loss/calibration reported;
-- training and evaluation leakage checks pass;
-- app clearly identifies empirical versus provisional outputs;
-- fallback remains available.
+- spatial holdout calibration metrics (Brier score, log-loss) reported;
+- zero training/evaluation spatial leakage verified;
+- fallback to provisional score surface remains seamless.
+
+## National Bird Backbone Milestone (Post-Sprint 14)
+
+### Goal
+
+Establish a unified national backbone ensuring adding a new geographic region (e.g. Denver, St. Louis, Atlanta) requires only data/model coverage additions, not code rewrites.
+
+### Deliverables
+
+- full national taxonomy concept registry;
+- national evidence ingestion contracts;
+- environmental feature coverage (NLCD, USGS 3DEP, Hydrography);
+- `CandidateTaxaIndex(coarse_cell, week)` serving lookup;
+- model availability registry;
+- single repeatable `train_species_model` CLI command.
 
 ---
 

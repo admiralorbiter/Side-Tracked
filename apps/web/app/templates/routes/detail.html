@@ -10,13 +10,7 @@
       <h1 style="font-size: 2.2rem; font-weight: 800;" tabindex="-1">{{ route.name }}</h1>
       <p style="color: var(--brand-sky);">⏱️ {{ route.formatted_duration }} • 🚶 {{ route.formatted_distance }} • Returns to origin</p>
     </div>
-    <div style="display: flex; gap: 0.5rem;">
-      <a href="{{ url_for('planner.index') }}" class="btn btn-secondary">← Back to Planner</a>
-      <a href="{{ url_for('routes.in_route', route_id=route.id) }}" class="btn btn-primary">Start Walk Mode →</a>
-    </div>
-  </div>
-
-    <div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
       <a href="{{ url_for('planner.index') }}" class="btn btn-secondary" style="font-size: 0.9rem;">← Back to Planner</a>
       <a href="{% if plan_id %}{{ url_for('planner.route_walk', plan_id=plan_id, route_id=route.id) }}{% else %}{{ url_for('routes.in_route', route_id=route.id) }}{% endif %}" class="btn btn-primary" style="font-size: 0.9rem;">Start Walk Mode →</a>
     </div>

@@ -81,7 +81,7 @@ def calculate_repeated_edge_ratio(
 def calculate_spatial_corridor_overlap(
     geom_a: dict, geom_b: dict, buffer_meters: float = 75.0
 ) -> tuple[float, float]:
-    """Calculate spatial corridor overlap metrics S_IoU and S_contain using buffered Shapely geometries."""
+    """Calculate spatial corridor overlap metrics S_IoU and S_contain using local projected metric CRS buffering."""
     try:
         coords_a = geom_a.get("coordinates", [])
         coords_b = geom_b.get("coordinates", [])
@@ -91,9 +91,23 @@ def calculate_spatial_corridor_overlap(
         line_a = LineString(coords_a)
         line_b = LineString(coords_b)
 
-        deg_buffer = buffer_meters / 111139.0
-        buf_a = line_a.buffer(deg_buffer)
-        buf_b = line_b.buffer(deg_buffer)
+        # Compute centroid of combined geometries to center local Azimuthal Equidistant projection
+        combined_centroid = LineString(coords_a + coords_b).centroid
+        center_lat, center_lon = combined_centroid.y, combined_centroid.x
+
+        from pyproj import CRS, Transformer
+        from shapely.ops import transform
+
+        proj_crs = CRS.from_user_input(
+            f"+proj=aeqd +lat_0={center_lat} +lon_0={center_lon} +datum=WGS84 +units=m"
+        )
+        transformer = Transformer.from_crs("EPSG:4326", proj_crs, always_xy=True)
+
+        metric_line_a = transform(transformer.transform, line_a)
+        metric_line_b = transform(transformer.transform, line_b)
+
+        buf_a = metric_line_a.buffer(buffer_meters)
+        buf_b = metric_line_b.buffer(buffer_meters)
 
         inter_area = buf_a.intersection(buf_b).area
         union_area = buf_a.union(buf_b).area

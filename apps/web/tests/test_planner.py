@@ -141,3 +141,39 @@ def test_species_detail_domain_page(client):
 def test_species_detail_unknown_404(client):
     response = client.get("/species/banana")
     assert response.status_code == 404
+
+
+def test_plan_isolation_rejects_invalid_or_expired_plan_id(client):
+    # Invalid or non-existent plan ID must yield 404/410, never another user's plan or fallback fixture
+    resp = client.get("/plans/invalidplan123/routes/easy-1")
+    assert resp.status_code == 404
+
+
+def test_all_plan_scoped_route_walk_and_recap_screens(client):
+    res = client.post("/planner/results", data={"duration": "45"})
+    assert res.status_code == 200
+
+    from apps.web.app.services.planner_service import RoutePlanRepository
+
+    plans = list(RoutePlanRepository._plans.keys())
+    plan_id = plans[-1]
+    routes = RoutePlanRepository.get_plan_routes(plan_id)
+    assert routes is not None
+
+    for r in routes:
+        # Test route detail page contains correct plan-scoped walk link
+        detail_resp = client.get(f"/plans/{plan_id}/routes/{r.id}")
+        assert detail_resp.status_code == 200
+        assert f"/plans/{plan_id}/routes/{r.id}/walk".encode("utf-8") in detail_resp.data
+
+        # Test active walk screen
+        walk_resp = client.get(f"/plans/{plan_id}/routes/{r.id}/walk")
+        assert walk_resp.status_code == 200
+        assert b"Walk Mode Active" in walk_resp.data
+
+        # Test recap screen
+        recap_resp = client.get(f"/plans/{plan_id}/routes/{r.id}/recap")
+        assert recap_resp.status_code == 200
+        assert b"Walk Completed" in recap_resp.data
+
+

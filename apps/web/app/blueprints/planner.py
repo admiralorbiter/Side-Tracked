@@ -73,19 +73,8 @@ def _resolve_origin_coordinate(origin_str: str) -> tuple[Coordinate, str]:
 
 
 def _resolve_route_with_fallback(plan_id: str, route_id: str):
-    """Resolve RouteOption by plan_id, with robust fallback to GetRouteDetail if plan expired."""
-    route = RoutePlanRepository.get_route(plan_id, route_id)
-    if route:
-        return route
-
-    detail_service = GetRouteDetail()
-    route = detail_service.execute(route_id)
-    if route:
-        return route
-
-    # Fallback to persona prefix (e.g. birdy-2 -> birdy-1)
-    prefix = route_id.split("-")[0] + "-1"
-    return detail_service.execute(prefix)
+    """Resolve RouteOption strictly by (plan_id, route_id). Return None if plan expired or missing."""
+    return RoutePlanRepository.get_route(plan_id, route_id)
 
 
 @planner_bp.route("/")
