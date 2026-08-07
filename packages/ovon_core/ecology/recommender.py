@@ -6,7 +6,7 @@ from typing import Protocol
 from packages.ovon_core.domain import SpatialCellId, TaxonRef
 from packages.ovon_core.ecology.habitat import HabitatType
 from packages.ovon_core.ecology.species_surface import ProvisionalSpeciesSurface
-from packages.ovon_core.fixtures.routes_fixtures import CARDINAL, ROBIN, WAXWING, WOODPECKER
+from packages.ovon_core.fixtures.kc_species_fixtures import ALL_KC_TAXA
 
 
 @dataclass(frozen=True, slots=True)
@@ -41,7 +41,7 @@ class DefaultSegmentSpeciesRecommender:
 
     def __init__(self, species_surface: ProvisionalSpeciesSurface | None = None):
         self.surface = species_surface or ProvisionalSpeciesSurface()
-        self.candidate_pool: tuple[TaxonRef, ...] = (ROBIN, CARDINAL, WOODPECKER, WAXWING)
+        self.candidate_pool: tuple[TaxonRef, ...] = ALL_KC_TAXA
 
     def recommend_species(
         self, context: SegmentContext, limit: int = 3

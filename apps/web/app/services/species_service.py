@@ -10,28 +10,23 @@ from packages.ovon_core.domain import (
     MediaType,
     TaxonRef,
 )
-from packages.ovon_core.fixtures.routes_fixtures import (
-    CARDINAL,
-    CUE_CARDINAL,
-    CUE_ROBIN,
-    CUE_WAXWING,
-    CUE_WOODPECKER,
-    ROBIN,
-    WAXWING,
-    WOODPECKER,
+from packages.ovon_core.domain import (
+    FieldCue,
+    MediaAsset,
+    MediaType,
+    TaxonRef,
 )
+from packages.ovon_core.fixtures.kc_species_fixtures import ALL_KC_TAXA, KC_FIELD_CUES
 from packages.ovon_core.media import MediaRepository
 
-SPECIES_FIXTURE_MAP: dict[str, tuple[TaxonRef, FieldCue]] = {
-    "rehwoo": (WOODPECKER, CUE_WOODPECKER),
-    "red_headed_woodpecker": (WOODPECKER, CUE_WOODPECKER),
-    "amerob": (ROBIN, CUE_ROBIN),
-    "american_robin": (ROBIN, CUE_ROBIN),
-    "norcar": (CARDINAL, CUE_CARDINAL),
-    "northern_cardinal": (CARDINAL, CUE_CARDINAL),
-    "cedwax": (WAXWING, CUE_WAXWING),
-    "cedar_waxwing": (WAXWING, CUE_WAXWING),
-}
+# Master Species Fixture Map for all 30 KC Taxa
+SPECIES_FIXTURE_MAP: dict[str, tuple[TaxonRef, FieldCue]] = {}
+for _taxon in ALL_KC_TAXA:
+    _cue = KC_FIELD_CUES[_taxon.ebird_code]
+    SPECIES_FIXTURE_MAP[_taxon.ebird_code] = (_taxon, _cue)
+    SPECIES_FIXTURE_MAP[_taxon.taxon_id] = (_taxon, _cue)
+    _clean_common = _taxon.common_name.lower().replace(" ", "_").replace("'", "")
+    SPECIES_FIXTURE_MAP[_clean_common] = (_taxon, _cue)
 
 
 @dataclass(frozen=True)

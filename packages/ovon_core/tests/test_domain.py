@@ -199,3 +199,19 @@ def test_route_segment_cue_mismatch_raises():
             focal_species=(cardinal,),
             field_cue=robin_cue,
         )
+
+
+def test_kc_30_species_catalog_fixtures():
+    from packages.ovon_core.fixtures.kc_species_fixtures import ALL_KC_TAXA, KC_FIELD_CUES, KC_FIELD_CUE_PROFILES
+
+    assert len(ALL_KC_TAXA) == 30
+    assert len(KC_FIELD_CUES) == 30
+    assert len(KC_FIELD_CUE_PROFILES) == 30
+
+    for taxon in ALL_KC_TAXA:
+        assert taxon.ebird_code in KC_FIELD_CUES
+        cue = KC_FIELD_CUES[taxon.ebird_code]
+        assert cue.taxon_ref == taxon
+        profile = KC_FIELD_CUE_PROFILES[taxon.ebird_code]
+        assert profile.taxon_id == taxon.taxon_id
+
