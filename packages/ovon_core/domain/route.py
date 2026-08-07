@@ -1,7 +1,9 @@
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 from packages.ovon_core.domain.habitat import HabitatType
+
 from packages.ovon_core.domain.media import FieldCue
 from packages.ovon_core.domain.spatial import Coordinate
 from packages.ovon_core.domain.taxonomy import TaxonRef
@@ -40,6 +42,7 @@ class RouteSegment:
     observation_point: Coordinate | None = None
     navigation_instruction: str = ""
     habitat_type: HabitatType = HabitatType.OPEN_PARKLAND
+    environmental_vector: Any | None = None
 
     def __post_init__(self) -> None:
         if self.distance_meters <= 0:

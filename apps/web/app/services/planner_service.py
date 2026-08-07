@@ -189,12 +189,22 @@ class RoutePlanRepository:
                 obs_raw = s_dict.get("observation_point")
                 obs_pt = Coordinate(obs_raw["latitude"], obs_raw["longitude"]) if obs_raw else None
 
-                ht_str = s_dict.get("habitat_type", "Open Parkland")
-                matched_ht = HabitatType.OPEN_PARKLAND
-                for ht in HabitatType:
-                    if ht.value == ht_str or ht.name.lower() == str(ht_str).lower():
-                        matched_ht = ht
-                        break
+                # Extract continuous environmental feature vector
+                from packages.ovon_core.spatial.environmental_extractor import (
+                    EnvironmentalFeatureExtractor,
+                )
+
+                extractor = EnvironmentalFeatureExtractor()
+                seg_coords = []
+                g_geom = s_dict.get("geojson_geometry")
+                if g_geom and "coordinates" in g_geom:
+                    raw_coords = g_geom["coordinates"]
+                    seg_coords = [(c[1], c[0]) for c in raw_coords if len(c) >= 2]
+                elif obs_pt:
+                    seg_coords = [(obs_pt.latitude, obs_pt.longitude)]
+
+                env_vec = extractor.extract_for_segment(seg_coords)
+                derived_ht = env_vec.derive_habitat_type()
 
                 seg = RouteSegment(
                     index=s_dict["index"],
@@ -207,7 +217,8 @@ class RoutePlanRepository:
                     geojson_geometry=s_dict.get("geojson_geometry"),
                     observation_point=obs_pt,
                     navigation_instruction=s_dict.get("navigation_instruction", ""),
-                    habitat_type=matched_ht,
+                    habitat_type=derived_ht,
+                    environmental_vector=env_vec,
                 )
                 segments.append(seg)
 
