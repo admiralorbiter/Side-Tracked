@@ -1,12 +1,13 @@
-"""Deterministic Species Probability Surface Model for OVON Core."""
+"""Deterministic Provisional Species Surface Model for OVON Core."""
 
+import hashlib
 from dataclasses import dataclass, field
 
 from packages.ovon_core.domain import SpatialCellId, TaxonRef
 from packages.ovon_core.ecology.habitat import HabitatType
 
-# Baseline detectability probabilities P(Taxon | Habitat) based on eBird frequency tables
-BASELINE_SPECIES_PROBABILITIES: dict[tuple[str, HabitatType], float] = {
+# Baseline provisional detectability scores relative to habitat type
+BASELINE_PROVISIONAL_SCORES: dict[tuple[str, HabitatType], float] = {
     # American Robin (amerob)
     ("amerob", HabitatType.OPEN_PARKLAND): 0.85,
     ("amerob", HabitatType.MATURE_CANOPY): 0.45,
@@ -46,25 +47,28 @@ BASELINE_SPECIES_PROBABILITIES: dict[tuple[str, HabitatType], float] = {
 
 
 @dataclass(frozen=True, slots=True)
-class SpeciesProbabilitySurface:
-    """Deterministic species probability surface model evaluating P(species | habitat, H3 cell)."""
+class ProvisionalSpeciesSurface:
+    """Deterministic provisional species surface model evaluating relative score(species | habitat, H3 cell)."""
 
     taxonomy_version: str = "Clements-2025"
     custom_baseline: dict[tuple[str, HabitatType], float] = field(
-        default_factory=lambda: dict(BASELINE_SPECIES_PROBABILITIES)
+        default_factory=lambda: dict(BASELINE_PROVISIONAL_SCORES)
     )
 
-    def get_probability(
+    def get_relative_score(
         self, taxon: TaxonRef, habitat: HabitatType, cell: SpatialCellId | None = None
     ) -> float:
-        """Return deterministic detectability probability between 0.0 and 1.0."""
+        """Return deterministic relative score between 0.0 and 1.0."""
         key = (taxon.ebird_code.lower(), habitat)
-        prob = self.custom_baseline.get(key, 0.30)
+        score = self.custom_baseline.get(key, 0.30)
 
-        # Deterministic spatial cell modifier based on cell hash (zero random values)
+        # Deterministic spatial cell modifier based on SHA256 digest (process-stable)
         if cell is not None:
-            cell_hash = abs(hash(cell.to_string())) % 100
-            modifier = (cell_hash - 50) / 1000.0  # Modifies prob by +/- 0.05 deterministically
-            prob = max(0.05, min(0.95, prob + modifier))
+            digest = hashlib.sha256(cell.to_string().encode("utf-8")).digest()
+            cell_val = int.from_bytes(digest[:4], "big")
+            modifier = (
+                (cell_val % 101) - 50
+            ) / 1000.0  # Modifies score by +/- 0.05 deterministically
+            score = max(0.05, min(0.95, score + modifier))
 
-        return round(prob, 3)
+        return round(score, 3)

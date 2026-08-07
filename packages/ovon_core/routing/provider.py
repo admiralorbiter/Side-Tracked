@@ -3,8 +3,9 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from typing import Literal
 
-from packages.ovon_core.domain import Coordinate, LoopRequest, RoutePersona
+from packages.ovon_core.domain import Coordinate, LoopRequest, RouteOption, RoutePersona
 
 
 @dataclass(frozen=True, slots=True)
@@ -44,6 +45,15 @@ class RoutingResult:
     duration_minutes: int
     candidates: tuple[LoopRouteCandidate, ...]
     provenance: RoutingProvenance
+
+
+@dataclass(frozen=True, slots=True)
+class RouteMenuResult:
+    """Explicit status result containing resolved route options and truthfulness provenance."""
+
+    routes: tuple[RouteOption, ...]
+    source: Literal["live_osm", "cached_osm", "prototype_fixture"]
+    warning: str | None = None
 
 
 class RoutingProvider(ABC):

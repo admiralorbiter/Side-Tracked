@@ -1,6 +1,6 @@
-"""Planner Application Service."""
+"""Planner Application Service and Plan-Scoped Repository."""
 
-from typing import Sequence
+import uuid
 
 from flask import current_app
 
@@ -20,11 +20,37 @@ from packages.ovon_core.fixtures.routes_fixtures import (
     WAXWING,
     WOODPECKER,
 )
-from packages.ovon_core.routing import OSMnxIgraphRoutingProvider, RoutingProvider
+from packages.ovon_core.routing import OSMnxIgraphRoutingProvider, RouteMenuResult, RoutingProvider
+
+
+class RoutePlanRepository:
+    """In-memory plan-scoped repository for multi-user isolated route plans."""
+
+    _plans: dict[str, tuple[RouteOption, ...]] = {}
+
+    @classmethod
+    def save_plan(cls, routes: tuple[RouteOption, ...]) -> str:
+        plan_id = uuid.uuid4().hex[:10]
+        cls._plans[plan_id] = routes
+        return plan_id
+
+    @classmethod
+    def get_route(cls, plan_id: str, route_id: str) -> RouteOption | None:
+        routes = cls._plans.get(plan_id)
+        if not routes:
+            return None
+        for r in routes:
+            if r.id == route_id:
+                return r
+        return None
+
+    @classmethod
+    def get_plan_routes(cls, plan_id: str) -> tuple[RouteOption, ...] | None:
+        return cls._plans.get(plan_id)
 
 
 class PlanLoopPreview:
-    """Application Service for evaluating LoopRequest and returning available RouteOptions."""
+    """Application Service for evaluating LoopRequest and returning available RouteOptions with truthful provenance."""
 
     def __init__(self, routing_provider: RoutingProvider | None = None):
         self._routing_provider = routing_provider
@@ -38,14 +64,13 @@ class PlanLoopPreview:
             return provider
         return OSMnxIgraphRoutingProvider()
 
-    def execute(self, request: LoopRequest) -> Sequence[RouteOption]:
-        """Return distinct route options matching the LoopRequest."""
+    def execute(self, request: LoopRequest) -> RouteMenuResult:
+        """Return distinct route options and truthfulness provenance for a LoopRequest."""
         try:
             result = self.routing_provider.calculate_loop(request)
             options: list[RouteOption] = []
 
             for cand in result.candidates:
-                # Map candidate back to domain RouteOption with segments
                 if cand.persona == RoutePersona.EASY:
                     base = ROUTE_EASY
                     focal = (ROBIN, CARDINAL)
@@ -100,13 +125,16 @@ class PlanLoopPreview:
                 )
                 options.append(opt)
 
-            if current_app:
-                if "active_routes" not in current_app.extensions:
-                    current_app.extensions["active_routes"] = {}
-                for opt in options:
-                    current_app.extensions["active_routes"][opt.id] = opt
-
-            return tuple(options)
-        except Exception:
-            # Fall back gracefully to prototype fixtures if graph solver fails
-            return (ROUTE_EASY, ROUTE_BIRDY, ROUTE_WEIRD)
+            routes_tuple = tuple(options)
+            return RouteMenuResult(
+                routes=routes_tuple,
+                source="live_osm",
+                warning=None,
+            )
+        except Exception as e:
+            # Explicit degraded fallback with warning
+            return RouteMenuResult(
+                routes=(ROUTE_EASY, ROUTE_BIRDY, ROUTE_WEIRD),
+                source="prototype_fixture",
+                warning=f"Live routing graph solver was unable to solve candidates ({e}). Displaying demonstration routes.",
+            )

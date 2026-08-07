@@ -17,6 +17,7 @@ dependencies = [
     "geopandas>=0.14.0",
     "pandas>=2.0.0",
     "pyarrow>=15.0.0",
+    "h3>=3.7.0",
 ]
 
 [project.optional-dependencies]
@@ -32,7 +33,7 @@ dev = [
 where = ["apps/web", "packages"]
 
 [tool.pytest.ini_options]
-addopts = "-n auto --import-mode=importlib -ra"
+addopts = "-n auto -p no:qt --import-mode=importlib -ra"
 testpaths = ["apps/web/tests", "packages/ovon_core/tests"]
 pythonpath = [".", "apps/web", "packages"]
 python_files = ["test_*.py"]

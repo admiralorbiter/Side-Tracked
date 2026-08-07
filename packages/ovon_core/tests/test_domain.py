@@ -67,7 +67,7 @@ def test_bounding_box_invalid():
 
 def test_spatial_cell_id_h3():
     from packages.ovon_core.domain import SpatialCellId
-    from packages.ovon_core.spatial import is_within_us_bounds, lat_lng_to_h3_cell
+    from packages.ovon_core.spatial import is_within_kc_pilot_bounds, lat_lng_to_h3_cell
 
     # Authentic Uber H3 Res 8 index for Loose Park, Kansas City (39.0347, -94.5906)
     kc_coord = Coordinate(39.0347, -94.5906)
@@ -78,12 +78,17 @@ def test_spatial_cell_id_h3():
 
     parsed = SpatialCellId.from_h3_string(kc_cell.to_string())
     assert parsed.cell_index == kc_cell.cell_index
+    assert parsed.resolution == 8
 
     # Invalid H3 index string raises InvalidCoordinateError
     with pytest.raises(InvalidCoordinateError):
         SpatialCellId.from_h3_string("h3_res8:invalid_hex_string")
 
-    assert is_within_us_bounds(kc_coord) is True
+    # Mismatched resolution raises InvalidCoordinateError
+    with pytest.raises(InvalidCoordinateError, match="Declared resolution"):
+        SpatialCellId(resolution=7, cell_index=kc_cell.cell_index)
+
+    assert is_within_kc_pilot_bounds(kc_coord) is True
 
 
 # 2. Taxonomy Tests
@@ -96,6 +101,7 @@ def test_taxon_ref_factory():
     assert taxon.taxon_id == "species:ebird:rehwoo"
     assert taxon.common_name == "Red-headed Woodpecker"
     assert taxon.ebird_code == "rehwoo"
+    assert taxon.taxonomy_version == "Clements-2025"
 
 
 def test_taxon_ref_empty_validation():
@@ -110,7 +116,6 @@ def test_loop_request_valid():
     req2 = LoopRequest(origin=origin, origin_name="Loose Park", duration_minutes=45)
     assert req1.duration_minutes == 45
     assert req1.intent == JourneyIntent.LOOP_FROM_HERE
-    # Created at compare=False ensures identical requests compare equal for deterministic caching
     assert req1 == req2
 
 
@@ -184,7 +189,6 @@ def test_route_segment_cue_mismatch_raises():
     robin = TaxonRef.create("American Robin", "Turdus migratorius", "amerob")
     robin_cue = FieldCue(robin, "Look on lawns", "Listen for cheery song")
 
-    # Cue for Robin assigned to Cardinal-only segment raises ValueError invariant error
     with pytest.raises(ValueError, match="must belong to segment focal_species"):
         RouteSegment(
             index=1,

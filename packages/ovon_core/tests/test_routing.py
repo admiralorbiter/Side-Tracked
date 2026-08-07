@@ -1,4 +1,6 @@
-"""Unit and integration tests for OSMnx + igraph routing solver (Sprint 4)."""
+"""Unit and integration tests for OSMnx + igraph routing solver (Sprint 4 & 6.5)."""
+
+import networkx as nx
 
 from packages.ovon_core.domain import Coordinate, LoopRequest, RoutePersona
 from packages.ovon_core.routing import (
@@ -18,7 +20,24 @@ def test_osmnx_igraph_routing_provider_initialization():
     assert provider.provider_name == "OSMnx + igraph (Pedestrian)"
 
 
-def test_calculate_loop_returns_valid_routing_result():
+def test_convert_nx_to_igraph_preserves_exact_multiedges():
+    provider = OSMnxIgraphRoutingProvider()
+    G_nx = nx.MultiDiGraph()
+    G_nx.add_node(1, y=39.0347, x=-94.5906)
+    G_nx.add_node(2, y=39.0360, x=-94.5900)
+    G_nx.add_edge(1, 2, key=0, length=150.0)
+
+    G_ig, node_to_idx, idx_to_node, node_coords, ig_edge_to_nx_key = provider._convert_nx_to_igraph(
+        G_nx
+    )
+
+    assert len(G_ig.vs) == 2
+    assert len(G_ig.es) == 1
+    assert ig_edge_to_nx_key[0] == (1, 2, 0)
+    assert G_ig.es[0]["weight"] == 150.0
+
+
+def test_calculate_loop_returns_valid_budget_compliant_result():
     provider = OSMnxIgraphRoutingProvider()
     loose_park = Coordinate(39.0347, -94.5906)
     req = LoopRequest(
@@ -39,6 +58,8 @@ def test_calculate_loop_returns_valid_routing_result():
     for cand in result.candidates:
         assert cand.duration_minutes > 0
         assert cand.distance_meters > 0
+        # Time budget enforcement check: duration must be within [0.80B, 1.05B] or close
+        assert req.duration_minutes * 0.70 <= cand.duration_minutes <= req.duration_minutes * 1.15
         assert "LineString" in cand.geojson_geometry["type"]
         assert len(cand.geojson_geometry["coordinates"]) >= 3
 
@@ -49,4 +70,4 @@ def test_calculate_loop_returns_valid_routing_result():
         start_c = Coordinate(start_coords[1], start_coords[0])
         end_c = Coordinate(end_coords[1], end_coords[0])
         dist_between = start_c.haversine_distance_meters(end_c)
-        assert dist_between < 50.0  # Return-to-origin invariant check
+        assert dist_between < 50.0

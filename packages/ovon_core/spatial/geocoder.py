@@ -1,15 +1,16 @@
 """Geocoder Provider ABC, Nominatim implementation, and caching for OVON Core."""
 
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+import hashlib
 import json
-from pathlib import Path
 import time
 import urllib.parse
 import urllib.request
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from pathlib import Path
 
 from packages.ovon_core.domain import Coordinate, SpatialCellId
-from packages.ovon_core.spatial.h3_indexer import is_within_us_bounds, lat_lng_to_h3_cell
+from packages.ovon_core.spatial.h3_indexer import is_within_kc_pilot_bounds, lat_lng_to_h3_cell
 
 NOMINATIM_BASE_URL = "https://nominatim.openstreetmap.org"
 USER_AGENT = "Sidetrack/0.1 (nature-walk-planner; contact@sidetrack.app)"
@@ -40,7 +41,7 @@ class GeocoderProvider(ABC):
 
 
 class NominatimGeocoderProvider(GeocoderProvider):
-    """OpenStreetMap Nominatim API Geocoder with local disk caching and rate limiting."""
+    """OpenStreetMap Nominatim API Geocoder with SHA256 hashed query disk caching and rate limiting."""
 
     def __init__(self, cache_dir: Path | str | None = None, rate_limit_seconds: float = 1.0):
         if cache_dir:
@@ -52,8 +53,8 @@ class NominatimGeocoderProvider(GeocoderProvider):
         self._last_request_time: float = 0.0
 
     def _get_cache_path(self, key: str) -> Path:
-        safe_key = "".join(c if c.isalnum() else "_" for c in key.lower())[:100]
-        return self.cache_dir / f"{safe_key}.json"
+        hashed_key = hashlib.sha256(key.lower().strip().encode("utf-8")).hexdigest()
+        return self.cache_dir / f"geo_{hashed_key}.json"
 
     def _read_cache(self, key: str) -> dict | None:
         cache_path = self._get_cache_path(key)
@@ -70,8 +71,14 @@ class NominatimGeocoderProvider(GeocoderProvider):
     def _write_cache(self, key: str, data: dict) -> None:
         cache_path = self._get_cache_path(key)
         try:
+            # Preserve privacy: cache coordinates and coarse display name without raw query string
+            sanitized_data = {
+                "lat": data.get("lat"),
+                "lon": data.get("lon"),
+                "display_name": data.get("display_name"),
+            }
             with open(cache_path, "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False, indent=2)
+                json.dump(sanitized_data, f, ensure_ascii=False, indent=2)
         except Exception:
             pass
 
@@ -152,7 +159,7 @@ class NominatimGeocoderProvider(GeocoderProvider):
             lon = float(data.get("lon", 0.0))
             coord = Coordinate(lat, lon, allow_zero=True)
 
-            if not is_within_us_bounds(coord):
+            if not is_within_kc_pilot_bounds(coord):
                 return None
 
             disp_name = data.get("display_name", f"{lat:.4f}, {lon:.4f}")

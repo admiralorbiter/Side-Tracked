@@ -4,6 +4,12 @@
     <p>3 closed walking loops for a {{ loop_request.duration_minutes }}-minute budget. All routes return to start.</p>
   </div>
 
+  {% if menu_result and menu_result.warning %}
+  <div style="background: rgba(234, 179, 8, 0.15); border: 1px solid rgba(234, 179, 8, 0.4); color: #fde047; padding: 0.75rem 1rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem; font-size: 0.88rem;">
+    ⚠️ <strong>Routing Notice:</strong> {{ menu_result.warning }}
+  </div>
+  {% endif %}
+
   <div class="routes-grid">
     {% for route in routes %}
     <div class="card route-card">
@@ -39,7 +45,7 @@
         </div>
       </div>
 
-      <a href="{{ url_for('routes.detail', route_id=route.id) }}" class="btn btn-primary" style="width: 100%; text-align: center;">
+      <a href="{{ url_for('planner.route_detail', plan_id=plan_id, route_id=route.id) }}" class="btn btn-primary" style="width: 100%; text-align: center;">
         Explore Route & Field Pack →
       </a>
     </div>

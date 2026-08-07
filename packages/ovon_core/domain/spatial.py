@@ -91,6 +91,11 @@ class SpatialCellId:
             raise InvalidCoordinateError(
                 f"'{self.cell_index}' is not a valid H3 spatial index string."
             )
+        actual_res = h3.get_resolution(self.cell_index)
+        if actual_res != self.resolution:
+            raise InvalidCoordinateError(
+                f"Declared resolution {self.resolution} does not match H3 cell resolution {actual_res} for '{self.cell_index}'."
+            )
 
     @classmethod
     def from_h3_string(cls, h3_str: str) -> "SpatialCellId":
@@ -98,9 +103,12 @@ class SpatialCellId:
         if ":" in h3_str:
             parts = h3_str.split(":", 1)
             prefix, idx = parts[0], parts[1]
-            res = int(prefix.replace("h3_res", "")) if "h3_res" in prefix else 8
+            res = (
+                int(prefix.replace("h3_res", "")) if "h3_res" in prefix else h3.get_resolution(idx)
+            )
             return cls(resolution=res, cell_index=idx)
-        return cls(resolution=8, cell_index=h3_str)
+        res = h3.get_resolution(h3_str) if h3.is_valid_cell(h3_str) else 8
+        return cls(resolution=res, cell_index=h3_str)
 
     def to_string(self) -> str:
         return f"h3_res{self.resolution}:{self.cell_index}"

@@ -1,6 +1,7 @@
 """Kansas City Regional Pilot Entrance Catalog for OVON Core."""
 
 from dataclasses import dataclass
+from typing import Literal
 
 from packages.ovon_core.domain import Coordinate, SpatialCellId
 from packages.ovon_core.spatial import lat_lng_to_h3_cell
@@ -8,14 +9,19 @@ from packages.ovon_core.spatial import lat_lng_to_h3_cell
 
 @dataclass(frozen=True, slots=True)
 class ParkEntrance:
-    """Candidate entrance or access location for public parks."""
+    """Candidate entrance or access location for public parks with full provenance."""
 
     name: str
     park_name: str
     coordinate: Coordinate
     cell: SpatialCellId
-    access_status: str = "open_public"
-    parking_available: bool = True
+    access_status: Literal["verified_public", "likely_public", "restricted", "unknown"] = (
+        "verified_public"
+    )
+    parking_status: Literal["verified", "reported", "none", "unknown"] = "verified"
+    source_name: str = "KC Parks & Rec Catalog"
+    source_id: str = "kc_pilot_v1"
+    verified_at: str = "2026-08-01"
 
 
 # Kansas City Regional Pilot Entrances

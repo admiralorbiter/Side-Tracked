@@ -2,12 +2,12 @@
 
 from packages.ovon_core.ecology.habitat import HabitatType
 from packages.ovon_core.ecology.species_surface import (
-    BASELINE_SPECIES_PROBABILITIES,
-    SpeciesProbabilitySurface,
+    BASELINE_PROVISIONAL_SCORES,
+    ProvisionalSpeciesSurface,
 )
 
 __all__ = [
     "HabitatType",
-    "SpeciesProbabilitySurface",
-    "BASELINE_SPECIES_PROBABILITIES",
+    "ProvisionalSpeciesSurface",
+    "BASELINE_PROVISIONAL_SCORES",
 ]

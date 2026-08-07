@@ -1,7 +1,8 @@
 import re
+
 from flask import Blueprint, current_app, make_response, render_template, request, session
 
-from apps.web.app.services import PlanLoopPreview
+from apps.web.app.services.planner_service import PlanLoopPreview, RoutePlanRepository
 from packages.ovon_core.domain import (
     Coordinate,
     InvalidCoordinateError,
@@ -12,12 +13,18 @@ from packages.ovon_core.spatial import (
     PRESETS_BY_ID,
     GeocoderProvider,
     NominatimGeocoderProvider,
-    is_within_us_bounds,
+    is_within_kc_pilot_bounds,
 )
 
 planner_bp = Blueprint("planner", __name__)
 
 DEFAULT_COORDINATE = Coordinate(39.0347, -94.5906)
+
+
+class OriginResolutionError(Exception):
+    """Raised when an origin location query cannot be resolved to a valid location."""
+
+    pass
 
 
 def _resolve_origin_coordinate(origin_str: str) -> tuple[Coordinate, str]:
@@ -27,10 +34,14 @@ def _resolve_origin_coordinate(origin_str: str) -> tuple[Coordinate, str]:
         return DEFAULT_COORDINATE, "Loose Park, Kansas City, MO"
 
     # Check Preset catalog
-    preset_key = clean_str.lower().replace(" ", "-")
-    if preset_key in PRESETS_BY_ID:
-        p = PRESETS_BY_ID[preset_key]
-        return p.coordinate, f"{p.name}, {p.city_state}"
+    clean_lower = clean_str.lower()
+    for p_id, p in PRESETS_BY_ID.items():
+        if (
+            p_id in clean_lower
+            or p.name.lower() in clean_lower
+            or p_id.replace("-", " ") in clean_lower
+        ):
+            return p.coordinate, f"{p.name}, {p.city_state}"
 
     # Check Current Location pattern: "Current Location (39.0347, -94.5906)"
     coords_match = re.search(r"Current Location \((-?\d+\.\d+),\s*(-?\d+\.\d+)\)", clean_str)
@@ -39,7 +50,7 @@ def _resolve_origin_coordinate(origin_str: str) -> tuple[Coordinate, str]:
             lat = float(coords_match.group(1))
             lon = float(coords_match.group(2))
             c = Coordinate(lat, lon)
-            if is_within_us_bounds(c):
+            if is_within_kc_pilot_bounds(c):
                 return c, f"Current Location ({lat:.3f}, {lon:.3f})"
         except ValueError:
             pass
@@ -53,12 +64,15 @@ def _resolve_origin_coordinate(origin_str: str) -> tuple[Coordinate, str]:
 
     if geocoder:
         res = geocoder.geocode(clean_str)
-        if res and is_within_us_bounds(res.coordinate):
-            # Privacy Scrub: Extract coarse city/park name rather than exact street number
+        if res and is_within_kc_pilot_bounds(res.coordinate):
+            # Privacy Scrub: Extract coarse city/park name rather than exact street address
             clean_display = res.display_name.split(",")[0].strip()
             return res.coordinate, clean_display
 
-    return DEFAULT_COORDINATE, "Loose Park, Kansas City, MO"
+    raise OriginResolutionError(
+        f"We couldn't find a supported location for '{clean_str}' within the Kansas City pilot area. "
+        "Please try a park name (e.g. Loose Park, Swope Park) or select a park preset."
+    )
 
 
 @planner_bp.route("/")
@@ -67,7 +81,7 @@ def index():
     return render_template("planner/index.html")
 
 
-@planner_bp.route("/planner/origin", methods=["GET"])
+@planner_bp.route("/planner/origin", methods=["GET", "POST"])
 def origin():
     """Step 2: Choose starting origin."""
     if request.headers.get("HX-Request"):
@@ -79,28 +93,46 @@ def origin():
 
 @planner_bp.route("/planner/duration", methods=["GET", "POST"])
 def duration():
-    """Step 3: Choose duration budget & preferences."""
-    origin_location = request.values.get("origin") or session.get(
-        "origin", "Loose Park, Kansas City, MO"
+    """Step 3: Choose duration budget & preferences (Privacy: POST handling)."""
+    error_msg = None
+    origin_input = (
+        request.form.get("origin")
+        or request.args.get("origin")
+        or session.get("origin_display_name", "Loose Park, Kansas City, MO")
     )
-    session["origin"] = origin_location
+
+    try:
+        coord, clean_name = _resolve_origin_coordinate(origin_input)
+        session["origin_lat"] = coord.latitude
+        session["origin_lon"] = coord.longitude
+        session["origin_display_name"] = clean_name
+        origin_display = clean_name
+    except OriginResolutionError as err:
+        error_msg = str(err)
+        origin_display = session.get("origin_display_name", "Loose Park, Kansas City, MO")
+
+    if error_msg and request.headers.get("HX-Request"):
+        return render_template("planner/origin.html", error=error_msg), 400
 
     if request.headers.get("HX-Request"):
-        resp = make_response(render_template("planner/duration.html", origin=origin_location))
+        resp = make_response(
+            render_template("planner/duration.html", origin=origin_display, error=error_msg)
+        )
         resp.headers["HX-Push-Url"] = "/planner/duration"
         return resp
-    return render_template("planner/index.html", step="duration", origin=origin_location)
+    return render_template(
+        "planner/index.html", step="duration", origin=origin_display, error=error_msg
+    )
 
 
 @planner_bp.route("/planner/planning", methods=["POST"])
 def planning():
     """Step 4: Animated planning / loading state."""
-    origin_loc = request.form.get("origin") or session.get("origin", "Loose Park, Kansas City, MO")
+    origin_display = session.get("origin_display_name", "Loose Park, Kansas City, MO")
     minutes = request.form.get("duration", "45")
     paved_only = request.form.get("paved_only") == "true"
     quiet_mode = request.form.get("quiet_mode") == "true"
 
-    session["origin"] = origin_loc
     session["duration"] = minutes
     session["paved_only"] = paved_only
     session["quiet_mode"] = quiet_mode
@@ -108,39 +140,39 @@ def planning():
     if request.headers.get("HX-Request"):
         return render_template(
             "planner/planning.html",
-            origin=origin_loc,
+            origin=origin_display,
             duration=minutes,
             paved_only=paved_only,
             quiet_mode=quiet_mode,
         )
     return render_template(
-        "planner/index.html", step="planning", origin=origin_loc, minutes=minutes
+        "planner/index.html", step="planning", origin=origin_display, minutes=minutes
     )
 
 
 @planner_bp.route("/planner/results", methods=["GET", "POST"])
 def results():
-    """Step 5: Display domain-backed Easy, Birdy, and Weird route options."""
+    """Step 5: Display plan-scoped Easy, Birdy, and Weird route options."""
     if request.method == "POST":
-        origin_loc = request.form.get("origin") or session.get(
-            "origin", "Loose Park, Kansas City, MO"
-        )
         minutes_raw = request.form.get("duration") or session.get("duration", "45")
         paved_only = request.form.get("paved_only") == "true"
         quiet_mode = request.form.get("quiet_mode") == "true"
     else:
-        origin_loc = session.get("origin", "Loose Park, Kansas City, MO")
         minutes_raw = session.get("duration", "45")
         paved_only = session.get("paved_only", False)
         quiet_mode = session.get("quiet_mode", False)
 
+    lat = session.get("origin_lat", DEFAULT_COORDINATE.latitude)
+    lon = session.get("origin_lon", DEFAULT_COORDINATE.longitude)
+    origin_display = session.get("origin_display_name", "Loose Park, Kansas City, MO")
+
     try:
         minutes = int(minutes_raw)
-        resolved_coord, clean_name = _resolve_origin_coordinate(origin_loc)
+        resolved_coord = Coordinate(lat, lon)
 
         loop_req = LoopRequest(
             origin=resolved_coord,
-            origin_name=clean_name,
+            origin_name=origin_display,
             duration_minutes=minutes,
             paved_only=paved_only,
             quiet_mode=quiet_mode,
@@ -148,21 +180,48 @@ def results():
     except (ValueError, InvalidTimeBudgetError, InvalidCoordinateError) as err:
         error_msg = str(err)
         if request.headers.get("HX-Request"):
-            return render_template("planner/duration.html", origin=origin_loc, error=error_msg), 400
+            return render_template(
+                "planner/duration.html", origin=origin_display, error=error_msg
+            ), 400
         return render_template(
-            "planner/index.html", step="duration", origin=origin_loc, error=error_msg
+            "planner/index.html", step="duration", origin=origin_display, error=error_msg
         ), 400
 
     service = PlanLoopPreview()
-    domain_routes = service.execute(loop_req)
+    menu_result = service.execute(loop_req)
+    plan_id = RoutePlanRepository.save_plan(menu_result.routes)
 
     if request.headers.get("HX-Request"):
         resp = make_response(
             render_template(
-                "planner/routes_preview.html", routes=domain_routes, loop_request=loop_req
+                "planner/routes_preview.html",
+                routes=menu_result.routes,
+                plan_id=plan_id,
+                menu_result=menu_result,
+                loop_request=loop_req,
             )
         )
         resp.headers["HX-Push-Url"] = "/planner/results"
         return resp
 
-    return render_template("planner/index.html", routes=domain_routes, loop_request=loop_req)
+    return render_template(
+        "planner/index.html",
+        routes=menu_result.routes,
+        plan_id=plan_id,
+        menu_result=menu_result,
+        loop_request=loop_req,
+    )
+
+
+@planner_bp.route("/plans/<plan_id>/routes/<route_id>")
+def route_detail(plan_id: str, route_id: str):
+    """Step 6: Plan-scoped route detail view."""
+    from apps.web.app.services import BuildFieldPack
+
+    route = RoutePlanRepository.get_route(plan_id, route_id)
+    if not route:
+        return render_template("errors/404.html"), 404
+    field_pack = BuildFieldPack().execute(route)
+    return render_template(
+        "routes/detail.html", route=route, field_pack=field_pack, plan_id=plan_id
+    )

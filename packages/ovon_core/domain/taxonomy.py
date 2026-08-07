@@ -10,7 +10,7 @@ class TaxonRef:
     scientific_name: str
     ebird_code: str
     category: str = "Bird"
-    taxonomy_version: str = "ebird_2023"
+    taxonomy_version: str = "Clements-2025"
 
     def __post_init__(self) -> None:
         if not self.taxon_id:
