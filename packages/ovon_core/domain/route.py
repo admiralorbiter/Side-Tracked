@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 from packages.ovon_core.domain.media import FieldCue
+from packages.ovon_core.domain.spatial import Coordinate
 from packages.ovon_core.domain.taxonomy import TaxonRef
 
 
@@ -34,6 +35,7 @@ class RouteSegment:
     focal_species: tuple[TaxonRef, ...]
     field_cue: FieldCue
     geojson_geometry: dict | None = None
+    observation_point: Coordinate | None = None
 
     def __post_init__(self) -> None:
         if self.distance_meters <= 0:

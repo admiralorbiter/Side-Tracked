@@ -281,3 +281,41 @@ footer {
   border-top: 1px solid var(--border-card);
   margin-top: auto;
 }
+
+/* Custom Leaflet Map Pin Badges */
+.map-start-pin {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 27, 46, 0.92);
+  border: 1.5px solid rgba(16, 185, 129, 0.8);
+  color: #ffffff;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6), 0 0 12px rgba(16, 185, 129, 0.5);
+  white-space: nowrap;
+}
+
+.map-start-dot {
+  width: 10px;
+  height: 10px;
+  background: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.map-habitat-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: rgba(88, 125, 113, 0.9);
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+

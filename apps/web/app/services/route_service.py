@@ -16,7 +16,12 @@ class GetRouteDetail:
 
     def execute(self, route_id: str) -> RouteOption | None:
         """Retrieve distinct route option or None if not found."""
-        return ALL_FIXTURE_ROUTES.get(route_id.lower().strip())
+        clean_id = route_id.lower().strip()
+        if current_app and "active_routes" in current_app.extensions:
+            active: RouteOption | None = current_app.extensions["active_routes"].get(clean_id)
+            if active and isinstance(active, RouteOption):
+                return active
+        return ALL_FIXTURE_ROUTES.get(clean_id)
 
 
 class BuildFieldPack:

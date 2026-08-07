@@ -57,8 +57,11 @@ data/private/*
 !data/private/.gitkeep
 data/derived/*
 !data/derived/.gitkeep
+data/cache/*
+!data/cache/.gitkeep
 media/cached/*
 !media/cached/.gitkeep
+*.pickle
 
 # Experiments & Temp Files
 scratch/

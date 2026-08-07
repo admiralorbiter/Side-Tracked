@@ -16,9 +16,11 @@
     </div>
   </div>
 
-  <!-- Interactive Map Placeholder Container -->
+  <!-- Interactive Map Container -->
   <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 2rem;">
-    <div id="sidetrack-map" style="height: 320px; width: 100%;"></div>
+    <div id="sidetrack-map" 
+         data-geojson='{{ route.geojson_geometry | tojson if route.geojson_geometry else "" }}' 
+         style="height: 360px; width: 100%;"></div>
   </div>
 
   <!-- Text-Equivalent Route Timeline Header -->

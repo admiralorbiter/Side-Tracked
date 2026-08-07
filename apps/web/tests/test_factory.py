@@ -35,4 +35,4 @@ def test_admin_status(client):
     assert json_data["status"] == "healthy"
     assert "Greater Kansas City" in json_data["region"]
     assert json_data["components"]["web"] == "ready"
-    assert json_data["components"]["routing"] == "not_configured"
+    assert json_data["components"]["routing"] == "osmnx_igraph_ready"

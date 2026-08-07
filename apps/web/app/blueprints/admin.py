@@ -13,7 +13,7 @@ def status():
             "components": {
                 "web": "ready",
                 "media": "prototype",
-                "routing": "not_configured",
+                "routing": "osmnx_igraph_ready",
                 "ecology": "fixture",
             },
             "manifest_version": "0.1-prototype",

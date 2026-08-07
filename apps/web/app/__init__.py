@@ -4,6 +4,7 @@ from flask import Flask
 
 from apps.web.app.config import DevelopmentConfig
 from packages.ovon_core.media import LocalMediaRepository
+from packages.ovon_core.routing import OSMnxIgraphRoutingProvider
 
 
 def create_app(config_class=DevelopmentConfig):
@@ -18,6 +19,9 @@ def create_app(config_class=DevelopmentConfig):
     app.extensions["media_repository"] = LocalMediaRepository(
         manifest_path if manifest_path.exists() else None
     )
+
+    # Initialize and inject Routing Provider extension
+    app.extensions["routing_provider"] = OSMnxIgraphRoutingProvider()
 
     # Register Blueprints
     from apps.web.app.blueprints.admin import admin_bp
