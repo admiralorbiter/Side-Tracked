@@ -44,19 +44,29 @@ def polyline_to_h3_cells(geojson_geometry: dict | None, resolution: int = 8) -> 
 
     cells: set[SpatialCellId] = set()
 
-    # Process each vertex and interpolate intermediate points along edges
+    # Process each vertex and interpolate points at ~100m step intervals along long edges
     for i in range(len(coords)):
         lon, lat = coords[i][0], coords[i][1]
-        c = Coordinate(lat, lon)
-        cells.add(lat_lng_to_h3_cell(c, resolution=resolution))
+        c1 = Coordinate(lat, lon)
+        cells.add(lat_lng_to_h3_cell(c1, resolution=resolution))
 
         if i < len(coords) - 1:
             next_lon, next_lat = coords[i + 1][0], coords[i + 1][1]
-            # Interpolate midpoint for dense sampling
-            mid_lat = (lat + next_lat) / 2.0
-            mid_lon = (lon + next_lon) / 2.0
-            mid_c = Coordinate(mid_lat, mid_lon)
-            cells.add(lat_lng_to_h3_cell(mid_c, resolution=resolution))
+            c2 = Coordinate(next_lat, next_lon)
+            edge_length_m = c1.haversine_distance_meters(c2)
+
+            # Sample intermediate points every ~100 meters
+            if edge_length_m > 100.0:
+                steps = int(edge_length_m // 100.0) + 1
+                for step in range(1, steps):
+                    frac = step / float(steps)
+                    interp_lat = lat + (next_lat - lat) * frac
+                    interp_lon = lon + (next_lon - lon) * frac
+                    interp_c = Coordinate(interp_lat, interp_lon)
+                    cells.add(lat_lng_to_h3_cell(interp_c, resolution=resolution))
+            else:
+                mid_c = Coordinate((lat + next_lat) / 2.0, (lon + next_lon) / 2.0)
+                cells.add(lat_lng_to_h3_cell(mid_c, resolution=resolution))
 
     return cells
 

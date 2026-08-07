@@ -273,7 +273,7 @@ main.container {
 /* Route Badges styled with brand palette */
 .badge-easy { background: rgba(193, 207, 218, 0.2); color: var(--brand-sky); border: 1px solid rgba(193, 207, 218, 0.3); }
 .badge-birdy { background: rgba(77, 170, 87, 0.2); color: #5cd367; border: 1px solid rgba(77, 170, 87, 0.3); }
-.badge-weird { background: rgba(117, 70, 104, 0.3); color: #d69dbf; border: 1px solid rgba(117, 70, 104, 0.4); }
+.badge-weird { background: #542646; color: #f3d5e7; border: 1px solid #754668; }
 
 .route-title {
   font-size: 1.3rem;
@@ -291,13 +291,13 @@ main.container {
 
 .species-pill {
   display: inline-block;
-  background: rgba(88, 125, 113, 0.3);
-  border: 1px solid rgba(88, 125, 113, 0.4);
+  background: rgba(88, 125, 113, 0.55);
+  border: 1px solid rgba(88, 125, 113, 0.65);
   padding: 0.2rem 0.6rem;
   border-radius: var(--radius-sm);
   font-size: 0.8rem;
   margin: 0.2rem 0.2rem 0.2rem 0;
-  color: var(--brand-sky);
+  color: #f8fafc;
 }
 
 footer {

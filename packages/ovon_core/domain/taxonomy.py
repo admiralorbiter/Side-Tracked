@@ -46,6 +46,8 @@ class TaxonSupport:
     calibrated_model_available: bool = False
     field_cue_reviewed: bool = False
     photo_available: bool = False
+    song_available: bool = False
+    call_available: bool = False
     audio_available: bool = False
     sensitive: bool = False
 
@@ -57,10 +59,14 @@ class FieldCueProfile:
     taxon_id: str
     region_scope: str = "US-MO-KC"
     season_scope: str = "all_year"
+    weeks_range: tuple[int, int] = (1, 52)
     audience: str = "beginner"
+    look_for: tuple[str, ...] = ()
     where_to_look: str = ""
     listen_for: str = ""
+    where_to_listen: str = ""
     confusion_taxa: tuple[str, ...] = ()
+    ethics_note: str | None = None
     source: str = "Sidetrack Field Team"
     reviewer: str = "Lead Ornithologist"
     version: str = "v1.0"

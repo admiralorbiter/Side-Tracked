@@ -78,6 +78,19 @@ def calculate_repeated_edge_ratio(
     return repeated_len / total_len
 
 
+from functools import lru_cache
+
+
+@lru_cache(maxsize=128)
+def _get_aeqd_transformer(lat_0: float, lon_0: float):
+    from pyproj import CRS, Transformer
+
+    proj_crs = CRS.from_user_input(
+        f"+proj=aeqd +lat_0={lat_0} +lon_0={lon_0} +datum=WGS84 +units=m"
+    )
+    return Transformer.from_crs("EPSG:4326", proj_crs, always_xy=True)
+
+
 def calculate_spatial_corridor_overlap(
     geom_a: dict, geom_b: dict, buffer_meters: float = 75.0
 ) -> tuple[float, float]:
@@ -93,15 +106,12 @@ def calculate_spatial_corridor_overlap(
 
         # Compute centroid of combined geometries to center local Azimuthal Equidistant projection
         combined_centroid = LineString(coords_a + coords_b).centroid
-        center_lat, center_lon = combined_centroid.y, combined_centroid.x
+        center_lat = round(combined_centroid.y, 3)
+        center_lon = round(combined_centroid.x, 3)
 
-        from pyproj import CRS, Transformer
         from shapely.ops import transform
 
-        proj_crs = CRS.from_user_input(
-            f"+proj=aeqd +lat_0={center_lat} +lon_0={center_lon} +datum=WGS84 +units=m"
-        )
-        transformer = Transformer.from_crs("EPSG:4326", proj_crs, always_xy=True)
+        transformer = _get_aeqd_transformer(center_lat, center_lon)
 
         metric_line_a = transform(transformer.transform, line_a)
         metric_line_b = transform(transformer.transform, line_b)

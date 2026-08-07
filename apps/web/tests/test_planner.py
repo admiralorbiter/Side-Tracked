@@ -177,3 +177,34 @@ def test_all_plan_scoped_route_walk_and_recap_screens(client):
         assert b"Walk Completed" in recap_resp.data
 
 
+def test_walk_observation_feedback_submission(client):
+    res = client.post("/planner/results", data={"duration": "30"})
+    assert res.status_code == 200
+
+    from apps.web.app.services.planner_service import RoutePlanRepository
+
+    plans = list(RoutePlanRepository._plans.keys())
+    plan_id = plans[-1]
+
+    post_data = {
+        "outcome": "completed",
+        "actual_duration": "32",
+        "obs_amerob": "seen",
+        "obs_norcar": "heard",
+        "notes": "Beautiful morning walk in Loose Park.",
+    }
+    fb_resp = client.post(f"/plans/{plan_id}/routes/easy-1/feedback", data=post_data)
+    assert fb_resp.status_code == 200
+    assert b"Observation Saved!" in fb_resp.data
+
+    from apps.web.app.services import WalkFeedbackRepository
+
+    records = WalkFeedbackRepository.get_feedback_for_plan(plan_id, "easy-1")
+    assert len(records) > 0
+    assert records[0]["outcome"] == "completed"
+    assert records[0]["observations"].get("amerob") == "seen"
+    assert records[0]["observations"].get("norcar") == "heard"
+    assert records[0]["notes"] == "Beautiful morning walk in Loose Park."
+
+
+

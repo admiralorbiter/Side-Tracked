@@ -227,6 +227,9 @@ def route_detail(plan_id: str, route_id: str):
     )
 
 
+from apps.web.app.services import BuildFieldPack, GetRouteDetail, WalkFeedbackRepository
+
+
 @planner_bp.route("/plans/<plan_id>/routes/<route_id>/walk")
 def route_walk(plan_id: str, route_id: str):
     """Step 8: Plan-scoped active Walk Mode."""
@@ -234,8 +237,13 @@ def route_walk(plan_id: str, route_id: str):
     if not route:
         return render_template("errors/404.html"), 404
     field_pack = BuildFieldPack().execute(route)
+    quiet_mode = session.get("quiet_mode", False)
     return render_template(
-        "routes/in_route.html", route=route, field_pack=field_pack, plan_id=plan_id
+        "routes/in_route.html",
+        route=route,
+        field_pack=field_pack,
+        plan_id=plan_id,
+        quiet_mode=quiet_mode,
     )
 
 
@@ -246,6 +254,51 @@ def route_recap(plan_id: str, route_id: str):
     if not route:
         return render_template("errors/404.html"), 404
     field_pack = BuildFieldPack().execute(route)
+    saved_feedback = WalkFeedbackRepository.get_feedback_for_plan(plan_id, route_id)
     return render_template(
-        "routes/recap.html", route=route, field_pack=field_pack, plan_id=plan_id
+        "routes/recap.html",
+        route=route,
+        field_pack=field_pack,
+        plan_id=plan_id,
+        saved_feedback=saved_feedback,
+    )
+
+
+@planner_bp.route("/plans/<plan_id>/routes/<route_id>/feedback", methods=["POST"])
+def route_feedback(plan_id: str, route_id: str):
+    """Save versioned user walk observation feedback."""
+    route = _resolve_route_with_fallback(plan_id, route_id)
+    if not route:
+        return render_template("errors/404.html"), 404
+
+    outcome = request.form.get("outcome", "completed")
+    notes = request.form.get("notes", "").strip()
+
+    duration_raw = request.form.get("actual_duration")
+    duration_minutes = int(duration_raw) if duration_raw and duration_raw.isdigit() else route.duration_minutes
+
+    field_pack = BuildFieldPack().execute(route)
+    observations = {}
+    for sp in field_pack.focal_species:
+        obs_key = f"obs_{sp.ebird_code}"
+        if obs_key in request.form:
+            observations[sp.ebird_code] = request.form[obs_key]
+
+    WalkFeedbackRepository.save_feedback(
+        plan_id=plan_id,
+        route_id=route.id,
+        outcome=outcome,
+        observations=observations,
+        duration_minutes=duration_minutes,
+        notes=notes,
+    )
+
+    saved_feedback = WalkFeedbackRepository.get_feedback_for_plan(plan_id, route.id)
+    return render_template(
+        "routes/recap.html",
+        route=route,
+        field_pack=field_pack,
+        plan_id=plan_id,
+        saved_feedback=saved_feedback,
+        submitted=True,
     )
