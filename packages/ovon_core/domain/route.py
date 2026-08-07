@@ -12,6 +12,7 @@ class RoutePersona(str, Enum):
     EASY = "The Easy One"
     BIRDY = "The Birdy One"
     WEIRD = "The Weird One"
+    SCENIC = "The Scenic One"
 
 
 @dataclass(frozen=True, slots=True)
@@ -92,6 +93,27 @@ class RouteOption:
             raise ValueError(
                 f"Summed segment duration ({total_seg_dur}min) does not reconcile with route duration ({self.duration_minutes}min)."
             )
+
+    @property
+    def unique_focal_species(self) -> tuple[TaxonRef, ...]:
+        """Return tuple of distinct focal species across all route segments."""
+        species = []
+        for s in self.segments:
+            for sp in s.focal_species:
+                if sp not in species:
+                    species.append(sp)
+        return tuple(species)
+
+    @property
+    def badge_css_class(self) -> str:
+        """Return CSS class for badge rendering based on persona."""
+        if self.persona == RoutePersona.EASY:
+            return "badge-easy"
+        elif self.persona == RoutePersona.BIRDY:
+            return "badge-birdy"
+        elif self.persona == RoutePersona.WEIRD:
+            return "badge-weird"
+        return "badge-easy"
 
     @property
     def formatted_distance(self) -> str:

@@ -35,6 +35,11 @@ class LoopRouteCandidate:
     geojson_geometry: dict
     waypoints: tuple[Coordinate, ...]
     segment_metrics: tuple[dict, ...] = ()
+    edge_sequence: tuple[tuple[int, int, int], ...] = ()
+    repeated_edge_ratio: float = 0.0
+    compactness_score: float = 0.0
+    ecological_score: float = 0.0
+    novelty_score: float = 0.0
 
 
 @dataclass(frozen=True, slots=True)

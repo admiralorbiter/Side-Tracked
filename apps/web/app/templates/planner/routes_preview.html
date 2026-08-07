@@ -1,7 +1,7 @@
 <div>
   <div class="intent-header" style="text-align: left; margin-bottom: 1.5rem;">
     <h2 tabindex="-1">Choose your path from {{ loop_request.origin_name }}</h2>
-    <p>3 closed walking loops for a {{ loop_request.duration_minutes }}-minute budget. All routes return to start.</p>
+    <p>{{ routes|length }} closed walking loop{% if routes|length > 1 %}s{% endif %} for a {{ loop_request.duration_minutes }}-minute budget. All routes return to start.</p>
   </div>
 
   {% if menu_result and menu_result.warning %}
@@ -14,13 +14,7 @@
     {% for route in routes %}
     <div class="card route-card">
       <div>
-        {% if route.persona.name == "EASY" or route.name == "The Easy One" %}
-          <span class="route-badge badge-easy">{{ route.badge_label }}</span>
-        {% elif route.persona.name == "BIRDY" or route.name == "The Birdy One" %}
-          <span class="route-badge badge-birdy">{{ route.badge_label }}</span>
-        {% else %}
-          <span class="route-badge badge-weird">{{ route.badge_label }}</span>
-        {% endif %}
+        <span class="route-badge {{ route.badge_css_class }}">{{ route.badge_label }}</span>
         
         <h3 class="route-title">{{ route.name }}</h3>
         <p style="color: var(--brand-sky); font-size: 0.9rem; margin-bottom: 0.75rem;">{{ route.tagline }}</p>
@@ -28,15 +22,13 @@
         <div class="route-metrics">
           <span>⏱️ {{ route.formatted_duration }}</span>
           <span>🚶 {{ route.formatted_distance }}</span>
-          <span>🐦 {% set taxa = [] %}{% for seg in route.segments %}{% for sp in seg.focal_species %}{% if sp not in taxa %}{% set _ = taxa.append(sp) %}{% endif %}{% endfor %}{% endfor %}{{ taxa|length }} focal species</span>
+          <span>🐦 {{ route.unique_focal_species|length }} focal species</span>
         </div>
 
         <div style="margin-bottom: 1rem;">
           <div style="font-size: 0.8rem; color: var(--brand-sky); margin-bottom: 0.3rem;">Focal species along loop:</div>
-          {% for seg in route.segments %}
-            {% for sp in seg.focal_species %}
-              <span class="species-pill">{{ sp.common_name }}</span>
-            {% endfor %}
+          {% for sp in route.unique_focal_species %}
+            <span class="species-pill">{{ sp.common_name }}</span>
           {% endfor %}
         </div>
 

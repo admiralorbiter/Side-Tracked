@@ -20,7 +20,12 @@ from packages.ovon_core.fixtures.routes_fixtures import (
     WAXWING,
     WOODPECKER,
 )
-from packages.ovon_core.routing import OSMnxIgraphRoutingProvider, RouteMenuResult, RoutingProvider
+from packages.ovon_core.routing import (
+    OSMnxIgraphRoutingProvider,
+    RouteMenuResult,
+    RoutingProvider,
+    TradeoffExplanationGenerator,
+)
 
 
 class RoutePlanRepository:
@@ -52,8 +57,13 @@ class RoutePlanRepository:
 class PlanLoopPreview:
     """Application Service for evaluating LoopRequest and returning available RouteOptions with truthful provenance."""
 
-    def __init__(self, routing_provider: RoutingProvider | None = None):
+    def __init__(
+        self,
+        routing_provider: RoutingProvider | None = None,
+        explanation_generator: TradeoffExplanationGenerator | None = None,
+    ):
         self._routing_provider = routing_provider
+        self.explanation_generator = explanation_generator or TradeoffExplanationGenerator()
 
     @property
     def routing_provider(self) -> RoutingProvider:
@@ -69,6 +79,7 @@ class PlanLoopPreview:
         try:
             result = self.routing_provider.calculate_loop(request)
             options: list[RouteOption] = []
+            easy_baseline: RouteOption | None = None
 
             for cand in result.candidates:
                 if cand.persona == RoutePersona.EASY:
@@ -79,6 +90,10 @@ class PlanLoopPreview:
                     base = ROUTE_BIRDY
                     focal = (CARDINAL, WOODPECKER)
                     cue = CUE_CARDINAL
+                elif cand.persona == RoutePersona.SCENIC:
+                    base = ROUTE_WEIRD
+                    focal = (WAXWING, WOODPECKER)
+                    cue = CUE_WAXWING
                 else:
                     base = ROUTE_WEIRD
                     focal = (WAXWING, WOODPECKER)
@@ -112,7 +127,9 @@ class PlanLoopPreview:
                 )
 
                 opt = RouteOption(
-                    id=base.id,
+                    id=f"{cand.persona.name.lower()}-1"
+                    if cand.persona == RoutePersona.EASY
+                    else f"{cand.persona.name.lower()}-{len(options) + 1}",
                     persona=cand.persona,
                     name=cand.name,
                     tagline=cand.tagline,
@@ -123,9 +140,33 @@ class PlanLoopPreview:
                     segments=(seg1, seg2),
                     geojson_geometry=cand.geojson_geometry,
                 )
+
+                if cand.persona == RoutePersona.EASY:
+                    easy_baseline = opt
+
                 options.append(opt)
 
-            routes_tuple = tuple(options)
+            # Generate comparative tradeoff descriptions relative to Easy baseline
+            final_options = []
+            for opt in options:
+                tradeoff_text = self.explanation_generator.generate_tradeoff_description(
+                    opt, easy_baseline
+                )
+                updated_opt = RouteOption(
+                    id=opt.id,
+                    persona=opt.persona,
+                    name=opt.name,
+                    tagline=opt.tagline,
+                    duration_minutes=opt.duration_minutes,
+                    distance_meters=opt.distance_meters,
+                    badge_label=opt.badge_label,
+                    tradeoff_description=tradeoff_text,
+                    segments=opt.segments,
+                    geojson_geometry=opt.geojson_geometry,
+                )
+                final_options.append(updated_opt)
+
+            routes_tuple = tuple(final_options)
             return RouteMenuResult(
                 routes=routes_tuple,
                 source="live_osm",
