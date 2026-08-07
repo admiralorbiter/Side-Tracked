@@ -1,4 +1,5 @@
-from flask import Blueprint, make_response, render_template, request, session
+import re
+from flask import Blueprint, current_app, make_response, render_template, request, session
 
 from apps.web.app.services import PlanLoopPreview
 from packages.ovon_core.domain import (
@@ -7,10 +8,57 @@ from packages.ovon_core.domain import (
     InvalidTimeBudgetError,
     LoopRequest,
 )
+from packages.ovon_core.spatial import (
+    PRESETS_BY_ID,
+    GeocoderProvider,
+    NominatimGeocoderProvider,
+    is_within_us_bounds,
+)
 
 planner_bp = Blueprint("planner", __name__)
 
-MOCK_COORDINATE = Coordinate(39.0347, -94.5906)
+DEFAULT_COORDINATE = Coordinate(39.0347, -94.5906)
+
+
+def _resolve_origin_coordinate(origin_str: str) -> tuple[Coordinate, str]:
+    """Resolve an input origin string into a validated Coordinate and clean public display name."""
+    clean_str = origin_str.strip()
+    if not clean_str:
+        return DEFAULT_COORDINATE, "Loose Park, Kansas City, MO"
+
+    # Check Preset catalog
+    preset_key = clean_str.lower().replace(" ", "-")
+    if preset_key in PRESETS_BY_ID:
+        p = PRESETS_BY_ID[preset_key]
+        return p.coordinate, f"{p.name}, {p.city_state}"
+
+    # Check Current Location pattern: "Current Location (39.0347, -94.5906)"
+    coords_match = re.search(r"Current Location \((-?\d+\.\d+),\s*(-?\d+\.\d+)\)", clean_str)
+    if coords_match:
+        try:
+            lat = float(coords_match.group(1))
+            lon = float(coords_match.group(2))
+            c = Coordinate(lat, lon)
+            if is_within_us_bounds(c):
+                return c, f"Current Location ({lat:.3f}, {lon:.3f})"
+        except ValueError:
+            pass
+
+    # Attempt Nominatim Geocoding via application extension
+    geocoder: GeocoderProvider | None = None
+    if current_app and "geocoder_provider" in current_app.extensions:
+        geocoder = current_app.extensions["geocoder_provider"]
+    else:
+        geocoder = NominatimGeocoderProvider()
+
+    if geocoder:
+        res = geocoder.geocode(clean_str)
+        if res and is_within_us_bounds(res.coordinate):
+            # Privacy Scrub: Extract coarse city/park name rather than exact street number
+            clean_display = res.display_name.split(",")[0].strip()
+            return res.coordinate, clean_display
+
+    return DEFAULT_COORDINATE, "Loose Park, Kansas City, MO"
 
 
 @planner_bp.route("/")
@@ -88,9 +136,11 @@ def results():
 
     try:
         minutes = int(minutes_raw)
+        resolved_coord, clean_name = _resolve_origin_coordinate(origin_loc)
+
         loop_req = LoopRequest(
-            origin=MOCK_COORDINATE,
-            origin_name=origin_loc,
+            origin=resolved_coord,
+            origin_name=clean_name,
             duration_minutes=minutes,
             paved_only=paved_only,
             quiet_mode=quiet_mode,

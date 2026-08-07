@@ -36,3 +36,4 @@ def test_admin_status(client):
     assert "Greater Kansas City" in json_data["region"]
     assert json_data["components"]["web"] == "ready"
     assert json_data["components"]["routing"] == "osmnx_igraph_ready"
+    assert json_data["components"]["geocoding"] == "nominatim_ready"

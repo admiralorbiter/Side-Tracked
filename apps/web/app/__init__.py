@@ -5,6 +5,7 @@ from flask import Flask
 from apps.web.app.config import DevelopmentConfig
 from packages.ovon_core.media import LocalMediaRepository
 from packages.ovon_core.routing import OSMnxIgraphRoutingProvider
+from packages.ovon_core.spatial import NominatimGeocoderProvider
 
 
 def create_app(config_class=DevelopmentConfig):
@@ -20,8 +21,9 @@ def create_app(config_class=DevelopmentConfig):
         manifest_path if manifest_path.exists() else None
     )
 
-    # Initialize and inject Routing Provider extension
+    # Initialize and inject Routing Provider & Geocoder extensions
     app.extensions["routing_provider"] = OSMnxIgraphRoutingProvider()
+    app.extensions["geocoder_provider"] = NominatimGeocoderProvider()
 
     # Register Blueprints
     from apps.web.app.blueprints.admin import admin_bp

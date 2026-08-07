@@ -14,6 +14,7 @@ def status():
                 "web": "ready",
                 "media": "prototype",
                 "routing": "osmnx_igraph_ready",
+                "geocoding": "nominatim_ready",
                 "ecology": "fixture",
             },
             "manifest_version": "0.1-prototype",
