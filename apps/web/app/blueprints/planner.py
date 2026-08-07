@@ -134,10 +134,14 @@ def planning():
     minutes = request.form.get("duration", "45")
     paved_only = request.form.get("paved_only") == "true"
     quiet_mode = request.form.get("quiet_mode") == "true"
+    survey_mode_raw = request.form.get("survey_mode")
+    survey_mode = survey_mode_raw == "true" or survey_mode_raw == "on"
+    print(f"[DEBUG planning()] survey_mode_raw={survey_mode_raw!r}, survey_mode={survey_mode}, form keys={list(request.form.keys())}")
 
     session["duration"] = minutes
     session["paved_only"] = paved_only
     session["quiet_mode"] = quiet_mode
+    session["survey_mode"] = survey_mode
 
     if request.headers.get("HX-Request"):
         return render_template(
@@ -146,6 +150,7 @@ def planning():
             duration=minutes,
             paved_only=paved_only,
             quiet_mode=quiet_mode,
+            survey_mode=survey_mode,
         )
     return render_template(
         "planner/index.html", step="planning", origin=origin_display, minutes=minutes
@@ -157,12 +162,22 @@ def results():
     """Step 5: Display plan-scoped Easy, Birdy, and Weird route options."""
     if request.method == "POST":
         minutes_raw = request.form.get("duration") or session.get("duration", "45")
-        paved_only = request.form.get("paved_only") == "true"
-        quiet_mode = request.form.get("quiet_mode") == "true"
+        if "paved_only" in request.form:
+            session["paved_only"] = request.form.get("paved_only") == "true"
+        if "quiet_mode" in request.form:
+            session["quiet_mode"] = request.form.get("quiet_mode") == "true"
+        if "survey_mode" in request.form:
+            raw_sm = request.form.get("survey_mode")
+            session["survey_mode"] = (raw_sm == "true" or raw_sm == "on")
+        
+        paved_only = session.get("paved_only", False)
+        quiet_mode = session.get("quiet_mode", False)
+        survey_mode = session.get("survey_mode", False)
     else:
         minutes_raw = session.get("duration", "45")
         paved_only = session.get("paved_only", False)
         quiet_mode = session.get("quiet_mode", False)
+        survey_mode = session.get("survey_mode", False)
 
     lat = session.get("origin_lat", DEFAULT_COORDINATE.latitude)
     lon = session.get("origin_lon", DEFAULT_COORDINATE.longitude)
@@ -178,6 +193,7 @@ def results():
             duration_minutes=minutes,
             paved_only=paved_only,
             quiet_mode=quiet_mode,
+            survey_mode=survey_mode,
         )
     except (ValueError, InvalidTimeBudgetError, InvalidCoordinateError) as err:
         error_msg = str(err)
@@ -259,6 +275,14 @@ def route_walk(plan_id: str, route_id: str):
     field_pack = BuildFieldPack().execute(route)
     habitat_radar = BuildHabitatRadar().execute(route)
     quiet_mode = session.get("quiet_mode", False)
+    survey_mode = session.get("survey_mode")
+    if survey_mode is None:
+        req_data = RoutePlanRepository.get_plan_request(plan_id)
+        if req_data:
+            survey_mode = req_data.get("survey_mode", False)
+        else:
+            survey_mode = False
+
     return render_template(
         "routes/in_route.html",
         route=route,
@@ -266,6 +290,7 @@ def route_walk(plan_id: str, route_id: str):
         habitat_radar=habitat_radar,
         plan_id=plan_id,
         quiet_mode=quiet_mode,
+        survey_mode=bool(survey_mode),
         walk_session_id=walk_session.get("session_id"),
     )
 
@@ -292,6 +317,13 @@ def route_recap(plan_id: str, route_id: str):
 
     field_pack = BuildFieldPack().execute(route)
     saved_feedback = WalkFeedbackRepository.get_feedback_for_plan(plan_id, route_id)
+    survey_mode = session.get("survey_mode")
+    if survey_mode is None:
+        req_data = RoutePlanRepository.get_plan_request(plan_id)
+        if req_data:
+            survey_mode = req_data.get("survey_mode", False)
+        else:
+            survey_mode = False
     return render_template(
         "routes/recap.html",
         route=route,
@@ -300,6 +332,7 @@ def route_recap(plan_id: str, route_id: str):
         saved_feedback=saved_feedback,
         actual_duration=actual_duration or route.duration_minutes,
         outcome=outcome_override or (saved_feedback[0]["outcome"] if saved_feedback else "completed"),
+        survey_mode=survey_mode,
     )
 
 

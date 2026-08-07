@@ -254,6 +254,7 @@ class RoutePlanRepository:
             "target_duration_minutes": loop_request.duration_minutes if loop_request else None,
             "paved_only": loop_request.paved_only if loop_request else False,
             "quiet_mode": loop_request.quiet_mode if loop_request else False,
+            "survey_mode": loop_request.survey_mode if loop_request else False,
         }) if loop_request else None
 
         prov_json = json.dumps(routing_provenance) if routing_provenance else None
@@ -332,6 +333,22 @@ class RoutePlanRepository:
         for r in routes:
             if r.id.lower() == clean_route_id:
                 return r
+        return None
+
+    @classmethod
+    def get_plan_request(cls, plan_id: str) -> dict | None:
+        if not plan_id:
+            return None
+        try:
+            conn = cls._get_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT request_json FROM route_plans WHERE plan_id = ?", (plan_id,))
+            row = cursor.fetchone()
+            conn.close()
+            if row and row["request_json"]:
+                return json.loads(row["request_json"])
+        except Exception:
+            pass
         return None
 
 

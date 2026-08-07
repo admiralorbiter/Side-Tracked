@@ -26,6 +26,20 @@
   </div>
   {% endif %}
 
+  {% if survey_mode %}
+  <div style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem; text-align: left;">
+    <div style="font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+      🔬 <span>Scientific Protocol Checklist Verification</span>
+    </div>
+    <p style="font-size: 0.9rem; color: var(--brand-sky); margin-bottom: 0.75rem;">
+      You are submitting under <strong>eBird Traveling Protocol</strong>. Complete checklists allow zero-filling non-detections for occupancy modeling.
+    </p>
+    <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; cursor: pointer; color: #ffffff; background: rgba(0,0,0,0.2); padding: 0.55rem 0.75rem; border-radius: var(--radius-sm);">
+      <input type="checkbox" name="is_complete_checklist" value="true"> <strong>Complete Checklist:</strong> Are you reporting ALL birds you were able to identify on this walk?
+    </label>
+  </div>
+  {% endif %}
+
   <div style="background: rgba(0,0,0,0.3); padding: 1.25rem; border-radius: var(--radius-md); text-align: left; margin-bottom: 1.75rem;">
     <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--brand-green); margin-bottom: 0.5rem;">Habitats Explored:</h3>
     <ul style="list-style: none; padding: 0; margin: 0;">
