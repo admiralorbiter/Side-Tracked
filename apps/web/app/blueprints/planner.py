@@ -292,20 +292,35 @@ def route_feedback(plan_id: str, route_id: str):
     field_pack = BuildFieldPack().execute(route)
     observations = {}
     for sp in field_pack.focal_species:
-        obs_key = f"obs_{sp.ebird_code}"
-        if obs_key in request.form:
-            observations[sp.ebird_code] = request.form[obs_key]
+        code = sp.ebird_code
+        saw_it = f"obs_{code}_seen" in request.form
+        heard_it = f"obs_{code}_heard" in request.form
+        unsure = f"obs_{code}_unsure" in request.form
+        not_noticed = f"obs_{code}_not_noticed" in request.form
 
-    WalkFeedbackRepository.save_feedback(
-        plan_id=plan_id,
-        route_id=route.id,
-        outcome=outcome,
-        observations=observations,
-        duration_minutes=duration_minutes,
-        notes=notes,
-    )
+        # Only record an observation entry if the user interacted with checkboxes for this species
+        if saw_it or heard_it or unsure or not_noticed:
+            observations[code] = {
+                "visual_detected": saw_it,
+                "audio_detected": heard_it,
+                "certainty": "unsure" if unsure else ("confirmed" if (saw_it or heard_it) else "unanswered"),
+                "not_noticed": not_noticed,
+            }
 
-    saved_feedback = WalkFeedbackRepository.get_feedback_for_plan(plan_id, route.id)
+    try:
+        WalkFeedbackRepository.save_feedback(
+            plan_id=plan_id,
+            route_id=route_id,
+            outcome=outcome,
+            observations=observations,
+            duration_minutes=duration_minutes,
+            notes=notes,
+            evidence_eligibility="user_recall_only",
+        )
+    except Exception as e:
+        return render_template("errors/500.html", error_message=f"Feedback save failure: {e}"), 500
+
+    saved_feedback = WalkFeedbackRepository.get_feedback_for_plan(plan_id, route_id)
     return render_template(
         "routes/recap.html",
         route=route,
@@ -323,13 +338,23 @@ def route_segment_blocked(plan_id: str, route_id: str, segment_index: int):
     if not route:
         return jsonify({"status": "error", "message": "Route not found"}), 404
 
-    note = f"Leg {segment_index} marked blocked by walker."
-    WalkFeedbackRepository.save_feedback(
-        plan_id=plan_id,
-        route_id=route.id,
-        outcome="path_blocked",
-        observations={},
-        duration_minutes=route.duration_minutes,
-        notes=note,
-    )
+    # Validate segment index exists on route
+    matching_segment = next((s for s in route.segments if s.index == segment_index), None)
+    if matching_segment is None:
+        return jsonify({"status": "error", "message": f"Segment index {segment_index} not found on route."}), 404
+
+    note = f"Leg {segment_index} ({matching_segment.name}) marked blocked by walker."
+    try:
+        WalkFeedbackRepository.save_feedback(
+            plan_id=plan_id,
+            route_id=route_id,
+            outcome="path_blocked",
+            observations={},
+            duration_minutes=route.duration_minutes,
+            notes=note,
+            evidence_eligibility="user_recall_only",
+        )
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Failed saving blockage feedback: {e}"}), 500
+
     return jsonify({"status": "ok", "message": "Obstruction recorded", "segment_index": segment_index})

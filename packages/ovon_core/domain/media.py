@@ -65,6 +65,25 @@ class MediaAsset:
         if not self.attribution_text or not self.attribution_text.strip():
             raise MissingAttributionError("MediaAsset requires non-empty attribution_text.")
 
+    @property
+    def mime_type(self) -> str:
+        """Derive correct HTTP MIME type for audio and photo assets."""
+        url_lower = self.url.lower()
+        if ".ogg" in url_lower:
+            return "audio/ogg"
+        if ".mp3" in url_lower:
+            return "audio/mpeg"
+        if ".wav" in url_lower:
+            return "audio/wav"
+        if ".png" in url_lower:
+            return "image/png"
+        if ".webp" in url_lower:
+            return "image/webp"
+        if ".jpg" in url_lower or ".jpeg" in url_lower:
+            return "image/jpeg"
+
+        return "audio/mpeg" if self.media_type == MediaType.AUDIO else "image/jpeg"
+
 
 @dataclass(frozen=True, slots=True)
 class FieldCue:

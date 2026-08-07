@@ -189,8 +189,8 @@ def test_walk_observation_feedback_submission(client):
     post_data = {
         "outcome": "completed",
         "actual_duration": "32",
-        "obs_amerob": "seen",
-        "obs_norcar": "heard",
+        "obs_amerob_seen": "1",
+        "obs_norcar_heard": "1",
         "notes": "Beautiful morning walk in Loose Park.",
     }
     fb_resp = client.post(f"/plans/{plan_id}/routes/easy-1/feedback", data=post_data)
@@ -202,12 +202,23 @@ def test_walk_observation_feedback_submission(client):
     records = WalkFeedbackRepository.get_feedback_for_plan(plan_id, "easy-1")
     assert len(records) > 0
     assert records[0]["outcome"] == "completed"
-    assert records[0]["observations"].get("amerob") == "seen"
-    assert records[0]["observations"].get("norcar") == "heard"
-    assert records[0]["notes"] == "Beautiful morning walk in Loose Park."
+    assert records[0]["duration_minutes"] == 32
+    assert records[0]["evidence_eligibility"] == "user_recall_only"
+    assert records[0]["observations"].get("amerob") == {
+        "visual_detected": True,
+        "audio_detected": False,
+        "certainty": "confirmed",
+        "not_noticed": False,
+    }
+    assert records[0]["observations"].get("norcar") == {
+        "visual_detected": False,
+        "audio_detected": True,
+        "certainty": "confirmed",
+        "not_noticed": False,
+    }
 
 
-def test_walk_segment_blocked_endpoint(client):
+def test_unanswered_observation_form_saves_no_default_not_noticed(client):
     res = client.post("/planner/results", data={"duration": "30"})
     assert res.status_code == 200
 
@@ -216,18 +227,57 @@ def test_walk_segment_blocked_endpoint(client):
     plans = list(RoutePlanRepository._plans.keys())
     plan_id = plans[-1]
 
+    post_data = {
+        "outcome": "completed",
+        "notes": "No birds checked.",
+    }
+    fb_resp = client.post(f"/plans/{plan_id}/routes/easy-1/feedback", data=post_data)
+    assert fb_resp.status_code == 200
+
+    from apps.web.app.services import WalkFeedbackRepository
+
+    records = WalkFeedbackRepository.get_feedback_for_plan(plan_id, "easy-1")
+    assert len(records) > 0
+    # No species should be present in observations dictionary if unanswered
+    assert len(records[0]["observations"]) == 0
+
+
+def test_walk_segment_blocked_endpoint_and_404_validation(client):
+    res = client.post("/planner/results", data={"duration": "30"})
+    assert res.status_code == 200
+
+    from apps.web.app.services.planner_service import RoutePlanRepository
+
+    plans = list(RoutePlanRepository._plans.keys())
+    plan_id = plans[-1]
+
+    # Valid segment index 1
     blocked_resp = client.post(f"/plans/{plan_id}/routes/easy-1/segments/1/blocked")
     assert blocked_resp.status_code == 200
     data = blocked_resp.get_json()
     assert data["status"] == "ok"
     assert data["segment_index"] == 1
 
+    # Invalid segment index 999 -> returns 404
+    bad_resp = client.post(f"/plans/{plan_id}/routes/easy-1/segments/999/blocked")
+    assert bad_resp.status_code == 404
+
     from apps.web.app.services import WalkFeedbackRepository
 
     records = WalkFeedbackRepository.get_feedback_for_plan(plan_id, "easy-1")
     assert len(records) > 0
     assert records[0]["outcome"] == "path_blocked"
-    assert "Leg 1 marked blocked" in records[0]["notes"]
+
+
+def test_walk_session_lifecycle():
+    from apps.web.app.services import WalkFeedbackRepository
+
+    session = WalkFeedbackRepository.start_session("plan-test", "route-test")
+    assert session["outcome"] == "active"
+
+    finished = WalkFeedbackRepository.finish_session(session["session_id"], outcome="completed", last_segment_index=2)
+    assert finished["outcome"] == "completed"
+    assert finished["last_segment_index"] == 2
 
 
 

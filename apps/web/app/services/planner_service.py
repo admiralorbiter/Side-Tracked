@@ -70,10 +70,24 @@ class RoutePlanRepository:
                     expires_at TEXT NOT NULL,
                     routes_json TEXT NOT NULL,
                     model_version TEXT NOT NULL,
-                    data_version TEXT NOT NULL
+                    data_version TEXT NOT NULL,
+                    request_json TEXT,
+                    routing_provenance_json TEXT,
+                    media_manifest_version TEXT
                 )
                 """
             )
+            # Automatic schema migration for existing SQLite databases
+            cursor = conn.cursor()
+            cursor.execute("PRAGMA table_info(route_plans)")
+            existing_cols = {row[1] for row in cursor.fetchall()}
+            if "request_json" not in existing_cols:
+                conn.execute("ALTER TABLE route_plans ADD COLUMN request_json TEXT")
+            if "routing_provenance_json" not in existing_cols:
+                conn.execute("ALTER TABLE route_plans ADD COLUMN routing_provenance_json TEXT")
+            if "media_manifest_version" not in existing_cols:
+                conn.execute("ALTER TABLE route_plans ADD COLUMN media_manifest_version TEXT")
+            conn.commit()
         return conn
 
     @classmethod
@@ -221,21 +235,36 @@ class RoutePlanRepository:
         return tuple(routes)
 
     @classmethod
-    def save_plan(cls, routes: tuple[RouteOption, ...], ttl_hours: int = 24) -> str:
+    def save_plan(
+        cls,
+        routes: tuple[RouteOption, ...],
+        ttl_hours: int = 24,
+        loop_request: LoopRequest | None = None,
+        routing_provenance: dict | None = None,
+    ) -> str:
         plan_id = uuid.uuid4().hex[:10]
         now = datetime.now(timezone.utc)
         expires_at = now + timedelta(hours=ttl_hours)
 
-        cls._plans[plan_id] = routes
+        cls._plans[plan_id] = (routes, expires_at)
         routes_json = cls._serialize_routes(routes)
+
+        req_json = json.dumps({
+            "origin": {"lat": loop_request.origin.latitude, "lon": loop_request.origin.longitude} if loop_request else None,
+            "target_duration_minutes": loop_request.target_duration_minutes if loop_request else None,
+            "paved_only": loop_request.paved_only if loop_request else False,
+            "quiet_mode": loop_request.quiet_mode if loop_request else False,
+        }) if loop_request else None
+
+        prov_json = json.dumps(routing_provenance) if routing_provenance else None
 
         try:
             conn = cls._get_connection()
             with conn:
                 conn.execute(
                     """
-                    INSERT INTO route_plans (plan_id, created_at, expires_at, routes_json, model_version, data_version)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    INSERT INTO route_plans (plan_id, created_at, expires_at, routes_json, model_version, data_version, request_json, routing_provenance_json, media_manifest_version)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         plan_id,
@@ -244,11 +273,13 @@ class RoutePlanRepository:
                         routes_json,
                         "v1.0-kc",
                         "2026.1",
+                        req_json,
+                        prov_json,
+                        "v1.0-media",
                     ),
                 )
             conn.close()
         except Exception:
-            # Fall back to in-memory plan cache if filesystem/SQLite write fails
             pass
 
         return plan_id
@@ -258,9 +289,15 @@ class RoutePlanRepository:
         if not plan_id:
             return None
 
-        # Check in-memory process cache first
+        now = datetime.now(timezone.utc)
+
+        # Check in-memory process cache first with explicit expiration verification
         if plan_id in cls._plans:
-            return cls._plans[plan_id]
+            routes, expires_at = cls._plans[plan_id]
+            if now > expires_at:
+                del cls._plans[plan_id]
+                return None
+            return routes
 
         try:
             conn = cls._get_connection()
@@ -275,11 +312,11 @@ class RoutePlanRepository:
                 return None
 
             expires_at = datetime.fromisoformat(row["expires_at"])
-            if datetime.now(timezone.utc) > expires_at:
+            if now > expires_at:
                 return None
 
             routes = cls._deserialize_routes(row["routes_json"])
-            cls._plans[plan_id] = routes
+            cls._plans[plan_id] = (routes, expires_at)
             return routes
         except Exception:
             return None

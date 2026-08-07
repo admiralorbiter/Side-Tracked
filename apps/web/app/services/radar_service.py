@@ -40,14 +40,30 @@ class BuildHabitatRadar:
         for seg in route.segments:
             taxon_by_code.update({sp.ebird_code: sp for sp in seg.focal_species})
             seg_len = max(seg.distance_meters, 1.0)
-            seg_habitat = getattr(HabitatType, seg.habitat_name.upper().replace(" ", "_"), HabitatType.OPEN_PARKLAND)
+
+            # 1. Calculate segment-specific geometry H3 cells
+            if seg.geojson_geometry:
+                seg_cells = polyline_to_h3_cells(seg.geojson_geometry, resolution=8)
+            else:
+                seg_cells = traversed_cells
+
+            # 2. Resolve habitat keyword mapping to HabitatType
+            hab_str = seg.habitat_name.lower()
+            if "canopy" in hab_str or "woodland" in hab_str or "tree" in hab_str:
+                seg_habitat = HabitatType.MATURE_CANOPY
+            elif "water" in hab_str or "creek" in hab_str or "pond" in hab_str or "riparian" in hab_str:
+                seg_habitat = HabitatType.POND_WATER_EDGE
+            elif "orchard" in hab_str or "fruit" in hab_str or "shrub" in hab_str:
+                seg_habitat = HabitatType.ORCHARD_EDGE
+            else:
+                seg_habitat = HabitatType.OPEN_PARKLAND
 
             # Evaluate recommender for segment context
             recommender = DefaultSegmentSpeciesRecommender()
             recommender.candidate_pool = candidates
             opportunities = recommender.recommend_species(
                 SegmentContext(
-                    traversed_h3_cells=traversed_cells,
+                    traversed_h3_cells=seg_cells,
                     habitat_type=seg_habitat,
                     season_week=season_week,
                 ),
@@ -85,16 +101,19 @@ class BuildHabitatRadar:
             profile = KC_TAXON_ECOLOGY_PROFILES.get(code)
             guild = profile.primary_guild if profile else HabitatGuild.OPEN_EDGE
 
-            # Generate human-readable reason codes
+            # Generate feature-based reason codes from route geometry
             reasons = []
-            if guild == HabitatGuild.WOODLAND:
-                reasons.append("canopy_match")
-            elif guild == HabitatGuild.WATER_RIPARIAN:
-                reasons.append("water_edge_match")
+            has_canopy_seg = any("canopy" in s.habitat_name.lower() or "woodland" in s.habitat_name.lower() for s in route.segments)
+            has_water_seg = any("water" in s.habitat_name.lower() or "creek" in s.habitat_name.lower() for s in route.segments)
+
+            if guild == HabitatGuild.WOODLAND and has_canopy_seg:
+                reasons.append("matched_mature_canopy_segment")
+            elif guild == HabitatGuild.WATER_RIPARIAN and has_water_seg:
+                reasons.append("matched_water_edge_segment")
             elif guild == HabitatGuild.AERIAL:
-                reasons.append("aerial_canopy_match")
+                reasons.append("aerial_exposure")
             else:
-                reasons.append("lawn_edge_match")
+                reasons.append("open_habitat_match")
 
             if len(matched_segs) >= len(route.segments):
                 reasons.append("full_route_exposure")

@@ -23,7 +23,10 @@ class TestingConfig(Config):
     """Testing environment configuration."""
 
     TESTING = True
-    DATABASE_URI = "sqlite:///:memory:"
+    _worker = os.environ.get("PYTEST_XDIST_WORKER", "gw0")
+    DATABASE_URI = f"sqlite:///data/test_sidetrack_{_worker}.db"
+    PLANNER_DB_PATH = f"data/test_route_plans_{_worker}.db"
+    FEEDBACK_DB_PATH = f"data/test_walk_feedback_{_worker}.db"
 
 
 class ProductionConfig(Config):

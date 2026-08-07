@@ -10,7 +10,13 @@ class TaxonSupportBuilder:
     """Dynamically builds TaxonSupport metadata by inspecting actual media manifests and evidence registries."""
 
     @classmethod
-    def build(cls, taxon_id: str, ebird_code: str, media_repository: MediaRepository | None = None) -> TaxonSupport:
+    def build(
+        cls,
+        taxon_id: str,
+        ebird_code: str,
+        media_repository: MediaRepository | None = None,
+        taxon: TaxonRef | None = None,
+    ) -> TaxonSupport:
         """Derive factual TaxonSupport metadata."""
         photo_avail = False
         audio_avail = False
@@ -20,9 +26,13 @@ class TaxonSupportBuilder:
         if media_repository:
             # Query actual manifest inventory
             from packages.ovon_core.domain import TaxonRef
-            mock_ref = TaxonRef(taxon_id=taxon_id, common_name="", scientific_name="", ebird_code=ebird_code)
-            photos = media_repository.get_assets_for_taxon(mock_ref, media_type=MediaType.PHOTO)
-            audios = media_repository.get_assets_for_taxon(mock_ref, media_type=MediaType.AUDIO)
+            target_taxon = taxon or TaxonRef.create(
+                common_name=ebird_code.upper(),
+                scientific_name=f"Taxon {ebird_code}",
+                ebird_code=ebird_code,
+            )
+            photos = media_repository.get_assets_for_taxon(target_taxon, media_type=MediaType.PHOTO)
+            audios = media_repository.get_assets_for_taxon(target_taxon, media_type=MediaType.AUDIO)
             
             photo_avail = len(photos) > 0
             audio_avail = len(audios) > 0

@@ -25,6 +25,14 @@ def create_app(config_class=DevelopmentConfig):
     app.extensions["routing_provider"] = OSMnxIgraphRoutingProvider()
     app.extensions["geocoder_provider"] = NominatimGeocoderProvider()
 
+    # Configure isolated database paths for testing mode
+    if app.config.get("TESTING"):
+        from apps.web.app.services.feedback_repository import WalkFeedbackRepository
+        from apps.web.app.services.planner_service import RoutePlanRepository
+
+        RoutePlanRepository.set_db_path(app.config.get("PLANNER_DB_PATH", ":memory:"))
+        WalkFeedbackRepository.set_db_path(app.config.get("FEEDBACK_DB_PATH", ":memory:"))
+
     # Register Blueprints
     from apps.web.app.blueprints.admin import admin_bp
     from apps.web.app.blueprints.planner import planner_bp

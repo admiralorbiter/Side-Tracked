@@ -3,11 +3,11 @@
 {% block title %}In-Route Mode — {{ route.name }} | Sidetrack{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 700px; margin: 0 auto;" x-data="{ currentSegment: 0, quietMode: {{ 'true' if quiet_mode else 'false' }}, markBlocked() { if (confirm('Mark this leg as blocked? Obstruction will be recorded.')) { fetch('/plans/{{ plan_id }}/routes/{{ route.id }}/segments/' + (this.currentSegment + 1) + '/blocked', { method: 'POST' }).then(() => { window.location.href = '/plans/{{ plan_id }}/routes/{{ route.id }}/recap'; }); } }, nextSegment() { if (this.currentSegment < {{ route.segments|length - 1 }}) { this.currentSegment++; if (navigator.vibrate) navigator.vibrate([50]); $nextTick(() => { const el = document.getElementById('seg-heading-' + this.currentSegment); if (el) el.focus(); }); } }, prevSegment() { if (this.currentSegment > 0) { this.currentSegment--; if (navigator.vibrate) navigator.vibrate([30]); $nextTick(() => { const el = document.getElementById('seg-heading-' + this.currentSegment); if (el) el.focus(); }); } } }">
+<div class="card" style="max-width: 700px; margin: 0 auto;" x-data="{ currentSegment: 0, quietMode: {{ 'true' if quiet_mode else 'false' }}, toggleQuiet() { this.quietMode = !this.quietMode; if (this.quietMode) { document.querySelectorAll('audio').forEach(a => a.pause()); } }, markBlocked() { if (confirm('Mark this leg as blocked? Obstruction will be recorded.')) { fetch('/plans/{{ plan_id }}/routes/{{ route.id }}/segments/' + (this.currentSegment + 1) + '/blocked', { method: 'POST' }).then(() => { window.location.href = '/plans/{{ plan_id }}/routes/{{ route.id }}/recap'; }); } }, nextSegment() { if (this.currentSegment < {{ route.segments|length - 1 }}) { this.currentSegment++; if (navigator.vibrate) navigator.vibrate([50]); $nextTick(() => { const el = document.getElementById('seg-heading-' + this.currentSegment); if (el) el.focus(); }); } }, prevSegment() { if (this.currentSegment > 0) { this.currentSegment--; if (navigator.vibrate) navigator.vibrate([30]); $nextTick(() => { const el = document.getElementById('seg-heading-' + this.currentSegment); if (el) el.focus(); }); } } }">
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
     <div style="display: flex; align-items: center; gap: 0.5rem;">
       <span class="route-badge badge-birdy">Walk Mode Active</span>
-      <button type="button" @click="quietMode = !quietMode" class="btn btn-secondary" style="font-size: 0.8rem; padding: 0.35rem 0.65rem;" :style="quietMode ? 'background: #542646; color: #f3d5e7; border-color: #754668;' : ''">
+      <button type="button" @click="toggleQuiet()" class="btn btn-secondary" style="font-size: 0.8rem; padding: 0.35rem 0.65rem;" :style="quietMode ? 'background: #542646; color: #f3d5e7; border-color: #754668;' : ''">
         <span x-text="quietMode ? '🌙 Quiet Mode ON' : '🔔 Quiet Mode OFF'"></span>
       </button>
     </div>
@@ -19,14 +19,14 @@
     </div>
   </div>
 
-  <!-- Visual Walk Progress Bar -->
+  <!-- Visual Walk Progress Bar (Starts at 0% when starting Leg 1) -->
   <div style="margin-bottom: 1.25rem;">
     <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--brand-sky); margin-bottom: 0.35rem;">
       <span>Walk Progress</span>
-      <span x-text="Math.round(((currentSegment + 1) / {{ route.segments|length }}) * 100) + '% Completed'"></span>
+      <span x-text="Math.round((currentSegment / {{ route.segments|length }}) * 100) + '% Completed'"></span>
     </div>
     <div style="background: rgba(255,255,255,0.1); height: 8px; border-radius: 4px; overflow: hidden;">
-      <div style="background: var(--brand-green); height: 100%; transition: width 0.3s ease;" :style="'width: ' + (((currentSegment + 1) / {{ route.segments|length }}) * 100) + '%'"></div>
+      <div style="background: var(--brand-green); height: 100%; transition: width 0.3s ease;" :style="'width: ' + ((currentSegment / {{ route.segments|length }}) * 100) + '%'"></div>
     </div>
   </div>
 
@@ -80,12 +80,15 @@
           <strong style="color: var(--brand-sky); font-size: 0.85rem; display: block; margin-bottom: 0.5rem;">🔊 FOCAL SPECIES CALL AUDIO:</strong>
           {% for asset in field_pack.media_assets %}
             {% if asset.media_type.value == 'audio' and asset.taxon_ref in seg.focal_species %}
-            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
-              <span style="font-size: 0.9rem; font-weight: 600;">{{ asset.taxon_ref.common_name }}</span>
-              <audio controls preload="none" style="height: 36px; max-width: 200px;">
-                <source src="{{ asset.url }}" type="audio/mpeg">
-                Your browser does not support audio playback.
-              </audio>
+            <div style="margin-top: 0.5rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 0.9rem; font-weight: 600;">{{ asset.taxon_ref.common_name }}</span>
+                <audio controls preload="none" style="height: 36px; max-width: 200px;">
+                  <source src="{{ asset.url }}" type="{{ asset.mime_type or 'audio/mpeg' }}">
+                  Your browser does not support audio playback.
+                </audio>
+              </div>
+              <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem; text-align: right;">🎵 {{ asset.attribution_text }}</p>
             </div>
             {% endif %}
           {% endfor %}
