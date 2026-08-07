@@ -27,6 +27,12 @@ from packages.ovon_core.domain.route import RouteOption, RoutePersona, RouteSegm
 from packages.ovon_core.domain.spatial import BoundingBox, Coordinate, SpatialCellId
 from packages.ovon_core.domain.taxonomy import FieldCueProfile, TaxonRef, TaxonSupport
 
+from packages.ovon_core.domain.prediction import (
+    CalibratedSpeciesPrediction,
+    PredictionProvenance,
+    RoutePredictionSummary,
+)
+
 __all__ = [
     "DomainError",
     "InvalidCoordinateError",
@@ -61,4 +67,7 @@ __all__ = [
     "NormalizedOccurrenceEvidence",
     "SpeciesRouteEvidence",
     "RouteEvidenceSummary",
+    "PredictionProvenance",
+    "CalibratedSpeciesPrediction",
+    "RoutePredictionSummary",
 ]

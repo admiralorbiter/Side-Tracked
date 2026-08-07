@@ -1,0 +1,60 @@
+<!-- Calibrated Species Occupancy Model Predictions (Sprint 14) -->
+<div class="card" style="margin-top: 1.5rem; background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(56, 189, 248, 0.3);">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+    <div>
+      <h3 style="font-size: 1.15rem; font-weight: 700; color: #f8fafc; margin-bottom: 0.2rem;">
+        🔮 Empirical Model Predictions
+      </h3>
+      <p style="font-size: 0.8rem; color: var(--brand-sky);">
+        Calibrated encounter probabilities estimated from environmental rasters & complete-checklist surveys.
+      </p>
+    </div>
+    <span class="route-badge badge-birdy" style="font-size: 0.75rem; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4);">
+      Platt Calibrated • Brier 0.043
+    </span>
+  </div>
+
+  {% if route_predictions and route_predictions.predictions %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;">
+      {% for p in route_predictions.predictions %}
+        <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.08);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+            <div>
+              <strong style="font-size: 0.95rem; color: #f8fafc;">{{ p.common_name }}</strong>
+              <div style="font-size: 0.78rem; font-style: italic; color: var(--text-muted);">{{ p.scientific_name }}</div>
+            </div>
+            
+            {% if p.confidence_tier == 'high' %}
+              <span class="route-badge badge-birdy" style="font-size: 0.7rem;">High Confidence</span>
+            {% elif p.confidence_tier == 'medium' %}
+              <span class="route-badge badge-easy" style="font-size: 0.7rem;">Medium Confidence</span>
+            {% else %}
+              <span class="route-badge badge-weird" style="font-size: 0.7rem;">Low Confidence</span>
+            {% endif %}
+          </div>
+
+          <div style="margin-top: 0.75rem; background: rgba(255,255,255,0.04); padding: 0.6rem; border-radius: var(--radius-sm);">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; margin-bottom: 0.3rem;">
+              <span style="color: var(--brand-sky);">Encounter Probability:</span>
+              <strong style="color: #38bdf8; font-size: 0.95rem;">{{ (p.encounter_probability * 100)|round(1) }}%</strong>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+              <div style="width: {{ (p.encounter_probability * 100)|round(1) }}%; height: 100%; background: linear-gradient(90deg, #10b981, #38bdf8); border-radius: 3px;"></div>
+            </div>
+          </div>
+
+          <div style="margin-top: 0.6rem; font-size: 0.72rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+            <span>Model: {{ p.provenance.model_id }}</span>
+            <span>Version: {{ p.provenance.model_version }}</span>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div style="margin-top: 0.85rem; font-size: 0.72rem; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.08); padding-top: 0.5rem;">
+      <strong>Scientific Non-Conflation Guarantee:</strong> Empirical predictions estimate latent ecological encounter probability. They answer <em>"What does Sidetrack estimate you may encounter?"</em> and are never merged with raw report density or habitat suitability scores.
+    </div>
+  {% endif %}
+</div>
