@@ -1,6 +1,6 @@
 import re
 
-from flask import Blueprint, current_app, make_response, render_template, request, session
+from flask import Blueprint, current_app, jsonify, make_response, render_template, request, session
 
 from apps.web.app.services import BuildFieldPack, GetRouteDetail
 from apps.web.app.services.planner_service import PlanLoopPreview, RoutePlanRepository
@@ -314,3 +314,22 @@ def route_feedback(plan_id: str, route_id: str):
         saved_feedback=saved_feedback,
         submitted=True,
     )
+
+
+@planner_bp.route("/plans/<plan_id>/routes/<route_id>/segments/<int:segment_index>/blocked", methods=["POST"])
+def route_segment_blocked(plan_id: str, route_id: str, segment_index: int):
+    """Record trail segment obstruction during active Walk Mode."""
+    route = _resolve_route_with_fallback(plan_id, route_id)
+    if not route:
+        return jsonify({"status": "error", "message": "Route not found"}), 404
+
+    note = f"Leg {segment_index} marked blocked by walker."
+    WalkFeedbackRepository.save_feedback(
+        plan_id=plan_id,
+        route_id=route.id,
+        outcome="path_blocked",
+        observations={},
+        duration_minutes=route.duration_minutes,
+        notes=note,
+    )
+    return jsonify({"status": "ok", "message": "Obstruction recorded", "segment_index": segment_index})
