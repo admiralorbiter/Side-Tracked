@@ -28,7 +28,7 @@ class LoopRequest:
     intent: JourneyIntent = JourneyIntent.LOOP_FROM_HERE
     paved_only: bool = False
     quiet_mode: bool = False
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc), compare=False)
 
     def __post_init__(self) -> None:
         if self.duration_minutes not in SUPPORTED_DURATIONS_MINUTES:

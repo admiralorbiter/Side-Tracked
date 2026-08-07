@@ -1,4 +1,4 @@
-"""H3 Spatial Indexing & National Bounding Box Utilities for OVON Core."""
+import h3
 
 from packages.ovon_core.domain.spatial import (
     BoundingBox,
@@ -17,19 +17,13 @@ US_NATIONAL_BOUNDS = BoundingBox(
 
 
 def lat_lng_to_h3_cell(coord: Coordinate, resolution: int = 8) -> SpatialCellId:
-    """Convert WGS84 Coordinate into an H3 SpatialCellId.
-
-    Uses standard H3 grid cell indexing representation.
-    """
+    """Convert WGS84 Coordinate into an authentic H3 SpatialCellId using h3-py."""
     if not (0 <= resolution <= 15):
         raise InvalidCoordinateError(f"H3 resolution must be between 0 and 15, got {resolution}")
 
-    # Generate a deterministic H3 hex index string based on coordinate & resolution
-    lat_bucket = int((coord.latitude + 90.0) * (10 ** (resolution % 4 + 2)))
-    lng_bucket = int((coord.longitude + 180.0) * (10 ** (resolution % 4 + 2)))
-    hex_id = f"{resolution:x}{lat_bucket:06x}{lng_bucket:06x}"[:15]
-
-    return SpatialCellId(resolution=resolution, cell_index=hex_id)
+    # Use standard Uber H3 library call
+    h3_index_str = h3.latlng_to_cell(coord.latitude, coord.longitude, resolution)
+    return SpatialCellId(resolution=resolution, cell_index=h3_index_str)
 
 
 def is_within_us_bounds(coord: Coordinate) -> bool:

@@ -3,7 +3,7 @@
 default: check
 
 # Run all quality checks
-check: lint typecheck test
+check: format-check lint typecheck test smoke
 
 # Start local development server
 dev:
@@ -29,6 +29,7 @@ format:
 typecheck:
 	mypy apps/web packages/ovon_core
 
-# Run route smoke test
+# Run route smoke test exercising full planning sequence
 smoke:
-	python -m pytest apps/web/tests/test_planner.py -k test_home_page
+	pytest apps/web/tests/test_planner.py
+

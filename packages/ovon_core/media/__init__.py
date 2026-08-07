@@ -1,7 +1,7 @@
 """Species media asset and field cue schemas."""
 
 from packages.ovon_core.media.provider import (
-    NORMALIZED_LICENSE_MAP,
+    EXACT_LICENSE_MAP,
     MediaProvider,
     MediaRepository,
     normalize_and_validate_license,
@@ -14,7 +14,7 @@ __all__ = [
     "MediaProvider",
     "MediaRepository",
     "normalize_and_validate_license",
-    "NORMALIZED_LICENSE_MAP",
+    "EXACT_LICENSE_MAP",
     "XenoCantoProvider",
     "WikimediaProvider",
     "LocalMediaRepository",

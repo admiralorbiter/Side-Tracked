@@ -5,12 +5,17 @@ admin_bp = Blueprint("admin", __name__)
 
 @admin_bp.route("/admin/status")
 def status():
-    """System health and data manifest status endpoint."""
+    """System health and component status endpoint."""
     return jsonify(
         {
             "status": "healthy",
-            "region": "Greater Kansas City",
-            "routing_engine": "OSMnx + igraph (Native Python)",
-            "manifest_version": "1.0-frozen",
+            "region": "Greater Kansas City (Pilot)",
+            "components": {
+                "web": "ready",
+                "media": "prototype",
+                "routing": "not_configured",
+                "ecology": "fixture",
+            },
+            "manifest_version": "0.1-prototype",
         }
     )

@@ -16,10 +16,15 @@ from packages.ovon_core.media import (
 
 
 def test_license_allowlist_validation():
+    assert normalize_and_validate_license("CC BY 2.0") == LicenseType.CC_BY_2_0
+    assert normalize_and_validate_license("CC BY 3.0") == LicenseType.CC_BY_3_0
     assert normalize_and_validate_license("CC BY 4.0") == LicenseType.CC_BY_4_0
     assert normalize_and_validate_license("cc-by-nc-4.0") == LicenseType.CC_BY_NC_4_0
     assert normalize_and_validate_license("Public Domain") == LicenseType.PUBLIC_DOMAIN
 
+    # Missing or unknown license raises MissingAttributionError (no default upgrades or fallbacks)
+    with pytest.raises(MissingAttributionError):
+        normalize_and_validate_license("")
     with pytest.raises(MissingAttributionError):
         normalize_and_validate_license("All Rights Reserved")
 

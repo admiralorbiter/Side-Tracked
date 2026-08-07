@@ -75,15 +75,11 @@ class LocalMediaRepository(MediaRepository):
 
     def save_manifest(self, path: Path) -> None:
         """Save media assets to a versioned JSON manifest file."""
-        manifest_data = {
-            "version": "1.0",
-            "assets_count": sum(len(v) for v in self._assets.values()),
-            "assets": [],
-        }
+        assets_list: list[dict] = []
 
-        for asset_list in self._assets.values():
-            for a in asset_list:
-                manifest_data["assets"].append(
+        for asset_group in self._assets.values():
+            for a in asset_group:
+                assets_list.append(
                     {
                         "asset_id": a.asset_id,
                         "ebird_code": a.taxon_ref.ebird_code,
@@ -95,10 +91,14 @@ class LocalMediaRepository(MediaRepository):
                         "license": a.license.value,
                         "attribution_text": a.attribution_text,
                         "source_name": a.source_name,
-                        "alt_text": a.alt_text,
                     }
                 )
 
+        manifest_data = {
+            "version": "1.0",
+            "assets_count": len(assets_list),
+            "assets": assets_list,
+        }
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "w", encoding="utf-8") as f:
             json.dump(manifest_data, f, indent=2)

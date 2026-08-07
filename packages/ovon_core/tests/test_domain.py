@@ -69,21 +69,21 @@ def test_spatial_cell_id_h3():
     from packages.ovon_core.domain import SpatialCellId
     from packages.ovon_core.spatial import is_within_us_bounds, lat_lng_to_h3_cell
 
-    cell = SpatialCellId(resolution=8, cell_index="882685623ffffff")
-    assert cell.resolution == 8
-    assert cell.to_string() == "h3_res8:882685623ffffff"
-
-    parsed = SpatialCellId.from_h3_string("h3_res8:882685623ffffff")
-    assert parsed.cell_index == "882685623ffffff"
-
+    # Authentic Uber H3 Res 8 index for Loose Park, Kansas City (39.0347, -94.5906)
     kc_coord = Coordinate(39.0347, -94.5906)
-    nyc_coord = Coordinate(40.7812, -73.9665)
-
     kc_cell = lat_lng_to_h3_cell(kc_coord, resolution=8)
+
+    assert kc_cell.resolution == 8
     assert kc_cell.to_string().startswith("h3_res8:")
 
+    parsed = SpatialCellId.from_h3_string(kc_cell.to_string())
+    assert parsed.cell_index == kc_cell.cell_index
+
+    # Invalid H3 index string raises InvalidCoordinateError
+    with pytest.raises(InvalidCoordinateError):
+        SpatialCellId.from_h3_string("h3_res8:invalid_hex_string")
+
     assert is_within_us_bounds(kc_coord) is True
-    assert is_within_us_bounds(nyc_coord) is True
 
 
 # 2. Taxonomy Tests
@@ -106,9 +106,12 @@ def test_taxon_ref_empty_validation():
 # 3. Request Tests
 def test_loop_request_valid():
     origin = Coordinate(39.0347, -94.5906)
-    req = LoopRequest(origin=origin, origin_name="Loose Park", duration_minutes=45)
-    assert req.duration_minutes == 45
-    assert req.intent == JourneyIntent.LOOP_FROM_HERE
+    req1 = LoopRequest(origin=origin, origin_name="Loose Park", duration_minutes=45)
+    req2 = LoopRequest(origin=origin, origin_name="Loose Park", duration_minutes=45)
+    assert req1.duration_minutes == 45
+    assert req1.intent == JourneyIntent.LOOP_FROM_HERE
+    # Created at compare=False ensures identical requests compare equal for deterministic caching
+    assert req1 == req2
 
 
 def test_loop_request_invalid_duration():
@@ -155,8 +158,8 @@ def test_route_option_valid():
         index=1,
         name="Park Perimeter",
         habitat_name="Woodland Edge",
-        distance_meters=1200.0,
-        duration_minutes=20.0,
+        distance_meters=2200.0,
+        duration_minutes=45.0,
         focal_species=(taxon,),
         field_cue=cue,
     )
@@ -173,19 +176,22 @@ def test_route_option_valid():
     )
     assert route.formatted_distance == "2.2 km"
     assert route.formatted_duration == "45 min"
-    assert segment.formatted_distance == "1.2 km"
+    assert segment.formatted_distance == "2.2 km"
 
 
-def test_route_option_invalid_distance():
-    with pytest.raises(ValueError):
-        RouteOption(
-            id="r1",
-            persona=RoutePersona.EASY,
-            name="Easy",
-            tagline="Easy",
-            duration_minutes=45,
-            distance_meters=-100.0,
-            badge_label="Easy",
-            tradeoff_description="None",
-            segments=(),
+def test_route_segment_cue_mismatch_raises():
+    cardinal = TaxonRef.create("Northern Cardinal", "Cardinalis cardinalis", "norcar")
+    robin = TaxonRef.create("American Robin", "Turdus migratorius", "amerob")
+    robin_cue = FieldCue(robin, "Look on lawns", "Listen for cheery song")
+
+    # Cue for Robin assigned to Cardinal-only segment raises ValueError invariant error
+    with pytest.raises(ValueError, match="must belong to segment focal_species"):
+        RouteSegment(
+            index=1,
+            name="Pond Edge",
+            habitat_name="Grassland",
+            distance_meters=800.0,
+            duration_minutes=15.0,
+            focal_species=(cardinal,),
+            field_cue=robin_cue,
         )

@@ -12,6 +12,7 @@ from packages.ovon_core.domain.media import (
     LicenseType,
     MediaAsset,
     MediaType,
+    MediaVerificationStatus,
     RouteFieldPack,
 )
 from packages.ovon_core.domain.request import JourneyIntent, LoopRequest
@@ -33,6 +34,7 @@ __all__ = [
     "LoopRequest",
     "LicenseType",
     "MediaType",
+    "MediaVerificationStatus",
     "MediaAsset",
     "FieldCue",
     "RouteFieldPack",

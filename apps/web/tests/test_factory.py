@@ -33,5 +33,6 @@ def test_admin_status(client):
     assert response.status_code == 200
     json_data = response.get_json()
     assert json_data["status"] == "healthy"
-    assert json_data["region"] == "Greater Kansas City"
-    assert "OSMnx" in json_data["routing_engine"]
+    assert "Greater Kansas City" in json_data["region"]
+    assert json_data["components"]["web"] == "ready"
+    assert json_data["components"]["routing"] == "not_configured"

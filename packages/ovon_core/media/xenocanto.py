@@ -51,18 +51,20 @@ class XenoCantoProvider(MediaProvider):
                 continue
 
             raw_lic = rec.get("lic", "")
-            # Extract license string from URL or string
-            lic_clean = raw_lic.split("/")[-2] if "/" in raw_lic else raw_lic
-            if not lic_clean:
-                lic_clean = "cc by-nc 4.0"
+            if not raw_lic or not raw_lic.strip():
+                continue  # Reject missing license
 
+            lic_clean = raw_lic.split("/")[-2] if "/" in raw_lic else raw_lic
             try:
                 license_type = normalize_and_validate_license(lic_clean)
             except MissingAttributionError:
-                continue  # Skip unpermitted licenses
+                continue  # Skip unpermitted or invalid licenses
+
+            creator = rec.get("rec", "").strip()
+            if not creator:
+                continue  # Reject missing creator
 
             rec_id = str(rec.get("id", ""))
-            creator = rec.get("rec", "Unknown Recordist").strip()
             audio_url = rec.get("file", "")
             if not audio_url.startswith("http"):
                 audio_url = (

@@ -57,13 +57,20 @@ class WikimediaProvider(MediaProvider):
                 continue
 
             extmetadata = info.get("extmetadata", {})
-            lic_short = extmetadata.get("LicenseShortName", {}).get("value", "CC BY-SA 4.0")
-            artist_html = extmetadata.get("Artist", {}).get("value", "Wikimedia Contributor")
+            lic_short = extmetadata.get("LicenseShortName", {}).get("value", "").strip()
+            if not lic_short:
+                continue  # Reject missing license metadata
+
+            artist_html = extmetadata.get("Artist", {}).get("value", "").strip()
+            if not artist_html:
+                continue  # Reject missing artist metadata
 
             # Clean HTML tags from artist string
             import re
 
-            artist = re.sub(r"<[^>]+>", "", artist_html).strip() or "Wikimedia Contributor"
+            artist = re.sub(r"<[^>]+>", "", artist_html).strip()
+            if not artist:
+                continue
 
             try:
                 license_type = normalize_and_validate_license(lic_short)

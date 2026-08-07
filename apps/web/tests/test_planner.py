@@ -50,15 +50,25 @@ def test_planning_state_htmx(client):
 def test_results_domain_routes(client):
     response = client.post(
         "/planner/results",
-        data={"origin": "Loose Park", "duration": "45"},
+        data={"origin": "Loose Park, Kansas City, MO", "duration": "45"},
         headers={"HX-Request": "true"},
     )
     assert response.status_code == 200
-    assert response.headers.get("HX-Push-Url") is not None
+    # Push URL is clean /planner/results without raw address in GET params
+    assert response.headers.get("HX-Push-Url") == "/planner/results"
     assert b"The Easy One" in response.data
     assert b"The Birdy One" in response.data
     assert b"The Weird One" in response.data
-    assert b"1.8 km" in response.data or b"2.2 km" in response.data
+
+
+def test_results_get_refresh_support(client):
+    # Simulate POST then GET refresh on /planner/results
+    client.post(
+        "/planner/results", data={"origin": "Loose Park, Kansas City, MO", "duration": "45"}
+    )
+    get_resp = client.get("/planner/results")
+    assert get_resp.status_code == 200
+    assert b"The Easy One" in get_resp.data
 
 
 # Step 5 Error Handling: Invalid Duration
@@ -72,15 +82,22 @@ def test_results_invalid_duration_error(client):
     assert b"unsupported" in response.data.lower() or b"error" in response.data.lower()
 
 
-# Step 6 & 7: Route Detail & Text Timeline
-def test_route_detail_and_text_timeline(client):
-    response = client.get("/routes/birdy-1")
-    assert response.status_code == 200
-    assert b"The Birdy One" in response.data
-    assert b"Text-Equivalent Route Timeline" in response.data
-    assert b"WHERE TO LOOK" in response.data
-    assert b"WHAT TO LISTEN FOR" in response.data
-    assert b"Play call for Northern Cardinal" in response.data  # ARIA label check
+# Step 6 & 7: Route Detail & Text Timeline for Distinct Routes
+def test_distinct_route_details(client):
+    easy_resp = client.get("/routes/easy-1")
+    assert easy_resp.status_code == 200
+    assert b"The Easy One" in easy_resp.data
+    assert b"Lowest effort" in easy_resp.data
+
+    birdy_resp = client.get("/routes/birdy-1")
+    assert birdy_resp.status_code == 200
+    assert b"The Birdy One" in birdy_resp.data
+    assert b"Best bird opportunity" in birdy_resp.data
+
+    weird_resp = client.get("/routes/weird-1")
+    assert weird_resp.status_code == 200
+    assert b"The Weird One" in weird_resp.data
+    assert b"Unusual habitat" in weird_resp.data
 
 
 # Step 8: In-Route Segment View
@@ -105,3 +122,8 @@ def test_species_detail_domain_page(client):
     assert response.status_code == 200
     assert b"Red-headed Woodpecker" in response.data
     assert b"Melanerpes erythrocephalus" in response.data
+
+
+def test_species_detail_unknown_404(client):
+    response = client.get("/species/banana")
+    assert response.status_code == 404

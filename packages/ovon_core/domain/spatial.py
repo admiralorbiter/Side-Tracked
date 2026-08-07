@@ -1,6 +1,8 @@
 import math
 from dataclasses import dataclass
 
+import h3
+
 from packages.ovon_core.domain.errors import InvalidCoordinateError
 
 
@@ -74,7 +76,7 @@ class BoundingBox:
 
 @dataclass(frozen=True, slots=True)
 class SpatialCellId:
-    """Immutable spatial grid cell identifier supporting H3 resolution indexing."""
+    """Immutable spatial grid cell identifier supporting authentic H3 resolution indexing."""
 
     resolution: int
     cell_index: str
@@ -85,6 +87,10 @@ class SpatialCellId:
             raise InvalidCoordinateError("H3 resolution must be between 0 and 15.")
         if not self.cell_index.strip():
             raise InvalidCoordinateError("cell_index cannot be empty.")
+        if not h3.is_valid_cell(self.cell_index):
+            raise InvalidCoordinateError(
+                f"'{self.cell_index}' is not a valid H3 spatial index string."
+            )
 
     @classmethod
     def from_h3_string(cls, h3_str: str) -> "SpatialCellId":

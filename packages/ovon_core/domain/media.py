@@ -8,8 +8,12 @@ from packages.ovon_core.domain.taxonomy import TaxonRef
 class LicenseType(str, Enum):
     """Supported Creative Commons and Open Media Licenses."""
 
+    CC_BY_2_0 = "CC BY 2.0"
+    CC_BY_3_0 = "CC BY 3.0"
     CC_BY_4_0 = "CC BY 4.0"
+    CC_BY_NC_3_0 = "CC BY-NC 3.0"
     CC_BY_NC_4_0 = "CC BY-NC 4.0"
+    CC_BY_SA_3_0 = "CC BY-SA 3.0"
     CC_BY_SA_4_0 = "CC BY-SA 4.0"
     CC0_1_0 = "CC0 1.0"
     PUBLIC_DOMAIN = "Public Domain"
@@ -20,6 +24,16 @@ class MediaType(str, Enum):
 
     PHOTO = "photo"
     AUDIO = "audio"
+
+
+class MediaVerificationStatus(str, Enum):
+    """Workflow verification status for media assets."""
+
+    APPROVED_PRIMARY = "approved_primary"
+    APPROVED_ALTERNATE = "approved_alternate"
+    PROTOTYPE_ONLY = "prototype_only"
+    CANDIDATE = "candidate"
+    REJECTED = "rejected"
 
 
 @dataclass(frozen=True, slots=True)
@@ -35,6 +49,9 @@ class MediaAsset:
     attribution_text: str
     source_name: str = "Xeno-Canto / Wikimedia"
     alt_text: str = ""
+    verification_status: MediaVerificationStatus = MediaVerificationStatus.APPROVED_PRIMARY
+    license_url: str | None = None
+    retrieved_at: str | None = None
 
     def __post_init__(self) -> None:
         if not self.asset_id or not self.asset_id.strip():

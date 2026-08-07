@@ -1,12 +1,23 @@
+from pathlib import Path
+
 from flask import Flask
 
 from apps.web.app.config import DevelopmentConfig
+from packages.ovon_core.media import LocalMediaRepository
 
 
 def create_app(config_class=DevelopmentConfig):
     """Flask Application Factory."""
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    # Initialize and inject Media Repository extension
+    manifest_path = Path(app.root_path).parent.parent.parent / "data" / "media_manifest.json"
+    if not manifest_path.exists():
+        manifest_path = Path("data/media_manifest.json")
+    app.extensions["media_repository"] = LocalMediaRepository(
+        manifest_path if manifest_path.exists() else None
+    )
 
     # Register Blueprints
     from apps.web.app.blueprints.admin import admin_bp

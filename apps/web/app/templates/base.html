@@ -42,7 +42,16 @@
   <footer>
     <p>Sidetrack v0.1 — Powered by OVON Research Core & OpenStreetMap</p>
     <p style="margin-top: 0.25rem; opacity: 0.7;">Birds of Greater Kansas City • Local-first deterministic discovery</p>
-  </footer>
-
+  <!-- Global Single-Active Audio Controller (Ensures only one audio clip plays at a time) -->
+  <script>
+    document.addEventListener('play', function(e) {
+      if (e.target.tagName !== 'AUDIO') return;
+      document.querySelectorAll('audio').forEach(function(audio) {
+        if (audio !== e.target) {
+          audio.pause();
+        }
+      });
+    }, true);
+  </script>
 </body>
 </html>

@@ -35,6 +35,19 @@ class RouteSegment:
     field_cue: FieldCue
     geojson_geometry: dict | None = None
 
+    def __post_init__(self) -> None:
+        if self.distance_meters <= 0:
+            raise ValueError(f"Segment distance_meters ({self.distance_meters}) must be positive.")
+        if self.duration_minutes <= 0:
+            raise ValueError(
+                f"Segment duration_minutes ({self.duration_minutes}) must be positive."
+            )
+        if self.field_cue and self.focal_species:
+            if self.field_cue.taxon_ref not in self.focal_species:
+                raise ValueError(
+                    f"FieldCue taxon '{self.field_cue.taxon_ref.common_name}' must belong to segment focal_species."
+                )
+
     @property
     def formatted_distance(self) -> str:
         if self.distance_meters >= 1000.0:
@@ -64,6 +77,19 @@ class RouteOption:
             raise ValueError("duration_minutes must be positive.")
         if not self.segments:
             raise ValueError("RouteOption must contain at least one segment.")
+
+        # Reconcile segment distance and duration totals against route totals
+        total_seg_dist = sum(s.distance_meters for s in self.segments)
+        total_seg_dur = sum(s.duration_minutes for s in self.segments)
+
+        if not (0.8 * self.distance_meters <= total_seg_dist <= 1.2 * self.distance_meters):
+            raise ValueError(
+                f"Summed segment distance ({total_seg_dist}m) does not reconcile with route distance ({self.distance_meters}m)."
+            )
+        if not (0.8 * self.duration_minutes <= total_seg_dur <= 1.2 * self.duration_minutes):
+            raise ValueError(
+                f"Summed segment duration ({total_seg_dur}min) does not reconcile with route duration ({self.duration_minutes}min)."
+            )
 
     @property
     def formatted_distance(self) -> str:

@@ -22,7 +22,7 @@
         <div class="route-metrics">
           <span>⏱️ {{ route.formatted_duration }}</span>
           <span>🚶 {{ route.formatted_distance }}</span>
-          <span>🐦 ~{{ route.segments[0].focal_species|length * 3 }} species</span>
+          <span>🐦 {% set taxa = [] %}{% for seg in route.segments %}{% for sp in seg.focal_species %}{% if sp not in taxa %}{% set _ = taxa.append(sp) %}{% endif %}{% endfor %}{% endfor %}{{ taxa|length }} focal species</span>
         </div>
 
         <div style="margin-bottom: 1rem;">
