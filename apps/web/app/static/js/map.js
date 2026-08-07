@@ -53,9 +53,64 @@ function initSidetrackMap() {
         L.marker(startLatLon, { icon: startIcon }).addTo(map);
       }
 
-      map.fitBounds(mainLayer.getBounds(), { padding: [40, 40] });
+      const bounds = mainLayer.getBounds();
+
+      // Parse & render Route Evidence pins on map
+      const evidenceRaw = mapElement.getAttribute('data-evidence');
+      if (evidenceRaw && evidenceRaw.trim()) {
+        try {
+          const evidenceItems = JSON.parse(evidenceRaw);
+          evidenceItems.forEach((item) => {
+            if (item.type === 'exact' && item.lat && item.lon) {
+              const name = item.common_name || '';
+              let emoji = '🐦';
+              if (name.includes('Woodpecker')) emoji = '🪵';
+              else if (name.includes('Waxwing')) emoji = '🪶';
+              else if (name.includes('Owl')) emoji = '🦉';
+              else if (name.includes('Duck') || name.includes('Goose')) emoji = '🦆';
+
+              const evIcon = L.divIcon({
+                className: 'custom-div-icon',
+                html: `<div class="map-evidence-icon-pin"><span class="map-evidence-emoji">${emoji}</span></div>`,
+                iconSize: [32, 32],
+                iconAnchor: [16, 16]
+              });
+
+              const marker = L.marker([item.lat, item.lon], { icon: evIcon }).addTo(map);
+
+              const tooltipHtml = `
+                <div style="font-family: inherit;">
+                  <strong style="font-size: 0.88rem; color: #f8fafc;">📍 ${item.common_name}</strong>
+                  <div style="font-size: 0.78rem; color: #38bdf8; margin-top: 2px;">Reported ~${item.dist}m from walk</div>
+                  <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 1px;">Source: ${item.source}</div>
+                </div>
+              `;
+
+              // Show hovering tooltip on desktop
+              marker.bindTooltip(tooltipHtml, {
+                direction: 'top',
+                className: 'map-evidence-tooltip',
+                offset: [0, -16],
+                opacity: 0.98
+              });
+
+              // Click popup for mobile tapping
+              marker.bindPopup(tooltipHtml);
+
+              bounds.extend([item.lat, item.lon]);
+            }
+          });
+        } catch (e) {
+          console.warn('Could not parse route evidence JSON:', e);
+        }
+      }
+
+
+      map.fitBounds(bounds, { padding: [40, 40] });
+
 
       // Interactive timeline segment hover & focus highlighting using segment-specific GeoJSON
+
       const segmentCards = document.querySelectorAll('.timeline-segment-card');
       let highlightLayer = null;
 

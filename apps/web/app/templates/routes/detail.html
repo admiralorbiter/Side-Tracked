@@ -16,7 +16,13 @@
     </div>
   </div>
 
-  <div id="sidetrack-map" class="map-container" data-geojson='{{ route.geojson_geometry | tojson if route.geojson_geometry else "" }}' style="height: 360px; max-height: 40vh; width: 100%; border-radius: var(--radius-md); margin-bottom: 2rem;"></div>
+  <div id="sidetrack-map" class="map-container"
+       data-geojson="{{ route.geojson_geometry | tojson | forceescape if route.geojson_geometry else '' }}"
+       data-evidence="{{ route_evidence.map_items | tojson | forceescape if route_evidence else '[]' }}"
+       style="height: 360px; max-height: 40vh; width: 100%; border-radius: var(--radius-md); margin-bottom: 2rem;"></div>
+
+
+
 
   <!-- Habitat Radar — What's Around Here? -->
   {% if habitat_radar %}
@@ -141,8 +147,12 @@
   </div>
   {% endfor %}
 
+  <!-- Route Evidence Layer (Reports Near This Walk) -->
+  {% include "components/route_evidence.html" %}
+
   <!-- Data Provenance & Limitations Summary Block -->
   <div class="card" style="margin-top: 2rem; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-card);">
+
     <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.75rem;">🛡️ Data Provenance & Limitations</h3>
     <div style="font-size: 0.85rem; color: var(--brand-sky); display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
       <div>

@@ -1,0 +1,90 @@
+<!-- Reports Near This Walk (Route Evidence Layer) -->
+<div class="card" style="margin-top: 1.5rem; background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-card);" x-data="{ tab: 'recent' }">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+    <div>
+      <h3 style="font-size: 1.15rem; font-weight: 700; color: #f8fafc; margin-bottom: 0.2rem;">📍 Reports Near This Walk</h3>
+      <p style="font-size: 0.8rem; color: var(--brand-sky);">Community biodiversity observations reported in the surrounding corridor.</p>
+    </div>
+    
+    <!-- Alpine Tab Navigation -->
+    <div class="tab-pill-group">
+      <button type="button" @click="tab = 'recent'" class="tab-pill" :class="{ 'active': tab === 'recent' }">
+        Recent
+      </button>
+      <button type="button" @click="tab = 'seasonal'" class="tab-pill" :class="{ 'active': tab === 'seasonal' }">
+        Seasonal History
+      </button>
+      <button type="button" @click="tab = 'sightings'" class="tab-pill" :class="{ 'active': tab === 'sightings' }">
+        My Sightings
+      </button>
+    </div>
+
+  </div>
+
+  {% if route_evidence and route_evidence.species_evidence %}
+    <!-- Recent Tab Panel -->
+    <div x-show="tab === 'recent'" style="display: flex; flex-direction: column; gap: 0.75rem;">
+      {% for sp in route_evidence.species_evidence %}
+        {% if sp.recent_reports_count > 0 %}
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); padding: 0.85rem; border-radius: var(--radius-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem;">
+            <div>
+              <strong style="font-size: 0.95rem; color: #f8fafc;">{{ sp.common_name }}</strong>
+              <span style="font-size: 0.8rem; font-style: italic; color: var(--text-muted); margin-left: 0.4rem;">({{ sp.scientific_name }})</span>
+            </div>
+            <span class="route-badge badge-birdy" style="font-size: 0.7rem;">{{ sp.source_names|join(', ') }}</span>
+          </div>
+
+          <div style="margin-top: 0.4rem; font-size: 0.82rem; color: #cbd5e1;">
+            <p>
+              Reported from <strong>{{ sp.recent_reports_count }}</strong> nearby public report locations in the last 30 days.
+            </p>
+            <p style="margin-top: 0.2rem; color: var(--accent-amber);">
+              📍 {{ sp.formatted_distance }}
+              {% if sp.freshness_days %}
+                · <span style="color: var(--brand-sky);">Most recent: {{ sp.freshness_days }} days ago</span>
+              {% endif %}
+            </p>
+            {% if sp.display_note %}
+              <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">ℹ️ {{ sp.display_note }}</p>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <!-- Seasonal History Tab Panel -->
+    <div x-show="tab === 'seasonal'" style="display: flex; flex-direction: column; gap: 0.75rem;">
+      {% for sp in route_evidence.species_evidence %}
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); padding: 0.85rem; border-radius: var(--radius-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <strong style="font-size: 0.95rem; color: #f8fafc;">{{ sp.common_name }}</strong>
+            <span style="font-size: 0.75rem; color: var(--brand-sky); opacity: 0.8;">Historical EBD/SED</span>
+          </div>
+          <div style="margin-top: 0.4rem; font-size: 0.82rem; color: #cbd5e1;">
+            <p>Regularly reported near this corridor during this time of spring in previous years.</p>
+            <p style="margin-top: 0.25rem; font-size: 0.78rem; color: var(--accent-green);">
+              📊 Historical checklist detection rate: <strong>{{ ((sp.checklist_detection_rate or 0.3) * 100)|round(1) }}%</strong> (based on {{ sp.eligible_checklist_count }} complete checklists).
+            </p>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- My Sightings Tab Panel -->
+    <div x-show="tab === 'sightings'" style="padding: 1rem; background: rgba(0,0,0,0.2); border-radius: var(--radius-sm); font-size: 0.85rem; color: #cbd5e1; text-align: center;">
+      <p style="margin-bottom: 0.5rem;">🔒 <strong>Private Sidetrack Sightings</strong></p>
+      <p style="font-size: 0.8rem; color: var(--text-muted);">Your personal discovery logs for this route remain strictly private on your device.</p>
+    </div>
+
+    <div style="margin-top: 0.85rem; font-size: 0.72rem; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.08); padding-top: 0.5rem;">
+      <strong>Data Provenance & Privacy Safeguards:</strong> Reports Near This Walk displays open citizen-science checklist locations without implying current presence or exact bird coordinates. Obscured iNaturalist records omit precise distance metrics.
+    </div>
+
+  {% else %}
+    <div style="padding: 1rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+      No qualifying recent public reports were found near this route. That does not mean these species are absent.
+    </div>
+  {% endif %}
+</div>

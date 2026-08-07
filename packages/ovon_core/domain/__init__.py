@@ -56,4 +56,9 @@ __all__ = [
     "AuthorityName",
     "TaxonCrosswalkEntry",
     "TaxonConcept",
+    "EvidenceLocation",
+    "EvidenceVisibility",
+    "NormalizedOccurrenceEvidence",
+    "SpeciesRouteEvidence",
+    "RouteEvidenceSummary",
 ]

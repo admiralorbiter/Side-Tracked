@@ -244,17 +244,23 @@ from apps.web.app.services import (
 
 @planner_bp.route("/plans/<plan_id>/routes/<route_id>")
 def route_detail(plan_id: str, route_id: str):
-    """Step 6: Plan-scoped route detail view with Habitat Radar."""
+    """Step 6: Plan-scoped route detail view with Habitat Radar and Route Evidence."""
+    from packages.ovon_core.evidence.service import RouteEvidenceService
+
     route = _resolve_route_with_fallback(plan_id, route_id)
     if not route:
         return render_template("errors/404.html"), 404
     field_pack = BuildFieldPack().execute(route)
     habitat_radar = BuildHabitatRadar().execute(route)
+    evidence_service = RouteEvidenceService()
+    route_evidence = evidence_service.build_evidence_summary(route)
+
     return render_template(
         "routes/detail.html",
         route=route,
         field_pack=field_pack,
         habitat_radar=habitat_radar,
+        route_evidence=route_evidence,
         plan_id=plan_id,
     )
 

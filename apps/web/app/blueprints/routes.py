@@ -7,16 +7,26 @@ routes_bp = Blueprint("routes", __name__)
 
 @routes_bp.route("/routes/<route_id>")
 def detail(route_id):
-    """Step 6 & 7: Route Detail & Text-Equivalent Field Pack."""
+    """Step 6 & 7: Route Detail & Text-Equivalent Field Pack & Route Evidence."""
+    from packages.ovon_core.evidence.service import RouteEvidenceService
+
     route_service = GetRouteDetail()
     field_pack_service = BuildFieldPack()
+    evidence_service = RouteEvidenceService()
 
     route_domain = route_service.execute(None, route_id)
     if not route_domain:
         abort(404)
 
     field_pack = field_pack_service.execute(route_domain)
-    return render_template("routes/detail.html", route=route_domain, field_pack=field_pack)
+    route_evidence = evidence_service.build_evidence_summary(route_domain)
+
+    return render_template(
+        "routes/detail.html",
+        route=route_domain,
+        field_pack=field_pack,
+        route_evidence=route_evidence,
+    )
 
 
 @routes_bp.route("/routes/<route_id>/in-route")
