@@ -1,6 +1,6 @@
 """Habitat Radar Domain Read Models."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from packages.ovon_core.domain.taxonomy import TaxonRef
 from packages.ovon_core.ecology.ecology_profile import HabitatGuild

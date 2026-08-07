@@ -10,12 +10,6 @@ from packages.ovon_core.domain import (
     MediaType,
     TaxonRef,
 )
-from packages.ovon_core.domain import (
-    FieldCue,
-    MediaAsset,
-    MediaType,
-    TaxonRef,
-)
 from packages.ovon_core.fixtures.kc_species_fixtures import ALL_KC_TAXA, KC_FIELD_CUES
 from packages.ovon_core.media import MediaRepository
 

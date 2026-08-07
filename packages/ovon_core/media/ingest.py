@@ -1,21 +1,13 @@
 """CLI Media Ingestion Script for Species Media Foundation."""
 
 import argparse
+import time
 from pathlib import Path
 
-from packages.ovon_core.domain import TaxonRef
-from packages.ovon_core.media.repository import LocalMediaRepository
-from packages.ovon_core.media.wikimedia import WikimediaProvider
-from packages.ovon_core.media.xenocanto import XenoCantoProvider
-
+from packages.ovon_core.domain import MediaType
 from packages.ovon_core.fixtures.kc_species_fixtures import ALL_KC_TAXA
 from packages.ovon_core.media.repository import LocalMediaRepository
 from packages.ovon_core.media.wikimedia import WikimediaProvider
-from packages.ovon_core.media.xenocanto import XenoCantoProvider
-
-
-import time
-from packages.ovon_core.domain import MediaType
 
 
 def run_ingestion(manifest_output: Path) -> None:

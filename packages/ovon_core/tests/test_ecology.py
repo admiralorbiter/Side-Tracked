@@ -69,9 +69,9 @@ def test_kc_pilot_manifest_file():
 
 
 def test_candidate_provider_and_habitat_radar():
+    from apps.web.app.services import BuildHabitatRadar
     from packages.ovon_core.ecology.candidate_provider import KansasCityCandidateTaxaProvider
     from packages.ovon_core.fixtures.routes_fixtures import ROUTE_EASY
-    from apps.web.app.services import BuildHabitatRadar
 
     provider = KansasCityCandidateTaxaProvider()
     candidates = provider.candidates(set(), week=20)

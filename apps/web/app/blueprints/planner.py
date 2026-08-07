@@ -2,7 +2,7 @@ import re
 
 from flask import Blueprint, current_app, jsonify, make_response, render_template, request, session
 
-from apps.web.app.services import BuildFieldPack, GetRouteDetail
+from apps.web.app.services import BuildFieldPack
 from apps.web.app.services.planner_service import PlanLoopPreview, RoutePlanRepository
 from packages.ovon_core.domain import (
     Coordinate,
@@ -236,9 +236,7 @@ def results():
 
 
 from apps.web.app.services import (
-    BuildFieldPack,
     BuildHabitatRadar,
-    GetRouteDetail,
     WalkFeedbackRepository,
 )
 from datetime import datetime, timezone

@@ -29,7 +29,6 @@ def test_public_park_presets_catalog():
 
 def test_nominatim_geocoder_cache_write_and_read(tmp_path):
     geocoder = NominatimGeocoderProvider(cache_dir=tmp_path)
-    coord = Coordinate(39.0347, -94.5906)
 
     # Populate cache directly to avoid external network calls during automated test
     cache_key = "geocode_loose_park"

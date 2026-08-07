@@ -64,7 +64,10 @@ class BuildFieldPack:
         # Sample route geometry into H3 spatial cells for dynamic ecological opportunity ranking
         traversed_cells = polyline_to_h3_cells(route.geojson_geometry, resolution=8)
 
-        from packages.ovon_core.ecology.recommender import DefaultSegmentSpeciesRecommender, SegmentContext
+        from packages.ovon_core.ecology.recommender import (
+            DefaultSegmentSpeciesRecommender,
+            SegmentContext,
+        )
 
         recommender = DefaultSegmentSpeciesRecommender(species_surface=self.species_surface)
         rec_opportunities = recommender.recommend_species(

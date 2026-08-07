@@ -12,7 +12,9 @@
       "creator": "Paul Danese",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Paul Danese (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-151278205.jpg",
+      "sha256": "653c859a13698b2e210e6095f347a60a864fa84046d85a6ba691d680bccb3ca1"
     },
     {
       "asset_id": "wm-audio-12314107",
@@ -24,7 +26,9 @@
       "creator": "Tony Phillips",
       "license": "CC BY 3.0",
       "attribution_text": "Tony Phillips (CC BY 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-12314107.ogg",
+      "sha256": "7dd1b0aa6bf0b1062588c1a9a21051991970f29aaf6b15c326d7573cb5f2fdf1"
     },
     {
       "asset_id": "wm-14669394",
@@ -36,7 +40,9 @@
       "creator": "PhotoBobil",
       "license": "CC BY 2.0",
       "attribution_text": "PhotoBobil (CC BY 2.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-14669394.jpg",
+      "sha256": "8818422dd700d40b4e24548852fdd8ff9c61a35d7812eaefe54ae4066afc8d4d"
     },
     {
       "asset_id": "wm-audio-177160541",
@@ -48,7 +54,9 @@
       "creator": "Jeuwre",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Jeuwre (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-177160541.ogg",
+      "sha256": "a3e1bb990c9e98513ddebde6120bc236d58b8fb492f8c8ecfe6cb4557e3c4c62"
     },
     {
       "asset_id": "wm-5088393",
@@ -60,7 +68,9 @@
       "creator": "Kevin Cole from Pacific Coast, USA (en:User:Kevinlcole)",
       "license": "CC BY 2.0",
       "attribution_text": "Kevin Cole from Pacific Coast, USA (en:User:Kevinlcole) (CC BY 2.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-5088393.jpg",
+      "sha256": "b35cbf929a78d99192ab0ae1448d08393be295082b117fefcde337de33de9c6f"
     },
     {
       "asset_id": "wm-audio-1580142",
@@ -72,7 +82,9 @@
       "creator": "Unknown authorUnknown author",
       "license": "Public Domain",
       "attribution_text": "Unknown authorUnknown author (Public Domain via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-1580142.ogg",
+      "sha256": "490c888e5bbf4f31d4118134e33f5cb8dd71846f4b3e6604a92ef8cd2dcd101b"
     },
     {
       "asset_id": "wm-37974362",
@@ -84,7 +96,9 @@
       "creator": "Jacek Halicki",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Jacek Halicki (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-37974362.jpg",
+      "sha256": "c0f0c9976bf994e3744049b8de2d04041d420ffeb2d356aafe3b007e7c762d95"
     },
     {
       "asset_id": "wm-audio-23927856",
@@ -96,7 +110,9 @@
       "creator": "Jonathon Jongsma",
       "license": "CC BY-SA 3.0",
       "attribution_text": "Jonathon Jongsma (CC BY-SA 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-23927856.ogg",
+      "sha256": "8e67444536642af9a3764e37d0248f678a3ca761b6ddf767c815f173c2c2db0e"
     },
     {
       "asset_id": "wm-172083069",
@@ -108,7 +124,9 @@
       "creator": "Paul Danese",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Paul Danese (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-172083069.jpg",
+      "sha256": "685227e6a8ac2851dacb020da6874d83bd6f120d3b6e7884e1b1eafb4c035104"
     },
     {
       "asset_id": "wm-audio-23927554",
@@ -120,7 +138,9 @@
       "creator": "Jonathon Jongsma",
       "license": "CC BY-SA 3.0",
       "attribution_text": "Jonathon Jongsma (CC BY-SA 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-23927554.ogg",
+      "sha256": "2b2a6743063aeba1c3b919bf8f3b0c5cab8f04a3145818c2fc5ee2722bb25ed1"
     },
     {
       "asset_id": "wm-137478471",
@@ -132,7 +152,9 @@
       "creator": "Paul Danese",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Paul Danese (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-137478471.jpg",
+      "sha256": "b1afd91a26d41829f2195e5616b16669b1659195b4d5238e7ecf0bcb52379e47"
     },
     {
       "asset_id": "wm-audio-23927922",
@@ -144,7 +166,9 @@
       "creator": "Jonathon Jongsma",
       "license": "CC BY-SA 3.0",
       "attribution_text": "Jonathon Jongsma (CC BY-SA 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-23927922.ogg",
+      "sha256": "5eef2d6a4cf98a41fb141990842e0aea6d6d4aba33a24fe2a550d4bb63232771"
     },
     {
       "asset_id": "wm-392983",
@@ -156,7 +180,9 @@
       "creator": "No machine-readable author provided. Factumquintus assumed (based on copyright claims).",
       "license": "CC BY-SA 3.0",
       "attribution_text": "No machine-readable author provided. Factumquintus assumed (based on copyright claims). (CC BY-SA 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-392983.jpg",
+      "sha256": "416fe831312dfcd93bfcee336d423023f285fdc301677af413802af6fbb8ad3f"
     },
     {
       "asset_id": "wm-audio-1574497",
@@ -168,7 +194,9 @@
       "creator": "Unknown authorUnknown author",
       "license": "Public Domain",
       "attribution_text": "Unknown authorUnknown author (Public Domain via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-1574497.ogg",
+      "sha256": "934f41487dab05cf24baadac04ff085b4cd2672f64e7f0859baeac9cbd0bc789"
     },
     {
       "asset_id": "wm-132979039",
@@ -180,7 +208,9 @@
       "creator": "Paul Danese",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Paul Danese (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-132979039.jpg",
+      "sha256": "a485750ae4bd8a2f2e34a674c4eb030cc9a7ab6b624442b2f9efb330c4c343dd"
     },
     {
       "asset_id": "wm-audio-23928946",
@@ -192,7 +222,9 @@
       "creator": "Jonathon Jongsma",
       "license": "CC BY-SA 3.0",
       "attribution_text": "Jonathon Jongsma (CC BY-SA 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-23928946.ogg",
+      "sha256": "98dbe383f13d8f7cf9d2b17834c19b0f0e91499883a6d740ea79b0305fee8524"
     },
     {
       "asset_id": "wm-46697315",
@@ -204,7 +236,9 @@
       "creator": "Andreas Eichler",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Andreas Eichler (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-46697315.jpg",
+      "sha256": "bbaf4f61f0280cb6fc7c6cd2d3ad3152db211463362c1816e2073ce7f3027d37"
     },
     {
       "asset_id": "wm-audio-23929087",
@@ -216,7 +250,9 @@
       "creator": "Jonathon Jongsma",
       "license": "CC BY-SA 3.0",
       "attribution_text": "Jonathon Jongsma (CC BY-SA 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-23929087.ogg",
+      "sha256": "ddd5e808c415ebd6f0c2124501789843239368e94b5f39670a7c3e7d3686ae63"
     },
     {
       "asset_id": "wm-147506121",
@@ -228,7 +264,9 @@
       "creator": "Adam Jackson",
       "license": "CC0 1.0",
       "attribution_text": "Adam Jackson (CC0 1.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-147506121.jpg",
+      "sha256": "9dc67d6fc1d0e6f80ffd0f2e392be4c8b10f55e3429125b2e4c1bb3338c8cbba"
     },
     {
       "asset_id": "wm-audio-23928408",
@@ -240,7 +278,9 @@
       "creator": "Jonathon Jongsma",
       "license": "CC BY-SA 3.0",
       "attribution_text": "Jonathon Jongsma (CC BY-SA 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-23928408.ogg",
+      "sha256": "ee8e1bde58be27fe5263f838fd5953e815559c5f03874fab40ca075c5e33d86c"
     },
     {
       "asset_id": "wm-3112981",
@@ -252,7 +292,9 @@
       "creator": "Wolfgang Wander",
       "license": "CC BY-SA 3.0",
       "attribution_text": "Wolfgang Wander (CC BY-SA 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-3112981.jpg",
+      "sha256": "a10efdcc59083c442df7f4134d6042307941a026d6691e1ce741361ab2651bf9"
     },
     {
       "asset_id": "wm-audio-77530056",
@@ -264,7 +306,9 @@
       "creator": "Jonathon Jongsma",
       "license": "CC BY-SA 3.0",
       "attribution_text": "Jonathon Jongsma (CC BY-SA 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-77530056.mp3",
+      "sha256": "3ef9aea98b93d2863d56efb1b1deba1a3e00014438b71d48458b4295761e40b4"
     },
     {
       "asset_id": "wm-139316951",
@@ -276,7 +320,9 @@
       "creator": "Paul Danese",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Paul Danese (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-139316951.jpg",
+      "sha256": "3438de7fd8877b4e1c786a7034d7c5116e2a0df1bd320b95865e886b9ccbd615"
     },
     {
       "asset_id": "wm-audio-23928462",
@@ -288,7 +334,9 @@
       "creator": "Jonathon Jongsma",
       "license": "CC BY-SA 3.0",
       "attribution_text": "Jonathon Jongsma (CC BY-SA 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-23928462.ogg",
+      "sha256": "f1d43d8d7b086696a289c3d1d24b302703f89fb10228b69080dcfd5927ccbced"
     },
     {
       "asset_id": "wm-144260174",
@@ -300,7 +348,9 @@
       "creator": "Paul Danese",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Paul Danese (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-144260174.jpg",
+      "sha256": "17a669bcc6f7b575629ffb0ea0a50590eef424eb6b4ee77ad18497c9a0fb3e5c"
     },
     {
       "asset_id": "wm-audio-112698029",
@@ -312,7 +362,9 @@
       "creator": "Speaker: Totodu74\nRecorder: Totodu74",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Speaker: Totodu74\nRecorder: Totodu74 (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-112698029.wav",
+      "sha256": "2697149bb393c06ba0c5a9a57891533e2e210195526c975f0471f79906a68a44"
     },
     {
       "asset_id": "wm-141699038",
@@ -324,7 +376,9 @@
       "creator": "Paul Danese",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Paul Danese (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-141699038.jpg",
+      "sha256": "39d5ee4f3e831feb3f4d9ef46863d00f6cbc862a13f7bfa6b17c129c2b4b3f5f"
     },
     {
       "asset_id": "wm-audio-23928956",
@@ -336,7 +390,9 @@
       "creator": "Jonathon Jongsma",
       "license": "CC BY-SA 3.0",
       "attribution_text": "Jonathon Jongsma (CC BY-SA 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-23928956.ogg",
+      "sha256": "0afe0fb6fdf860b48624aba6c93acdd40a3087902f9e14696485e5082d9ec5dd"
     },
     {
       "asset_id": "wm-142103035",
@@ -348,7 +404,9 @@
       "creator": "Paul Danese",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Paul Danese (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-142103035.jpg",
+      "sha256": "525c9edaa9143603b37aa3ae2e20d7a5bdd22e36864b3a1910dbcab649bade74"
     },
     {
       "asset_id": "wm-audio-7455531",
@@ -360,7 +418,9 @@
       "creator": "G. McGrane",
       "license": "Public Domain",
       "attribution_text": "G. McGrane (Public Domain via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-7455531.ogg",
+      "sha256": "63ccef4e60d1582177b3d9f5d5e7fcd0b98052da77ba6944e709713fb73dae81"
     },
     {
       "asset_id": "wm-169905277",
@@ -372,7 +432,9 @@
       "creator": "Giles Laurent",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Giles Laurent (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-169905277.jpg",
+      "sha256": "56733cfe7a8593864f8e3ad47de5dbfc1274559bb87bbb14426a0297babb9a7b"
     },
     {
       "asset_id": "wm-audio-68241869",
@@ -384,7 +446,9 @@
       "creator": "Bushman",
       "license": "CC BY-SA 3.0",
       "attribution_text": "Bushman (CC BY-SA 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-68241869.mp3",
+      "sha256": "0e98eac0c856483bbca5f28cc45b8a16cce0183f2820b6445d81aec827b57c7b"
     },
     {
       "asset_id": "wm-152244426",
@@ -396,7 +460,9 @@
       "creator": "lwolfartist",
       "license": "CC BY 2.0",
       "attribution_text": "lwolfartist (CC BY 2.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-152244426.jpg",
+      "sha256": "4ec38176b75440c6c621ce8d93d79c833c26c24a06e8ad60e2145302ba4800ea"
     },
     {
       "asset_id": "wm-audio-23927967",
@@ -408,7 +474,9 @@
       "creator": "Jonathon Jongsma",
       "license": "CC BY-SA 3.0",
       "attribution_text": "Jonathon Jongsma (CC BY-SA 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-23927967.ogg",
+      "sha256": "112c958ffcc4478f8b0db209ae29140fc8485f146d401997f1f205663cda024f"
     },
     {
       "asset_id": "wm-10954768",
@@ -420,7 +488,9 @@
       "creator": "Dick Daniels (http://carolinabirds.org/)",
       "license": "CC BY-SA 3.0",
       "attribution_text": "Dick Daniels (http://carolinabirds.org/) (CC BY-SA 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-10954768.jpg",
+      "sha256": "1d2b162860e1177bf139bf8e02d137b531a4c5cbc93412b6901ddd0469a7c4a0"
     },
     {
       "asset_id": "wm-audio-15526347",
@@ -432,7 +502,9 @@
       "creator": "National Park Service",
       "license": "Public Domain",
       "attribution_text": "National Park Service (Public Domain via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-15526347.ogg",
+      "sha256": "91fc1d58d60a5f34a1850a34e1aa36bd5baf4f6dcc70cf2f67831a4b4e98f03a"
     },
     {
       "asset_id": "wm-147440408",
@@ -444,7 +516,9 @@
       "creator": "Rhododendrites",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Rhododendrites (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-147440408.jpg",
+      "sha256": "5cb65a3d2f99c0a74725264c9756cd02588c669692fd2f48aec5d83594e6c42e"
     },
     {
       "asset_id": "wm-audio-2144744",
@@ -456,7 +530,9 @@
       "creator": "Wikimedia Commons Contributor",
       "license": "CC BY-SA 3.0",
       "attribution_text": "Wikimedia Commons Contributor (CC BY-SA 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-2144744.ogg",
+      "sha256": "4a5f480643c43e3604caee841c05667abb9b30216bc0a911f5af91af86f61b1d"
     },
     {
       "asset_id": "wm-146868319",
@@ -468,7 +544,9 @@
       "creator": "Paul Danese",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Paul Danese (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-146868319.jpg",
+      "sha256": "1010285ba6cd8854850ca112508ee537989d3d835a8ef10b77892b6b746d8e57"
     },
     {
       "asset_id": "wm-audio-68269458",
@@ -480,7 +558,9 @@
       "creator": "Jonathon Jongsma",
       "license": "CC BY-SA 3.0",
       "attribution_text": "Jonathon Jongsma (CC BY-SA 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-68269458.mp3",
+      "sha256": "2ed983757ec45c29e4dbd4511232b2f46c6947b70691f6f3bbce557c05b224cc"
     },
     {
       "asset_id": "wm-140454598",
@@ -492,7 +572,9 @@
       "creator": "Paul Danese",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Paul Danese (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-140454598.jpg",
+      "sha256": "81538f512667f06441d8c4d69c92044c5e550ccc41521ae003345bc758043d8b"
     },
     {
       "asset_id": "wm-audio-23928835",
@@ -504,7 +586,9 @@
       "creator": "Jonathon Jongsma",
       "license": "CC BY-SA 3.0",
       "attribution_text": "Jonathon Jongsma (CC BY-SA 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-23928835.ogg",
+      "sha256": "6ed62b1aac509cc7820c8c4f72226dd49861cc2682321123ef1540eb3ab65f5e"
     },
     {
       "asset_id": "wm-2075655",
@@ -516,7 +600,9 @@
       "creator": "Mdf",
       "license": "CC BY-SA 3.0",
       "attribution_text": "Mdf (CC BY-SA 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-2075655.jpg",
+      "sha256": "fd120aa0c36772f45486582a5f784969b9aff754aff6fe584610ea77e49ab3b5"
     },
     {
       "asset_id": "wm-audio-68244140",
@@ -528,7 +614,9 @@
       "creator": "Jonathon Jongsma",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Jonathon Jongsma (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-68244140.mp3",
+      "sha256": "d3d05b2a7e459f3b03d63aea76d0f7bf380ca92362b3afa49604180629e26752"
     },
     {
       "asset_id": "wm-155145487",
@@ -540,7 +628,9 @@
       "creator": "Paul Danese",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Paul Danese (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-155145487.jpg",
+      "sha256": "48cd456ff671dc0bd0ec136b9948f12000839f91050d0969b044e35bcfd92619"
     },
     {
       "asset_id": "wm-audio-89595964",
@@ -552,7 +642,9 @@
       "creator": "Christopher Eliot",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Christopher Eliot (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-89595964.mp3",
+      "sha256": "f8d807649760623e00748c5391b08cb86753f0231d8ba96ad6fb84a9d71a164b"
     },
     {
       "asset_id": "wm-138950173",
@@ -564,7 +656,9 @@
       "creator": "Paul Danese",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Paul Danese (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-138950173.jpg",
+      "sha256": "40023c128e2a2707f66106bf807848eff691069c2f58e732a0a4a79f32300ec0"
     },
     {
       "asset_id": "wm-audio-23929845",
@@ -576,7 +670,9 @@
       "creator": "Jonathon Jongsma",
       "license": "CC BY-SA 3.0",
       "attribution_text": "Jonathon Jongsma (CC BY-SA 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-23929845.ogg",
+      "sha256": "b31896b7b44512c303608d7157d45863d1911cbdcd21d2abc4ee565b8c5c0576"
     },
     {
       "asset_id": "wm-146201445",
@@ -588,7 +684,9 @@
       "creator": "Paul Danese",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Paul Danese (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-146201445.jpg",
+      "sha256": "e2a77a65bc342b61d85f9cf3653f2f0a01fe8d935e0957639927f95f4eb174f1"
     },
     {
       "asset_id": "wm-audio-23930478",
@@ -600,7 +698,9 @@
       "creator": "Jonathon Jongsma",
       "license": "CC BY-SA 3.0",
       "attribution_text": "Jonathon Jongsma (CC BY-SA 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-23930478.ogg",
+      "sha256": "959fccfabb9be2e8dc08cf07269f4137c63c29c4b6a892f6159abaa45eb9a11e"
     },
     {
       "asset_id": "wm-136530628",
@@ -612,7 +712,9 @@
       "creator": "Paul Danese",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Paul Danese (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-136530628.jpg",
+      "sha256": "d34cfee9c1badb77e2e8b6b92c808a68e3d8dd63e34b816a5f3f16fa38c44370"
     },
     {
       "asset_id": "wm-audio-23929294",
@@ -624,7 +726,9 @@
       "creator": "Jonathon Jongsma",
       "license": "CC BY-SA 3.0",
       "attribution_text": "Jonathon Jongsma (CC BY-SA 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-23929294.ogg",
+      "sha256": "18553a803a96d1418d402d83db91b18b2d815bbcb9da4499bbbaef41adfded89"
     },
     {
       "asset_id": "wm-146868320",
@@ -636,7 +740,9 @@
       "creator": "Paul Danese",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Paul Danese (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-146868320.jpg",
+      "sha256": "0f2f61622f6deb44b2a3474b4fe87c8b3ba6d412b5769db6642f6a6a42b39c98"
     },
     {
       "asset_id": "wm-audio-182622543",
@@ -648,7 +754,9 @@
       "creator": "Jeuwre",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Jeuwre (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-182622543.ogg",
+      "sha256": "dc39e619b9c0f3a361cc6d88ce601f736bb6b23f6a999a4e5e6a318fb95fdff0"
     },
     {
       "asset_id": "wm-149186848",
@@ -660,7 +768,9 @@
       "creator": "Paul Danese",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Paul Danese (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-149186848.jpg",
+      "sha256": "b126ccdf99e532c40adac3d251e591d96bd1ae7092eb52c3cb417cca53fb5c03"
     },
     {
       "asset_id": "wm-audio-23930324",
@@ -672,7 +782,9 @@
       "creator": "Jonathon Jongsma",
       "license": "CC BY-SA 3.0",
       "attribution_text": "Jonathon Jongsma (CC BY-SA 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-23930324.ogg",
+      "sha256": "be470fc0b588af13c167ac01e8fa430606a85de9f6ca84cf05fdb6f881ae6e93"
     },
     {
       "asset_id": "wm-23930924",
@@ -684,7 +796,9 @@
       "creator": "Jonathon Jongsma",
       "license": "CC BY-SA 3.0",
       "attribution_text": "Jonathon Jongsma (CC BY-SA 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-23930924.ogg",
+      "sha256": "24c7d951e9ce4e7cb578191420175d412fa34bfd30b7255ab39123ac948d42b7"
     },
     {
       "asset_id": "wm-audio-23930921",
@@ -696,7 +810,9 @@
       "creator": "Jonathon Jongsma",
       "license": "CC BY-SA 3.0",
       "attribution_text": "Jonathon Jongsma (CC BY-SA 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-23930921.ogg",
+      "sha256": "6b96c59620577878ed8f2d7036a16fd4527859662788a9e1fe312186bd4c7976"
     },
     {
       "asset_id": "wm-153104928",
@@ -708,7 +824,9 @@
       "creator": "Paul Danese",
       "license": "CC BY-SA 4.0",
       "attribution_text": "Paul Danese (CC BY-SA 4.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-153104928.jpg",
+      "sha256": "01c383dc97cac9ca6bb91eeceb24b90b36fc6e159f4abd006abbf0a394bddee2"
     },
     {
       "asset_id": "wm-audio-126318671",
@@ -720,7 +838,9 @@
       "creator": "Non-Corporate News",
       "license": "CC BY 3.0",
       "attribution_text": "Non-Corporate News (CC BY 3.0 via Wikimedia Commons)",
-      "source_name": "Wikimedia Commons"
+      "source_name": "Wikimedia Commons",
+      "cached_path": "media/cached/wm-audio-126318671.ogg",
+      "sha256": "c918449479bbddddd0592b5abd6ad9b020235e0152a1a8885946da48603e155d"
     }
   ]
 }

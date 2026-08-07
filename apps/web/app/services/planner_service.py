@@ -1,14 +1,21 @@
 """Planner Application Service and Plan-Scoped Repository."""
 
+import json
+import os
+import sqlite3
 import uuid
+from datetime import datetime, timedelta, timezone
 
 from flask import current_app
 
 from packages.ovon_core.domain import (
+    Coordinate,
+    FieldCue,
     LoopRequest,
     RouteOption,
     RoutePersona,
     RouteSegment,
+    TaxonRef,
 )
 from packages.ovon_core.fixtures import ROUTE_BIRDY, ROUTE_EASY, ROUTE_WEIRD
 from packages.ovon_core.fixtures.routes_fixtures import (
@@ -25,23 +32,6 @@ from packages.ovon_core.routing import (
     RouteMenuResult,
     RoutingProvider,
     TradeoffExplanationGenerator,
-)
-
-
-import json
-import os
-import sqlite3
-import uuid
-from datetime import datetime, timedelta, timezone
-
-from packages.ovon_core.domain import (
-    Coordinate,
-    FieldCue,
-    LoopRequest,
-    RouteOption,
-    RoutePersona,
-    RouteSegment,
-    TaxonRef,
 )
 
 

@@ -202,7 +202,11 @@ def test_route_segment_cue_mismatch_raises():
 
 
 def test_kc_30_species_catalog_fixtures():
-    from packages.ovon_core.fixtures.kc_species_fixtures import ALL_KC_TAXA, KC_FIELD_CUES, KC_FIELD_CUE_PROFILES
+    from packages.ovon_core.fixtures.kc_species_fixtures import (
+        ALL_KC_TAXA,
+        KC_FIELD_CUE_PROFILES,
+        KC_FIELD_CUES,
+    )
 
     assert len(ALL_KC_TAXA) == 30
     assert len(KC_FIELD_CUES) == 30
