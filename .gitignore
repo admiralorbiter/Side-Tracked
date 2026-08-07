@@ -64,6 +64,7 @@ media/cached/*
 *.pickle
 
 # Experiments & Temp Files
+cache/
 scratch/
 tmp/
 *.log

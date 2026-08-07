@@ -1,0 +1,18 @@
+{
+  "manifest_version": "0.2-kc-pilot",
+  "region_name": "Greater Kansas City Pilot",
+  "taxonomy_version": "Clements-2025",
+  "routing_graph_version": "OSMnx-2.1-walk",
+  "h3_resolution": 8,
+  "supported_states": ["MO", "KS"],
+  "species_frequencies": {
+    "amerob": {"common_name": "American Robin", "baseline_frequency": 0.85},
+    "norcar": {"common_name": "Northern Cardinal", "baseline_frequency": 0.80},
+    "blujay": {"common_name": "Blue Jay", "baseline_frequency": 0.70},
+    "rehwoo": {"common_name": "Red-headed Woodpecker", "baseline_frequency": 0.65},
+    "tuftit": {"common_name": "Tufted Titmouse", "baseline_frequency": 0.60},
+    "carwre": {"common_name": "Carolina Wren", "baseline_frequency": 0.75},
+    "cedwax": {"common_name": "Cedar Waxwing", "baseline_frequency": 0.50}
+  },
+  "verified_at": "2026-08-06T19:50:00Z"
+}

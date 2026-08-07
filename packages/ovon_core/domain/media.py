@@ -9,10 +9,12 @@ class LicenseType(str, Enum):
     """Supported Creative Commons and Open Media Licenses."""
 
     CC_BY_2_0 = "CC BY 2.0"
+    CC_BY_2_5 = "CC BY 2.5"
     CC_BY_3_0 = "CC BY 3.0"
     CC_BY_4_0 = "CC BY 4.0"
     CC_BY_NC_3_0 = "CC BY-NC 3.0"
     CC_BY_NC_4_0 = "CC BY-NC 4.0"
+    CC_BY_SA_2_5 = "CC BY-SA 2.5"
     CC_BY_SA_3_0 = "CC BY-SA 3.0"
     CC_BY_SA_4_0 = "CC BY-SA 4.0"
     CC0_1_0 = "CC0 1.0"

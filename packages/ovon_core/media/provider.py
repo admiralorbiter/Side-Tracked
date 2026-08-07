@@ -14,10 +14,12 @@ from packages.ovon_core.domain import (
 # Exact alias lookup dictionary (all keys lowercase with no spaces or hyphens)
 EXACT_LICENSE_MAP = {
     "ccby2.0": LicenseType.CC_BY_2_0,
+    "ccby2.5": LicenseType.CC_BY_2_5,
     "ccby3.0": LicenseType.CC_BY_3_0,
     "ccby4.0": LicenseType.CC_BY_4_0,
     "ccbync3.0": LicenseType.CC_BY_NC_3_0,
     "ccbync4.0": LicenseType.CC_BY_NC_4_0,
+    "ccbysa2.5": LicenseType.CC_BY_SA_2_5,
     "ccbysa3.0": LicenseType.CC_BY_SA_3_0,
     "ccbysa4.0": LicenseType.CC_BY_SA_4_0,
     "cc0": LicenseType.CC0_1_0,
