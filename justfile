@@ -3,7 +3,7 @@
 default: check
 
 # Run all quality checks
-check: format-check lint typecheck test db-migrate media-verify data-verify smoke
+check: format-check lint typecheck test db-verify media-verify data-verify smoke
 
 # Start local development server
 dev:
@@ -29,9 +29,14 @@ format:
 typecheck:
 	mypy apps/web packages/ovon_core
 
+# Read-only database schema verification
+db-verify:
+	python -m packages.ovon_core.cli.verify_db
+
 # Run database migrations
 db-migrate:
 	python -m packages.ovon_core.cli.migrate_db
+
 
 # Download Creative Commons media assets
 media-download:

@@ -111,7 +111,7 @@
     {% set seg_species_codes = seg.focal_species | map(attribute='ebird_code') | list %}
     {% set matched_audio = namespace(asset=None) %}
     {% for asset in field_pack.media_assets %}
-      {% if asset.taxon_ref.ebird_code in seg_species_codes and matched_audio.asset is none %}
+      {% if asset.media_type.value == 'audio' and asset.taxon_ref.ebird_code in seg_species_codes and matched_audio.asset is none %}
         {% set matched_audio.asset = asset %}
       {% endif %}
     {% endfor %}
@@ -126,9 +126,11 @@
           <span style="font-size: 0.75rem; color: var(--brand-sky); opacity: 0.8;">{{ audio.license.value }}</span>
         </div>
         <audio controls style="width: 100%; height: 36px;" aria-label="Play call for {{ audio.taxon_ref.common_name }}">
-          <source src="{{ audio.url }}" type="audio/mpeg">
+          <source src="{{ audio.resolved_url }}" type="{{ audio.mime_type }}">
           Your browser does not support the audio element.
         </audio>
+
+
         <div style="font-size: 0.75rem; color: var(--brand-sky); opacity: 0.8; margin-top: 0.4rem;">
           <strong>Attribution:</strong> {{ audio.attribution_text }}
         </div>

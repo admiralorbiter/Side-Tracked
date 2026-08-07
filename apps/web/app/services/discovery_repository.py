@@ -2,16 +2,10 @@
 
 import os
 import sqlite3
-from datetime import datetime, timezone
 from typing import Any
-from uuid import UUID
 
 from packages.ovon_core.domain.discovery import (
-    DetectionEvidenceType,
-    DiscoveryConfidence,
     DiscoveryRecord,
-    DiscoverySourceRole,
-    PrivacyLevel,
 )
 
 
@@ -55,7 +49,7 @@ class DiscoveryRepository:
                     count INTEGER NOT NULL DEFAULT 1 CHECK (count >= 1),
                     associated_plan_id TEXT,
                     associated_route_id TEXT,
-                    privacy_level TEXT NOT NULL DEFAULT 'public_exact' CHECK (privacy_level IN ('public_exact', 'public_obfuscated', 'private_only')),
+                    privacy_level TEXT NOT NULL DEFAULT 'private_only' CHECK (privacy_level IN ('public_exact', 'public_obfuscated', 'private_only')),
                     is_sensitive INTEGER NOT NULL DEFAULT 0 CHECK (is_sensitive IN (0, 1)),
                     notes TEXT,
                     created_at TEXT NOT NULL
@@ -122,7 +116,7 @@ class DiscoveryRepository:
 
     @classmethod
     def get_discoveries_for_user(cls, user_id: str) -> list[dict[str, Any]]:
-        """Retrieve discovery history records for a user."""
+        """Retrieve discovery history records for a user including privacy levels and sensitivity status."""
         try:
             conn = cls._get_connection()
             cursor = conn.cursor()
@@ -130,7 +124,8 @@ class DiscoveryRepository:
                 """
                 SELECT discovery_id, user_id, concept_id, original_taxon_ref, observed_at,
                        latitude, longitude, spatial_cell_id, source_role, evidence_type,
-                       confidence, count, associated_plan_id, associated_route_id, notes
+                       confidence, count, associated_plan_id, associated_route_id,
+                       privacy_level, is_sensitive, notes
                 FROM discovery_records WHERE user_id = ?
                 ORDER BY observed_at DESC
                 """,
@@ -138,6 +133,25 @@ class DiscoveryRepository:
             )
             rows = cursor.fetchall()
             conn.close()
-            return [dict(r) for r in rows]
+            results = []
+            for r in rows:
+                d = dict(r)
+                # Compute privacy-enforced export coordinates
+                priv = d.get("privacy_level", "private_only")
+                sens = bool(d.get("is_sensitive", 0))
+                lat, lon = d["latitude"], d["longitude"]
+
+                if sens or priv == "private_only":
+                    d["export_latitude"] = None
+                    d["export_longitude"] = None
+                elif priv == "public_obfuscated":
+                    d["export_latitude"] = round(lat, 2)
+                    d["export_longitude"] = round(lon, 2)
+                else:
+                    d["export_latitude"] = lat
+                    d["export_longitude"] = lon
+
+                results.append(d)
+            return results
         except Exception:
             return []

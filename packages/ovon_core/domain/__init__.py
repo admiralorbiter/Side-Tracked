@@ -1,5 +1,11 @@
 """Domain models for OVON core package."""
 
+from packages.ovon_core.domain.concept import (
+    AuthorityName,
+    TaxonConcept,
+    TaxonCrosswalkEntry,
+    TaxonomicRank,
+)
 from packages.ovon_core.domain.errors import (
     DomainError,
     InvalidCoordinateError,
@@ -7,6 +13,7 @@ from packages.ovon_core.domain.errors import (
     MissingAttributionError,
     TaxonNotFoundError,
 )
+from packages.ovon_core.domain.habitat import HabitatType
 from packages.ovon_core.domain.media import (
     FieldCue,
     LicenseType,
@@ -15,13 +22,6 @@ from packages.ovon_core.domain.media import (
     MediaVerificationStatus,
     RouteFieldPack,
 )
-from packages.ovon_core.domain.concept import (
-    AuthorityName,
-    TaxonConcept,
-    TaxonCrosswalkEntry,
-    TaxonomicRank,
-)
-from packages.ovon_core.domain.habitat import HabitatType
 from packages.ovon_core.domain.request import JourneyIntent, LoopRequest
 from packages.ovon_core.domain.route import RouteOption, RoutePersona, RouteSegment, RouteStopAction
 from packages.ovon_core.domain.spatial import BoundingBox, Coordinate, SpatialCellId

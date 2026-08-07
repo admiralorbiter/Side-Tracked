@@ -42,7 +42,9 @@ class XenoCantoProvider(MediaProvider):
         # Fallback to common name search if scientific name query returned no recordings
         if not recordings and taxon.common_name:
             fallback_url = f"{self.BASE_API_URL}?query={taxon.common_name.replace(' ', '+')}"
-            fallback_req = Request(fallback_url, headers={"User-Agent": "Sidetrack/1.0 (Ecological Navigation)"})
+            fallback_req = Request(
+                fallback_url, headers={"User-Agent": "Sidetrack/1.0 (Ecological Navigation)"}
+            )
             try:
                 with urlopen(fallback_req, timeout=5) as response:
                     if response.status == 200:

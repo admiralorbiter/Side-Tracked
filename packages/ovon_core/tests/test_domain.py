@@ -218,4 +218,3 @@ def test_kc_30_species_catalog_fixtures():
         assert cue.taxon_ref == taxon
         profile = KC_FIELD_CUE_PROFILES[taxon.ebird_code]
         assert profile.taxon_id == taxon.taxon_id
-

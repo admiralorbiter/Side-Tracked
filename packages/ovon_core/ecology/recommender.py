@@ -33,8 +33,7 @@ class SegmentSpeciesRecommenderProtocol(Protocol):
 
     def recommend_species(
         self, context: SegmentContext, limit: int = 3
-    ) -> list[SpeciesOpportunity]:
-        ...
+    ) -> list[SpeciesOpportunity]: ...
 
 
 class DefaultSegmentSpeciesRecommender:

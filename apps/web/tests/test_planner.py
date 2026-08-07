@@ -275,13 +275,16 @@ def test_walk_session_lifecycle():
     session = WalkFeedbackRepository.start_session("plan-test", "route-test")
     assert session["outcome"] == "active"
 
-    finished = WalkFeedbackRepository.finish_session(session["session_id"], outcome="completed", last_segment_index=2)
+    finished = WalkFeedbackRepository.finish_session(
+        session["session_id"], outcome="completed", last_segment_index=2
+    )
     assert finished["outcome"] == "completed"
     assert finished["last_segment_index"] == 2
 
 
 def test_taxon_support_builder_import_signature():
     from packages.ovon_core.domain.support_builder import TaxonSupportBuilder
+
     support = TaxonSupportBuilder.build("test_id", "amerob")
     assert support.taxonomy_known is True
 
@@ -317,7 +320,10 @@ def test_plan_provenance_json_saved(client):
     # Verify SQLite record has saved request_json and routing_provenance_json
     conn = RoutePlanRepository._get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT request_json, routing_provenance_json FROM route_plans WHERE plan_id = ?", (plan_id,))
+    cursor.execute(
+        "SELECT request_json, routing_provenance_json FROM route_plans WHERE plan_id = ?",
+        (plan_id,),
+    )
     row = cursor.fetchone()
     conn.close()
 
@@ -331,6 +337,7 @@ def test_walk_route_starts_session_and_recap_calculates_duration(client):
     assert res.status_code == 200
 
     from apps.web.app.services.planner_service import RoutePlanRepository
+
     plans = list(RoutePlanRepository._plans.keys())
     plan_id = plans[-1]
 
@@ -343,6 +350,3 @@ def test_walk_route_starts_session_and_recap_calculates_duration(client):
     recap_res = client.get(f"/plans/{plan_id}/routes/easy-1/recap?outcome=path_blocked")
     assert recap_res.status_code == 200
     assert b"Path Blocked" in recap_res.data
-
-
-

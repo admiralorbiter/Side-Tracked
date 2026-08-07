@@ -48,7 +48,6 @@ _GUILD_MAPPING: dict[str, tuple[HabitatGuild, tuple[HabitatGuild, ...]]] = {
     "ghowl": (HabitatGuild.WOODLAND, ()),
     "coohaw": (HabitatGuild.WOODLAND, (HabitatGuild.OPEN_EDGE,)),
     "barowl": (HabitatGuild.WOODLAND, (HabitatGuild.WATER_RIPARIAN,)),
-
     # Parkland, Open & Edges
     "amerob": (HabitatGuild.OPEN_EDGE, (HabitatGuild.WOODLAND,)),
     "norcar": (HabitatGuild.OPEN_EDGE, (HabitatGuild.WOODLAND,)),
@@ -60,7 +59,6 @@ _GUILD_MAPPING: dict[str, tuple[HabitatGuild, tuple[HabitatGuild, ...]]] = {
     "houwre": (HabitatGuild.OPEN_EDGE, (HabitatGuild.WOODLAND,)),
     "moudov": (HabitatGuild.OPEN_EDGE, ()),
     "norfli": (HabitatGuild.OPEN_EDGE, (HabitatGuild.WOODLAND,)),
-
     # Water & Riparian Edge
     "grbher": (HabitatGuild.WATER_RIPARIAN, ()),
     "belkin": (HabitatGuild.WATER_RIPARIAN, ()),
@@ -68,7 +66,6 @@ _GUILD_MAPPING: dict[str, tuple[HabitatGuild, tuple[HabitatGuild, ...]]] = {
     "wooduc": (HabitatGuild.WATER_RIPARIAN, (HabitatGuild.WOODLAND,)),
     "greher": (HabitatGuild.WATER_RIPARIAN, ()),
     "sposand": (HabitatGuild.WATER_RIPARIAN, ()),
-
     # Aerial & High Canopy
     "cedwax": (HabitatGuild.AERIAL, (HabitatGuild.WOODLAND,)),
     "barswa": (HabitatGuild.AERIAL, (HabitatGuild.WATER_RIPARIAN,)),

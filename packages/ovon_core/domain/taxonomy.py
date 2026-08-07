@@ -70,4 +70,3 @@ class FieldCueProfile:
     source: str = "Sidetrack Field Team"
     reviewer: str = "Lead Ornithologist"
     version: str = "v1.0"
-

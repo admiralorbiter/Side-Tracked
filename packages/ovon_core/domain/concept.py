@@ -26,13 +26,19 @@ class AuthorityName(str, Enum):
     INATURALIST = "inaturalist"
 
 
+class TaxonConceptCollisionError(Exception):
+    """Raised when registering a crosswalk entry that collides with an existing mapping."""
+
+    pass
+
+
 @dataclass(frozen=True, slots=True)
 class TaxonCrosswalkEntry:
     """External authority mapping entry."""
 
     authority: AuthorityName
     authority_taxon_id: str  # e.g., "species:ebird:ambcro" or "gbif:taxon:2480398"
-    authority_version: str  # e.g., "Clements_2023_v2"
+    authority_version: str  # e.g., "Clements-2025"
     rank: TaxonomicRank
     canonical_scientific_name: str
     is_primary_match: bool = True
@@ -48,6 +54,7 @@ class TaxonConcept:
     rank: TaxonomicRank
     taxonomy_version: str  # Current active Sidetrack concept version (e.g. "ST_TAXONOMY_2026_1")
     parent_concept_id: UUID | None = None
+    slash_candidate_concept_ids: tuple[UUID, ...] = field(default_factory=tuple)
     crosswalk_entries: tuple[TaxonCrosswalkEntry, ...] = field(default_factory=tuple)
     is_active: bool = True
 

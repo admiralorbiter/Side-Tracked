@@ -12,7 +12,7 @@
 
   {% if photo and photo.url %}
   <div style="margin-bottom: 1.5rem; text-align: center;">
-    <img src="{{ photo.url }}" alt="{{ photo.alt_text or species.common_name }}" style="max-width: 100%; height: auto; max-height: 380px; border-radius: var(--radius-md); border: 1px solid var(--border-card); object-fit: cover;">
+    <img src="{{ photo.resolved_url }}" alt="{{ photo.alt_text or species.common_name }}" referrerpolicy="no-referrer" style="max-width: 100%; height: auto; max-height: 380px; border-radius: var(--radius-md); border: 1px solid var(--border-card); object-fit: cover;">
     <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">📷 {{ photo.attribution_text }}</p>
   </div>
   {% else %}
@@ -44,11 +44,13 @@
   <div style="margin-bottom: 1.5rem; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 1rem; border-radius: var(--radius-md);">
     <strong style="color: var(--accent-green); display: block; margin-bottom: 0.5rem;">🔊 Primary Song / Call Audio Sample</strong>
     <audio controls style="width: 100%;" aria-label="Play audio for {{ species.common_name }}">
-      <source src="{{ media.url }}" type="{{ media.mime_type or 'audio/mpeg' }}">
+      <source src="{{ media.resolved_url }}" type="{{ media.mime_type }}">
       Your browser does not support the audio element.
     </audio>
+
     <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">🎵 {{ media.attribution_text }}</p>
   </div>
+
   {% else %}
   <div style="margin-bottom: 1.5rem;">
     {% include "components/missing_media.html" %}

@@ -136,7 +136,6 @@ def planning():
     quiet_mode = request.form.get("quiet_mode") == "true"
     survey_mode_raw = request.form.get("survey_mode")
     survey_mode = survey_mode_raw == "true" or survey_mode_raw == "on"
-    print(f"[DEBUG planning()] survey_mode_raw={survey_mode_raw!r}, survey_mode={survey_mode}, form keys={list(request.form.keys())}")
 
     session["duration"] = minutes
     session["paved_only"] = paved_only
@@ -168,8 +167,8 @@ def results():
             session["quiet_mode"] = request.form.get("quiet_mode") == "true"
         if "survey_mode" in request.form:
             raw_sm = request.form.get("survey_mode")
-            session["survey_mode"] = (raw_sm == "true" or raw_sm == "on")
-        
+            session["survey_mode"] = raw_sm == "true" or raw_sm == "on"
+
         paved_only = session.get("paved_only", False)
         quiet_mode = session.get("quiet_mode", False)
         survey_mode = session.get("survey_mode", False)
@@ -235,11 +234,12 @@ def results():
     )
 
 
+from datetime import datetime, timezone
+
 from apps.web.app.services import (
     BuildHabitatRadar,
     WalkFeedbackRepository,
 )
-from datetime import datetime, timezone
 
 
 @planner_bp.route("/plans/<plan_id>/routes/<route_id>")
@@ -266,8 +266,8 @@ def route_walk(plan_id: str, route_id: str):
     if not route:
         return render_template("errors/404.html"), 404
 
-    # Start or retrieve active WalkSession
-    walk_session = WalkFeedbackRepository.start_session(plan_id, route_id)
+    # Idempotently retrieve or start active WalkSession
+    walk_session = WalkFeedbackRepository.get_or_start_active_session(plan_id, route_id)
     session["active_walk_session"] = walk_session
 
     field_pack = BuildFieldPack().execute(route)
@@ -304,7 +304,11 @@ def route_recap(plan_id: str, route_id: str):
     actual_duration = None
     outcome_override = request.args.get("outcome")
 
-    if active_session and active_session.get("plan_id") == plan_id and active_session.get("route_id") == route_id:
+    if (
+        active_session
+        and active_session.get("plan_id") == plan_id
+        and active_session.get("route_id") == route_id
+    ):
         try:
             started = datetime.fromisoformat(active_session["started_at"])
             now = datetime.now(timezone.utc)
@@ -329,7 +333,8 @@ def route_recap(plan_id: str, route_id: str):
         plan_id=plan_id,
         saved_feedback=saved_feedback,
         actual_duration=actual_duration or route.duration_minutes,
-        outcome=outcome_override or (saved_feedback[0]["outcome"] if saved_feedback else "completed"),
+        outcome=outcome_override
+        or (saved_feedback[0]["outcome"] if saved_feedback else "completed"),
         survey_mode=survey_mode,
     )
 
@@ -343,15 +348,27 @@ def route_feedback(plan_id: str, route_id: str):
 
     outcome = request.form.get("outcome", "completed")
     notes = request.form.get("notes", "").strip()
+    is_complete_checklist = request.form.get("is_complete_checklist") == "true"
+    evidence_eligibility = (
+        "sidetrack_protocol_checklist" if is_complete_checklist else "user_recall_only"
+    )
 
     duration_raw = request.form.get("actual_duration")
-    duration_minutes = int(duration_raw) if duration_raw and duration_raw.isdigit() else route.duration_minutes
+    duration_minutes = (
+        int(duration_raw) if duration_raw and duration_raw.isdigit() else route.duration_minutes
+    )
 
     active_session = session.get("active_walk_session")
     walk_session_id = None
-    if active_session and active_session.get("plan_id") == plan_id and active_session.get("route_id") == route_id:
+    if (
+        active_session
+        and active_session.get("plan_id") == plan_id
+        and active_session.get("route_id") == route_id
+    ):
         walk_session_id = active_session.get("session_id")
-        WalkFeedbackRepository.finish_session(walk_session_id, outcome=outcome, last_segment_index=len(route.segments))
+        WalkFeedbackRepository.finish_session(
+            walk_session_id, outcome=outcome, last_segment_index=len(route.segments)
+        )
 
     field_pack = BuildFieldPack().execute(route)
     observations = {}
@@ -367,7 +384,9 @@ def route_feedback(plan_id: str, route_id: str):
             observations[code] = {
                 "visual_detected": saw_it,
                 "audio_detected": heard_it,
-                "certainty": "unsure" if unsure else ("confirmed" if (saw_it or heard_it) else "unanswered"),
+                "certainty": "unsure"
+                if unsure
+                else ("confirmed" if (saw_it or heard_it) else "unanswered"),
                 "not_noticed": not_noticed,
             }
 
@@ -380,7 +399,7 @@ def route_feedback(plan_id: str, route_id: str):
             duration_minutes=duration_minutes,
             notes=notes,
             walk_session_id=walk_session_id,
-            evidence_eligibility="user_recall_only",
+            evidence_eligibility=evidence_eligibility,
         )
     except Exception as e:
         return render_template("errors/500.html", error_message=f"Feedback save failure: {e}"), 500
@@ -396,7 +415,9 @@ def route_feedback(plan_id: str, route_id: str):
     )
 
 
-@planner_bp.route("/plans/<plan_id>/routes/<route_id>/segments/<int:segment_index>/blocked", methods=["POST"])
+@planner_bp.route(
+    "/plans/<plan_id>/routes/<route_id>/segments/<int:segment_index>/blocked", methods=["POST"]
+)
 def route_segment_blocked(plan_id: str, route_id: str, segment_index: int):
     """Record trail segment obstruction during active Walk Mode."""
     route = _resolve_route_with_fallback(plan_id, route_id)
@@ -406,7 +427,9 @@ def route_segment_blocked(plan_id: str, route_id: str, segment_index: int):
     # Validate segment index exists on route
     matching_segment = next((s for s in route.segments if s.index == segment_index), None)
     if matching_segment is None:
-        return jsonify({"status": "error", "message": f"Segment index {segment_index} not found on route."}), 404
+        return jsonify(
+            {"status": "error", "message": f"Segment index {segment_index} not found on route."}
+        ), 404
 
     note = f"Leg {segment_index} ({matching_segment.name}) marked blocked by walker."
     try:
@@ -422,4 +445,6 @@ def route_segment_blocked(plan_id: str, route_id: str, segment_index: int):
     except Exception as e:
         return jsonify({"status": "error", "message": f"Failed saving blockage feedback: {e}"}), 500
 
-    return jsonify({"status": "ok", "message": "Obstruction recorded", "segment_index": segment_index})
+    return jsonify(
+        {"status": "ok", "message": "Obstruction recorded", "segment_index": segment_index}
+    )

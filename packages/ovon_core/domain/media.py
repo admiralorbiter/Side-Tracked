@@ -54,6 +54,7 @@ class MediaAsset:
     verification_status: MediaVerificationStatus = MediaVerificationStatus.APPROVED_PRIMARY
     license_url: str | None = None
     retrieved_at: str | None = None
+    cached_path: str | None = None
 
     def __post_init__(self) -> None:
         if not self.asset_id or not self.asset_id.strip():
@@ -66,9 +67,27 @@ class MediaAsset:
             raise MissingAttributionError("MediaAsset requires non-empty attribution_text.")
 
     @property
+    def resolved_url(self) -> str:
+        """Return local cached URL endpoint if file exists on disk, otherwise external URL."""
+        from pathlib import Path
+
+        if self.cached_path:
+            p = Path(self.cached_path)
+            if p.exists() and p.stat().st_size > 0:
+                clean = self.cached_path.replace("\\", "/")
+                return f"/{clean}" if not clean.startswith("/") else clean
+        if self.url:
+            clean_url = self.url.lstrip("/")
+            if clean_url.startswith("media/cached"):
+                p = Path(clean_url)
+                if p.exists() and p.stat().st_size > 0:
+                    return f"/{clean_url}"
+        return self.url
+
+    @property
     def mime_type(self) -> str:
         """Derive correct HTTP MIME type for audio and photo assets."""
-        url_lower = self.url.lower()
+        url_lower = self.resolved_url.lower()
         if ".ogg" in url_lower:
             return "audio/ogg"
         if ".mp3" in url_lower:

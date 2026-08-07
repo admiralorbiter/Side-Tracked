@@ -82,4 +82,3 @@ def test_candidate_provider_and_habitat_radar():
     assert len(radar.nearby) > 0
     assert len(radar.by_guild) > 0
     assert radar.total_catalog_matches >= 10
-

@@ -1,6 +1,7 @@
 """Application Service for Building Habitat Radar."""
 
 from collections import defaultdict
+from datetime import datetime, timezone
 
 from packages.ovon_core.domain import RouteOption, TaxonRef
 from packages.ovon_core.ecology.candidate_provider import (
@@ -13,8 +14,6 @@ from packages.ovon_core.ecology.habitat_radar import HabitatRadar, RadarSpecies
 from packages.ovon_core.ecology.recommender import DefaultSegmentSpeciesRecommender, SegmentContext
 from packages.ovon_core.spatial.h3_indexer import polyline_to_h3_cells
 
-
-from datetime import datetime, timezone
 
 class BuildHabitatRadar:
     """Application service for constructing route-level and segment-level Habitat Radar."""
@@ -59,7 +58,12 @@ class BuildHabitatRadar:
                 hab_str = seg.habitat_name.lower()
                 if "canopy" in hab_str or "woodland" in hab_str or "tree" in hab_str:
                     seg_habitat = HabitatType.MATURE_CANOPY
-                elif "water" in hab_str or "creek" in hab_str or "pond" in hab_str or "riparian" in hab_str:
+                elif (
+                    "water" in hab_str
+                    or "creek" in hab_str
+                    or "pond" in hab_str
+                    or "riparian" in hab_str
+                ):
                     seg_habitat = HabitatType.POND_WATER_EDGE
                 elif "orchard" in hab_str or "fruit" in hab_str or "shrub" in hab_str:
                     seg_habitat = HabitatType.ORCHARD_EDGE
@@ -99,20 +103,36 @@ class BuildHabitatRadar:
         nearby_radar_list: list[RadarSpecies] = []
 
         # Sort candidate codes by weighted score descending
-        sorted_codes = sorted(weighted_scores.keys(), key=lambda k: weighted_scores[k], reverse=True)
+        sorted_codes = sorted(
+            weighted_scores.keys(), key=lambda k: weighted_scores[k], reverse=True
+        )
 
         for code in sorted_codes:
             t = taxon_by_code[code]
             score = round(weighted_scores[code], 3)
-            matched_segs = tuple(sorted([seg_idx for seg_idx, sp_set in segment_species_matches.items() if code in sp_set]))
-            
+            matched_segs = tuple(
+                sorted(
+                    [
+                        seg_idx
+                        for seg_idx, sp_set in segment_species_matches.items()
+                        if code in sp_set
+                    ]
+                )
+            )
+
             profile = KC_TAXON_ECOLOGY_PROFILES.get(code)
             guild = profile.primary_guild if profile else HabitatGuild.OPEN_EDGE
 
             # Generate feature-based reason codes from route geometry
             reasons = []
-            has_canopy_seg = any("canopy" in s.habitat_name.lower() or "woodland" in s.habitat_name.lower() for s in route.segments)
-            has_water_seg = any("water" in s.habitat_name.lower() or "creek" in s.habitat_name.lower() for s in route.segments)
+            has_canopy_seg = any(
+                "canopy" in s.habitat_name.lower() or "woodland" in s.habitat_name.lower()
+                for s in route.segments
+            )
+            has_water_seg = any(
+                "water" in s.habitat_name.lower() or "creek" in s.habitat_name.lower()
+                for s in route.segments
+            )
 
             if guild == HabitatGuild.WOODLAND and has_canopy_seg:
                 reasons.append("matched_mature_canopy_segment")

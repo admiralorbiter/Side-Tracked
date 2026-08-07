@@ -1,9 +1,9 @@
 """Unit tests for DiscoveryRepository SQLite persistence."""
 
-import os
 from uuid import uuid4
 
 import pytest
+
 from apps.web.app.services.discovery_repository import DiscoveryRepository
 from packages.ovon_core.domain.discovery import (
     DetectionEvidenceType,

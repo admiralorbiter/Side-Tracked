@@ -8,7 +8,9 @@ from packages.ovon_core.media.downloader import MediaDownloader
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Download Creative Commons species media assets for Sidetrack.")
+    parser = argparse.ArgumentParser(
+        description="Download Creative Commons species media assets for Sidetrack."
+    )
     parser.add_argument(
         "--manifest",
         type=str,

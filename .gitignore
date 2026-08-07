@@ -59,9 +59,13 @@ data/derived/*
 !data/derived/.gitkeep
 data/cache/*
 !data/cache/.gitkeep
+data/ebird/*
+!data/ebird/.gitkeep
+!data/ebird/readme.md
 media/cached/*
 !media/cached/.gitkeep
 *.pickle
+
 
 # Experiments & Temp Files
 cache/

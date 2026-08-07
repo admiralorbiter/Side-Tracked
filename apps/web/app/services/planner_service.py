@@ -90,6 +90,9 @@ class RoutePlanRepository:
                     "index": s.index,
                     "name": s.name,
                     "habitat_name": s.habitat_name,
+                    "habitat_type": s.habitat_type.value
+                    if hasattr(s, "habitat_type") and s.habitat_type
+                    else "Open Parkland",
                     "distance_meters": s.distance_meters,
                     "duration_minutes": s.duration_minutes,
                     "focal_species": [
@@ -146,6 +149,8 @@ class RoutePlanRepository:
 
     @classmethod
     def _deserialize_routes(cls, json_str: str) -> tuple[RouteOption, ...]:
+        from packages.ovon_core.domain.habitat import HabitatType
+
         raw_list = json.loads(json_str)
         routes = []
         for r_dict in raw_list:
@@ -182,9 +187,14 @@ class RoutePlanRepository:
                     )
 
                 obs_raw = s_dict.get("observation_point")
-                obs_pt = (
-                    Coordinate(obs_raw["latitude"], obs_raw["longitude"]) if obs_raw else None
-                )
+                obs_pt = Coordinate(obs_raw["latitude"], obs_raw["longitude"]) if obs_raw else None
+
+                ht_str = s_dict.get("habitat_type", "Open Parkland")
+                matched_ht = HabitatType.OPEN_PARKLAND
+                for ht in HabitatType:
+                    if ht.value == ht_str or ht.name.lower() == str(ht_str).lower():
+                        matched_ht = ht
+                        break
 
                 seg = RouteSegment(
                     index=s_dict["index"],
@@ -197,6 +207,7 @@ class RoutePlanRepository:
                     geojson_geometry=s_dict.get("geojson_geometry"),
                     observation_point=obs_pt,
                     navigation_instruction=s_dict.get("navigation_instruction", ""),
+                    habitat_type=matched_ht,
                 )
                 segments.append(seg)
 
@@ -239,13 +250,26 @@ class RoutePlanRepository:
         cls._plans[plan_id] = (routes, expires_at)
         routes_json = cls._serialize_routes(routes)
 
-        req_json = json.dumps({
-            "origin": {"lat": loop_request.origin.latitude, "lon": loop_request.origin.longitude} if loop_request else None,
-            "target_duration_minutes": loop_request.duration_minutes if loop_request else None,
-            "paved_only": loop_request.paved_only if loop_request else False,
-            "quiet_mode": loop_request.quiet_mode if loop_request else False,
-            "survey_mode": loop_request.survey_mode if loop_request else False,
-        }) if loop_request else None
+        req_json = (
+            json.dumps(
+                {
+                    "origin": {
+                        "lat": loop_request.origin.latitude,
+                        "lon": loop_request.origin.longitude,
+                    }
+                    if loop_request
+                    else None,
+                    "target_duration_minutes": loop_request.duration_minutes
+                    if loop_request
+                    else None,
+                    "paved_only": loop_request.paved_only if loop_request else False,
+                    "quiet_mode": loop_request.quiet_mode if loop_request else False,
+                    "survey_mode": loop_request.survey_mode if loop_request else False,
+                }
+            )
+            if loop_request
+            else None
+        )
 
         prov_json = json.dumps(routing_provenance) if routing_provenance else None
 
@@ -380,6 +404,18 @@ class PlanLoopPreview:
                     focal = (WAXWING, WOODPECKER)
                     cue = CUE_WAXWING
 
+                from packages.ovon_core.domain.habitat import HabitatType
+
+                if cand.persona == RoutePersona.EASY:
+                    ht1 = HabitatType.OPEN_PARKLAND
+                    ht2 = HabitatType.OPEN_PARKLAND
+                elif cand.persona == RoutePersona.BIRDY:
+                    ht1 = HabitatType.MATURE_CANOPY
+                    ht2 = HabitatType.POND_WATER_EDGE
+                else:
+                    ht1 = HabitatType.ORCHARD_EDGE
+                    ht2 = HabitatType.MATURE_CANOPY
+
                 segments_list = []
                 if cand.segment_metrics and len(cand.segment_metrics) >= 2:
                     m1 = cand.segment_metrics[0]
@@ -413,6 +449,7 @@ class PlanLoopPreview:
                             "navigation_instruction",
                             f"Depart {request.origin_name} heading along primary park path.",
                         ),
+                        habitat_type=ht1,
                     )
 
                     seg2 = RouteSegment(
@@ -429,6 +466,7 @@ class PlanLoopPreview:
                             "navigation_instruction",
                             f"Bear right onto return loop trail back to {request.origin_name}.",
                         ),
+                        habitat_type=ht2,
                     )
                     segments_list = [seg1, seg2]
                 else:
@@ -450,6 +488,7 @@ class PlanLoopPreview:
                         if cand.waypoints and len(cand.waypoints) > 1
                         else None,
                         navigation_instruction=f"Depart {request.origin_name} heading along primary park path.",
+                        habitat_type=ht1,
                     )
 
                     seg2 = RouteSegment(
@@ -465,6 +504,7 @@ class PlanLoopPreview:
                         if cand.waypoints and len(cand.waypoints) > 2
                         else None,
                         navigation_instruction=f"Bear right onto return trail back to {request.origin_name}.",
+                        habitat_type=ht2,
                     )
                     segments_list = [seg1, seg2]
 

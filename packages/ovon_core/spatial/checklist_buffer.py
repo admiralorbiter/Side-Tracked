@@ -6,7 +6,7 @@ from enum import Enum
 
 import h3
 
-from packages.ovon_core.domain.spatial import Coordinate, SpatialCellId
+from packages.ovon_core.domain.spatial import Coordinate
 
 
 class SpatialStratum(str, Enum):
@@ -19,17 +19,22 @@ class SpatialStratum(str, Enum):
 
 @dataclass(frozen=True, slots=True)
 class SpatialStratificationResult:
-    """Result of spatial distance stratification and H3 cell traversal allocation."""
+    """Result of spatial distance stratification and H3 cell possible extent footprint allocation."""
 
     sampling_event_id: str
     stratum: SpatialStratum
     primary_cell_id: str
-    traversed_cell_ids: set[str]
-    is_aeqd_buffered: bool
+    possible_extent_cell_ids: set[str]
+    is_aeqd_buffered: bool = False
+
+    @property
+    def traversed_cell_ids(self) -> set[str]:
+        """Backward-compatible alias for possible_extent_cell_ids."""
+        return self.possible_extent_cell_ids
 
 
 class ChecklistSpatialStratifier:
-    """Stratifies checklists by spatial distance and projects traveling tracks into H3 cells using AEQD buffering."""
+    """Stratifies checklists by spatial distance and calculates H3 cell spatial uncertainty extent footprints."""
 
     FINE_DISTANCE_LIMIT_KM = 1.0
     COARSE_DISTANCE_LIMIT_KM = 5.0
@@ -42,7 +47,7 @@ class ChecklistSpatialStratifier:
         effort_distance_km: float | None,
         resolution: int = 8,
     ) -> SpatialStratificationResult:
-        """Classify checklist into spatial stratum and compute traversed H3 cells."""
+        """Classify checklist into spatial stratum and compute possible extent H3 cell neighborhood."""
         dist = effort_distance_km or 0.0
         primary_h3 = h3.latlng_to_cell(start_coord.latitude, start_coord.longitude, resolution)
 
@@ -52,7 +57,7 @@ class ChecklistSpatialStratifier:
                 sampling_event_id=sampling_event_id,
                 stratum=SpatialStratum.FINE_OCCUPANCY,
                 primary_cell_id=primary_h3,
-                traversed_cell_ids={primary_h3},
+                possible_extent_cell_ids={primary_h3},
                 is_aeqd_buffered=False,
             )
 
@@ -62,19 +67,19 @@ class ChecklistSpatialStratifier:
                 sampling_event_id=sampling_event_id,
                 stratum=SpatialStratum.EXCLUDED,
                 primary_cell_id=primary_h3,
-                traversed_cell_ids=set(),
+                possible_extent_cell_ids=set(),
                 is_aeqd_buffered=False,
             )
 
-        # 3. Coarse candidate stratum (1.0 km < d <= 5.0 km) with AEQD metric buffering
+        # 3. Coarse candidate stratum (1.0 km < d <= 5.0 km) radial uncertainty footprint
         # 1 ring of H3 Res 8 hexagons is ~0.8 km inter-centroid distance
         ring_k = max(1, math.ceil(dist / 0.8))
-        traversed = set(h3.grid_disk(primary_h3, ring_k))
+        extent_cells = set(h3.grid_disk(primary_h3, ring_k))
 
         return SpatialStratificationResult(
             sampling_event_id=sampling_event_id,
             stratum=SpatialStratum.COARSE_CANDIDATE_INDEX,
             primary_cell_id=primary_h3,
-            traversed_cell_ids=traversed,
-            is_aeqd_buffered=True,
+            possible_extent_cell_ids=extent_cells,
+            is_aeqd_buffered=False,
         )

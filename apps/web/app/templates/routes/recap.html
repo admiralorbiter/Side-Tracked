@@ -26,20 +26,6 @@
   </div>
   {% endif %}
 
-  {% if survey_mode %}
-  <div style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem; text-align: left;">
-    <div style="font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-      🔬 <span>Scientific Protocol Checklist Verification</span>
-    </div>
-    <p style="font-size: 0.9rem; color: var(--brand-sky); margin-bottom: 0.75rem;">
-      You are submitting under <strong>eBird Traveling Protocol</strong>. Complete checklists allow zero-filling non-detections for occupancy modeling.
-    </p>
-    <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; cursor: pointer; color: #ffffff; background: rgba(0,0,0,0.2); padding: 0.55rem 0.75rem; border-radius: var(--radius-sm);">
-      <input type="checkbox" name="is_complete_checklist" value="true"> <strong>Complete Checklist:</strong> Are you reporting ALL birds you were able to identify on this walk?
-    </label>
-  </div>
-  {% endif %}
-
   <div style="background: rgba(0,0,0,0.3); padding: 1.25rem; border-radius: var(--radius-md); text-align: left; margin-bottom: 1.75rem;">
     <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--brand-green); margin-bottom: 0.5rem;">Habitats Explored:</h3>
     <ul style="list-style: none; padding: 0; margin: 0;">
@@ -53,6 +39,21 @@
 
   {% if plan_id %}
   <form method="POST" action="{{ url_for('planner.route_feedback', plan_id=plan_id, route_id=route.id) }}" style="background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.08); margin-bottom: 1.75rem;">
+    {% if survey_mode %}
+    <div style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem; text-align: left;">
+      <div style="font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+        🔬 <span>Experimental Sidetrack Survey Mode — Scientific Protocol Checklist Verification</span>
+      </div>
+      <p style="font-size: 0.9rem; color: var(--brand-sky); margin-bottom: 0.75rem;">
+        You are participating in <strong>Experimental Sidetrack Survey Mode</strong>. Complete checklists allow evaluating focal non-detections under Sidetrack protocol rules.
+      </p>
+      <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; cursor: pointer; color: #ffffff; background: rgba(0,0,0,0.2); padding: 0.55rem 0.75rem; border-radius: var(--radius-sm);">
+        <input type="checkbox" name="is_complete_checklist" value="true"> <strong>Complete Checklist:</strong> Are you reporting ALL birds you were able to identify on this walk?
+      </label>
+    </div>
+    {% endif %}
+
+
     <h2 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 1rem;" tabindex="-1">Focal Species Observations</h2>
     <p style="color: var(--brand-sky); font-size: 0.88rem; margin-bottom: 1.25rem;">
       Product Rule #5: Observations are non-presumptuous feedback. Mark what you noticed during your walk.

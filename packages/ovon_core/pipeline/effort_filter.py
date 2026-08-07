@@ -2,6 +2,7 @@
 
 import math
 from dataclasses import dataclass
+
 from packages.ovon_core.pipeline.ebd_ingest import SamplingEvent
 
 
@@ -55,21 +56,73 @@ class EffortFilterPipeline:
                 rejection_reason=f"Duration {event.duration_minutes}m out of bounds [{cls.MIN_DURATION_MINUTES}, {cls.MAX_DURATION_MINUTES}]",
             )
 
-        # 3. Distance check
-        dist = event.effort_distance_km or 0.0
-        if dist > cls.MAX_DISTANCE_KM:
-            return NormalizedEffortVector(
-                sampling_event_id=event.sampling_event_id,
-                duration_minutes=event.duration_minutes,
-                distance_km=dist,
-                hours_past_sunrise=0.0,
-                log_group_size=0.0,
-                is_effort_valid=False,
-                rejection_reason=f"Distance {dist}km exceeds max limit {cls.MAX_DISTANCE_KM}km",
-            )
+        # 3. Protocol-specific Distance & Area missingness rules
+        dist = event.effort_distance_km
+        if event.protocol_type == "Traveling":
+            if dist is None:
+                return NormalizedEffortVector(
+                    sampling_event_id=event.sampling_event_id,
+                    duration_minutes=event.duration_minutes,
+                    distance_km=0.0,
+                    hours_past_sunrise=0.0,
+                    log_group_size=0.0,
+                    is_effort_valid=False,
+                    rejection_reason="Traveling protocol requires non-null effort_distance_km",
+                )
+            if dist > cls.MAX_DISTANCE_KM:
+                return NormalizedEffortVector(
+                    sampling_event_id=event.sampling_event_id,
+                    duration_minutes=event.duration_minutes,
+                    distance_km=dist,
+                    hours_past_sunrise=0.0,
+                    log_group_size=0.0,
+                    is_effort_valid=False,
+                    rejection_reason=f"Distance {dist}km exceeds max limit {cls.MAX_DISTANCE_KM}km",
+                )
+        elif event.protocol_type == "Area":
+            area = event.effort_area_ha
+            if area is None:
+                return NormalizedEffortVector(
+                    sampling_event_id=event.sampling_event_id,
+                    duration_minutes=event.duration_minutes,
+                    distance_km=dist or 0.0,
+                    hours_past_sunrise=0.0,
+                    log_group_size=0.0,
+                    is_effort_valid=False,
+                    rejection_reason="Area protocol requires non-null effort_area_ha",
+                )
+            if area > cls.MAX_AREA_HA:
+                return NormalizedEffortVector(
+                    sampling_event_id=event.sampling_event_id,
+                    duration_minutes=event.duration_minutes,
+                    distance_km=dist or 0.0,
+                    hours_past_sunrise=0.0,
+                    log_group_size=0.0,
+                    is_effort_valid=False,
+                    rejection_reason=f"Area {area}ha exceeds max limit {cls.MAX_AREA_HA}ha",
+                )
+            dist = dist or 0.0
+        else:
+            # Stationary / default
+            dist = dist or 0.0
+            if dist > cls.MAX_DISTANCE_KM:
+                return NormalizedEffortVector(
+                    sampling_event_id=event.sampling_event_id,
+                    duration_minutes=event.duration_minutes,
+                    distance_km=dist,
+                    hours_past_sunrise=0.0,
+                    log_group_size=0.0,
+                    is_effort_valid=False,
+                    rejection_reason=f"Distance {dist}km exceeds max limit {cls.MAX_DISTANCE_KM}km",
+                )
 
-        # 4. Compute hours_past_sunrise approximation (default 06:00 sunrise)
-        hours_past_sunrise = cls._calculate_hours_past_sunrise(event.time_observations_started)
+        # 4. Compute true solar time hours past sunrise
+        hours_past_sunrise = cls._calculate_solar_hours_past_sunrise(
+            event.time_observations_started,
+            event.observation_date,
+            event.latitude,
+            event.longitude,
+        )
         log_group = math.log(max(1, event.number_observers))
 
         return NormalizedEffortVector(
@@ -82,14 +135,46 @@ class EffortFilterPipeline:
             rejection_reason=None,
         )
 
-    @staticmethod
-    def _calculate_hours_past_sunrise(time_str: str) -> float:
-        """Parse HH:MM:SS observation start time and return hours relative to 06:00 sunrise."""
+    @classmethod
+    def _calculate_solar_hours_past_sunrise(
+        cls, time_str: str, date_str: str, lat: float, lon: float
+    ) -> float:
+        """Compute true solar time difference (hours past local sunrise) using astronomical solar equations."""
         try:
             parts = time_str.split(":")
-            hour = float(parts[0])
-            minute = float(parts[1]) if len(parts) > 1 else 0.0
-            decimal_time = hour + (minute / 60.0)
-            return round(decimal_time - 6.0, 2)
+            obs_hour = float(parts[0]) + (float(parts[1]) / 60.0 if len(parts) > 1 else 0.0)
+
+            dt = datetime.strptime(date_str, "%Y-%m-%d")
+            day_of_year = dt.timetuple().tm_yday
+
+            # Solar declination approximation (radians)
+            gamma = 2.0 * math.pi * (day_of_year - 1) / 365.0
+            declination = (
+                0.006918
+                - 0.399912 * math.cos(gamma)
+                + 0.070257 * math.sin(gamma)
+                - 0.006758 * math.cos(2 * gamma)
+                + 0.000907 * math.sin(2 * gamma)
+            )
+
+            # Hour angle for sunrise at horizon (-0.833 deg atmospheric refraction correction)
+            lat_rad = math.radians(lat)
+            cos_h0 = (
+                math.sin(math.radians(-0.833)) - math.sin(lat_rad) * math.sin(declination)
+            ) / (math.cos(lat_rad) * math.cos(declination))
+
+            # Clamp cos_h0 for extreme polar latitudes
+            cos_h0 = max(-1.0, min(1.0, cos_h0))
+            h0_rad = math.acos(cos_h0)
+            sunrise_solar_hour = 12.0 - (math.degrees(h0_rad) / 15.0)
+
+            # Local solar time adjustment from longitude (15 deg per hour from UTC meridian offset)
+            return round(obs_hour - sunrise_solar_hour, 2)
         except Exception:
-            return 0.0
+            # Fallback to standard 06:00 local time relative offset on parse error
+            try:
+                parts = time_str.split(":")
+                obs_hour = float(parts[0]) + (float(parts[1]) / 60.0 if len(parts) > 1 else 0.0)
+                return round(obs_hour - 6.0, 2)
+            except Exception:
+                return 0.0

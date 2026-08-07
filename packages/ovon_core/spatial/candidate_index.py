@@ -1,6 +1,5 @@
 """Candidate Taxa Index for fast (cell, week) spatial candidate resolution with h3 neighborhood expansion."""
 
-import math
 from uuid import UUID
 
 import h3
@@ -24,9 +23,19 @@ class CandidateTaxaIndex:
         diff = abs(w1 - w2)
         return min(diff, 52 - diff)
 
+    @staticmethod
+    def _extract_raw_h3_key(cell: SpatialCellId | str) -> str:
+        """Extract canonical raw H3 index string key from SpatialCellId or string representation."""
+        if isinstance(cell, SpatialCellId):
+            return cell.cell_index
+        cell_str = str(cell).strip()
+        if ":" in cell_str:
+            return cell_str.split(":", 1)[1]
+        return cell_str
+
     def add_candidate(self, cell_id: str | SpatialCellId, week: int, concept_id: UUID) -> None:
         """Associate a canonical TaxonConcept UUID with a (cell, week) key."""
-        cell_str = cell_id.value if isinstance(cell_id, SpatialCellId) else str(cell_id)
+        cell_str = self._extract_raw_h3_key(cell_id)
         key = (cell_str, week)
         if key not in self._index:
             self._index[key] = set()
@@ -44,7 +53,7 @@ class CandidateTaxaIndex:
         target_cells: set[str] = set()
 
         for c in cell_set:
-            cell_str = c.value if isinstance(c, SpatialCellId) else str(c)
+            cell_str = self._extract_raw_h3_key(c)
             target_cells.add(cell_str)
             if expand_grid_disk and h3.is_valid_cell(cell_str):
                 # 7-cell grid disk neighborhood expansion (k=1 ring)

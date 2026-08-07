@@ -79,16 +79,20 @@ class LocalMediaRepository(MediaRepository):
             media_type = MediaType(item["media_type"])
             license_type = normalize_and_validate_license(item["license"])
 
+            cached_rel = item.get("cached_path")
+            asset_url = item["url"]
+
             asset = MediaAsset(
                 asset_id=item["asset_id"],
                 taxon_ref=taxon,
                 media_type=media_type,
-                url=item["url"],
+                url=asset_url,
                 creator=item["creator"],
                 license=license_type,
                 attribution_text=item["attribution_text"],
                 source_name=item.get("source_name", "Xeno-Canto / Wikimedia"),
                 alt_text=item.get("alt_text", ""),
+                cached_path=cached_rel,
             )
             self.register_asset(asset)
 

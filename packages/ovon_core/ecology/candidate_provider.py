@@ -12,8 +12,7 @@ class CandidateTaxaProvider(Protocol):
 
     def candidates(
         self, cells: set[SpatialCellId] | None = None, week: int = 20
-    ) -> tuple[TaxonRef, ...]:
-        ...
+    ) -> tuple[TaxonRef, ...]: ...
 
 
 class KansasCityCandidateTaxaProvider:

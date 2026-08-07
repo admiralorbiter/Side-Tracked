@@ -1,6 +1,7 @@
 """Unit tests for EvidenceBoundaryValidator non-detection guardrails."""
 
 import pytest
+
 from packages.ovon_core.evidence.boundary import (
     EvidenceBoundaryError,
     EvidenceBoundaryValidator,
@@ -10,9 +11,12 @@ from packages.ovon_core.evidence.boundary import (
 
 def test_complete_checklist_valid_non_detection():
     # Valid non-detection: eBird complete checklist + effort valid
-    assert EvidenceBoundaryValidator.validate_non_detection(
-        EvidenceTier.EBIRD_COMPLETE_CHECKLIST, is_complete_checklist=True, is_effort_valid=True
-    ) is True
+    assert (
+        EvidenceBoundaryValidator.validate_non_detection(
+            EvidenceTier.EBIRD_COMPLETE_CHECKLIST, is_complete_checklist=True, is_effort_valid=True
+        )
+        is True
+    )
 
 
 def test_user_recall_only_zero_filling_raises_error():
@@ -35,4 +39,12 @@ def test_incomplete_checklist_raises_error():
     with pytest.raises(EvidenceBoundaryError, match="requires both is_complete_checklist=True"):
         EvidenceBoundaryValidator.validate_non_detection(
             EvidenceTier.EBIRD_COMPLETE_CHECKLIST, is_complete_checklist=False, is_effort_valid=True
+        )
+
+
+def test_unknown_evidence_tier_zero_filling_raises_error():
+    # Unknown tier must fail-closed even if checklist is complete and effort is valid
+    with pytest.raises(EvidenceBoundaryError, match="strictly forbidden for evidence tier"):
+        EvidenceBoundaryValidator.validate_non_detection(
+            "unknown_banana_tier", is_complete_checklist=True, is_effort_valid=True
         )

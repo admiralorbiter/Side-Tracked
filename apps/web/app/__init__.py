@@ -50,6 +50,13 @@ def create_app(config_class=DevelopmentConfig):
     def healthcheck():
         return {"status": "ok", "app": app.config["PROJECT_NAME"]}
 
+    @app.route("/media/cached/<path:filename>")
+    def serve_cached_media(filename):
+        from flask import send_from_directory
+
+        media_dir = Path(app.root_path).parents[2] / "media" / "cached"
+        return send_from_directory(media_dir, filename)
+
     return app
 
 

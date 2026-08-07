@@ -1,6 +1,5 @@
 """Unit tests for TaxonConceptRegistry and TaxonConcept models."""
 
-import pytest
 from packages.ovon_core.domain.concept import AuthorityName, TaxonConcept, TaxonomicRank
 from packages.ovon_core.taxonomy.concept_registry import TaxonConceptRegistry
 

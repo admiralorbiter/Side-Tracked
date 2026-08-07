@@ -95,9 +95,10 @@
               <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
                 <span style="font-size: 0.9rem; font-weight: 600;">{{ asset.taxon_ref.common_name }}</span>
                 <audio controls preload="none" style="height: 36px; max-width: 200px;">
-                  <source src="{{ asset.url }}" type="{{ asset.mime_type or 'audio/mpeg' }}">
+                  <source src="{{ asset.resolved_url }}" type="{{ asset.mime_type }}">
                   Your browser does not support audio playback.
                 </audio>
+
               </div>
               <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem; text-align: right;">🎵 {{ asset.attribution_text }}</p>
             </div>

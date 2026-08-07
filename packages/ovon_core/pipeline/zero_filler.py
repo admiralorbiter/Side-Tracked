@@ -1,7 +1,6 @@
 """Complete-Checklist Zero-Filling Matrix Engine with Sidetrack Taxon Concept Rollup & Masking."""
 
 from dataclasses import dataclass
-from typing import Any
 from uuid import UUID
 
 from packages.ovon_core.evidence.boundary import EvidenceBoundaryValidator, EvidenceTier
@@ -36,46 +35,71 @@ class ZeroFillingMatrixEngine:
     ) -> list[MatrixObservationCell]:
         """Generate presence/absence records for an event across candidate species concepts."""
 
-        # 1. Enforce zero-filling non-detection boundary validation
+        # 1. Strict Event Identity Validation
+        if effort.sampling_event_id != event.sampling_event_id:
+            raise ValueError(
+                f"Event identity mismatch: effort sampling_event_id '{effort.sampling_event_id}' "
+                f"does not match event sampling_event_id '{event.sampling_event_id}'"
+            )
+
+        for obs in observations:
+            if obs.sampling_event_id != event.sampling_event_id:
+                raise ValueError(
+                    f"Event identity mismatch: observation sampling_event_id '{obs.sampling_event_id}' "
+                    f"does not match event sampling_event_id '{event.sampling_event_id}'"
+                )
+
+        # 2. Enforce zero-filling non-detection boundary validation
         is_complete = event.all_species_reported
         is_valid_effort = effort.is_effort_valid
 
-        # Map observations to concept IDs
         detected_concept_ids: set[UUID] = set()
         masked_concept_ids: set[UUID] = set()
-        result_cells: list[MatrixObservationCell] = []
+        cell_map: dict[UUID, MatrixObservationCell] = {}
 
         for obs in observations:
-            concept = self.registry.get_concept_for_ebird_code(obs.raw_species_code)
-            if not concept:
-                continue
+            is_slash_obs = obs.is_slash or ("/" in obs.raw_species_code)
 
-            if obs.is_slash:
-                # Mask slashes to prevent false presences/absences
-                masked_concept_ids.add(concept.concept_id)
-                result_cells.append(
-                    MatrixObservationCell(
-                        sampling_event_id=event.sampling_event_id,
-                        concept_id=concept.concept_id,
-                        detected=None,
-                        raw_species_code=obs.raw_species_code,
-                        is_zero_filled=False,
-                    )
-                )
+            if is_slash_obs:
+                # Resolve candidate concepts for slash (e.g. dowwoo/haiwoo -> {Downy, Hairy})
+                candidates = self.registry.get_slash_candidate_concepts(obs.raw_species_code)
+                slash_concept = self.registry.get_concept_for_ebird_code(obs.raw_species_code)
+                if slash_concept:
+                    masked_concept_ids.add(slash_concept.concept_id)
+
+                for cand in candidates:
+                    masked_concept_ids.add(cand.concept_id)
+                    if cand.concept_id not in detected_concept_ids:
+                        cell_map[cand.concept_id] = MatrixObservationCell(
+                            sampling_event_id=event.sampling_event_id,
+                            concept_id=cand.concept_id,
+                            detected=None,
+                            raw_species_code=obs.raw_species_code,
+                            is_zero_filled=False,
+                        )
             else:
-                # Subspecies / ISSF rollup -> 1
-                detected_concept_ids.add(concept.concept_id)
-                result_cells.append(
-                    MatrixObservationCell(
+                concept = self.registry.get_concept_for_ebird_code(obs.raw_species_code)
+                if not concept:
+                    continue
+
+                # Collect target concepts (concept itself + parent concept if subspecies/ISSF)
+                target_concepts = [concept]
+                if concept.parent_concept_id:
+                    parent = self.registry.get_by_id(concept.parent_concept_id)
+                    if parent:
+                        target_concepts.append(parent)
+
+                for target in target_concepts:
+                    detected_concept_ids.add(target.concept_id)
+                    cell_map[target.concept_id] = MatrixObservationCell(
                         sampling_event_id=event.sampling_event_id,
-                        concept_id=concept.concept_id,
+                        concept_id=target.concept_id,
                         detected=1,
                         raw_species_code=obs.raw_species_code,
                         is_zero_filled=False,
                     )
-                )
 
-        # Zero-filling non-detections (only if complete checklist and effort valid)
+        # 3. Zero-filling non-detections (only if complete checklist and effort valid)
         if is_complete and is_valid_effort:
             EvidenceBoundaryValidator.validate_non_detection(
                 EvidenceTier.EBIRD_COMPLETE_CHECKLIST,
@@ -84,14 +108,12 @@ class ZeroFillingMatrixEngine:
             )
             for cid in candidate_concept_ids:
                 if cid not in detected_concept_ids and cid not in masked_concept_ids:
-                    result_cells.append(
-                        MatrixObservationCell(
-                            sampling_event_id=event.sampling_event_id,
-                            concept_id=cid,
-                            detected=0,
-                            raw_species_code="non_detection",
-                            is_zero_filled=True,
-                        )
+                    cell_map[cid] = MatrixObservationCell(
+                        sampling_event_id=event.sampling_event_id,
+                        concept_id=cid,
+                        detected=0,
+                        raw_species_code="non_detection",
+                        is_zero_filled=True,
                     )
 
-        return result_cells
+        return list(cell_map.values())

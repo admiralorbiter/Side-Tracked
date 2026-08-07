@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from enum import Enum
 
+from packages.ovon_core.domain.habitat import HabitatType
 from packages.ovon_core.domain.media import FieldCue
 from packages.ovon_core.domain.spatial import Coordinate
 from packages.ovon_core.domain.taxonomy import TaxonRef
-from packages.ovon_core.domain.habitat import HabitatType
 
 
 class RoutePersona(str, Enum):

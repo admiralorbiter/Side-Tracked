@@ -23,7 +23,9 @@ def run_ingestion(manifest_output: Path) -> None:
 
         # Fetch photo from Wikimedia Commons
         try:
-            photo_assets = wm_provider.fetch_assets_for_taxon(taxon, max_results=1, media_type=MediaType.PHOTO)
+            photo_assets = wm_provider.fetch_assets_for_taxon(
+                taxon, max_results=1, media_type=MediaType.PHOTO
+            )
             for a in photo_assets:
                 repo.register_asset(a)
                 print(f"  [PHOTO] {a.asset_id}: {a.attribution_text}")
@@ -32,7 +34,9 @@ def run_ingestion(manifest_output: Path) -> None:
 
         # Fetch audio from Wikimedia Commons
         try:
-            audio_assets = wm_provider.fetch_assets_for_taxon(taxon, max_results=1, media_type=MediaType.AUDIO)
+            audio_assets = wm_provider.fetch_assets_for_taxon(
+                taxon, max_results=1, media_type=MediaType.AUDIO
+            )
             for a in audio_assets:
                 repo.register_asset(a)
                 print(f"  [AUDIO] {a.asset_id}: {a.attribution_text}")

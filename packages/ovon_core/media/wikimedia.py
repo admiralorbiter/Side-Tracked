@@ -27,7 +27,9 @@ class WikimediaProvider(MediaProvider):
         self, taxon: TaxonRef, max_results: int = 5, media_type: MediaType = MediaType.PHOTO
     ) -> Sequence[MediaAsset]:
         """Fetch open-licensed species photography or audio from Wikimedia Commons."""
-        headers = {"User-Agent": "SidetrackApp/1.0 (https://github.com/admiralorbiter/Side-Tracked; contact@sidetrack.app)"}
+        headers = {
+            "User-Agent": "SidetrackApp/1.0 (https://github.com/admiralorbiter/Side-Tracked; contact@sidetrack.app)"
+        }
         type_filter = "+filetype:audio" if media_type == MediaType.AUDIO else ""
 
         params = (

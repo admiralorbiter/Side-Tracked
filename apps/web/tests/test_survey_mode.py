@@ -1,6 +1,7 @@
 """Integration tests for Scientific Survey Mode UI flow and telemetry header."""
 
 import pytest
+
 from apps.web.app import create_app
 from apps.web.app.config import TestingConfig
 

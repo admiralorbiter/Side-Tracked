@@ -10,6 +10,7 @@ from typing import Any
 
 class FeedbackSaveError(Exception):
     """Raised when user feedback persistence fails."""
+
     pass
 
 
@@ -63,11 +64,51 @@ class WalkFeedbackRepository:
             cursor.execute("PRAGMA table_info(walk_feedback)")
             existing_cols = {row[1] for row in cursor.fetchall()}
             if "evidence_eligibility" not in existing_cols:
-                conn.execute("ALTER TABLE walk_feedback ADD COLUMN evidence_eligibility TEXT NOT NULL DEFAULT 'user_recall_only'")
+                conn.execute(
+                    "ALTER TABLE walk_feedback ADD COLUMN evidence_eligibility TEXT NOT NULL DEFAULT 'user_recall_only'"
+                )
             if "walk_session_id" not in existing_cols:
                 conn.execute("ALTER TABLE walk_feedback ADD COLUMN walk_session_id TEXT")
             conn.commit()
         return conn
+
+    @classmethod
+    def get_active_session(cls, plan_id: str, route_id: str) -> dict[str, Any] | None:
+        """Retrieve the currently active WalkSession for a plan and route if one exists."""
+        try:
+            conn = cls._get_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT session_id, plan_id, route_id, started_at, finished_at, last_segment_index, outcome
+                FROM walk_sessions WHERE plan_id = ? AND route_id = ? AND outcome = 'active'
+                ORDER BY started_at DESC LIMIT 1
+                """,
+                (plan_id, route_id),
+            )
+            row = cursor.fetchone()
+            conn.close()
+            if not row:
+                return None
+            return {
+                "session_id": row["session_id"],
+                "plan_id": row["plan_id"],
+                "route_id": row["route_id"],
+                "started_at": row["started_at"],
+                "finished_at": row["finished_at"],
+                "last_segment_index": row["last_segment_index"],
+                "outcome": row["outcome"],
+            }
+        except Exception:
+            return None
+
+    @classmethod
+    def get_or_start_active_session(cls, plan_id: str, route_id: str) -> dict[str, Any]:
+        """Idempotently retrieve an existing active session or start a new WalkSession."""
+        active = cls.get_active_session(plan_id, route_id)
+        if active:
+            return active
+        return cls.start_session(plan_id, route_id)
 
     @classmethod
     def start_session(cls, plan_id: str, route_id: str) -> dict[str, Any]:

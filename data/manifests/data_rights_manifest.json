@@ -1,0 +1,28 @@
+{
+  "manifest_version": "1.0",
+  "datasets": [
+    {
+      "provider": "Cornell Lab of Ornithology",
+      "dataset_name": "eBird Basic Dataset (EBD)",
+      "version": "ebd_relMay-2026",
+      "retrieval_date": "2026-05-15",
+      "license_terms_version": "eBird Terms of Use v2.0",
+      "raw_redistribution_allowed": false,
+      "derived_redistribution_allowed": true,
+      "storage_location": "data/private/ebird/raw/",
+      "processing_code_version": "ovon_core_v1.0"
+    },
+    {
+      "provider": "GBIF Secretariat",
+      "dataset_name": "GBIF Species Occurrence Data",
+      "version": "gbif_2026_snapshot",
+      "retrieval_date": "2026-05-15",
+      "license_terms_version": "CC-BY 4.0",
+      "raw_redistribution_allowed": true,
+      "derived_redistribution_allowed": true,
+      "storage_location": "data/derived/gbif/",
+      "processing_code_version": "ovon_core_v1.0"
+    }
+  ],
+  "created_at": "2026-08-07T16:35:00Z"
+}

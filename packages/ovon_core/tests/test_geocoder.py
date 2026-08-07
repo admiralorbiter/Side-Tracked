@@ -1,6 +1,5 @@
 """Unit and integration tests for Nominatim geocoding and park presets (Sprint 5)."""
 
-from packages.ovon_core.domain import Coordinate
 from packages.ovon_core.spatial import (
     ENGLISH_LANDING_PARK,
     LOOSE_PARK,

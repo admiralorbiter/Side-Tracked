@@ -59,7 +59,7 @@ class DiscoveryRecord:
     count: int = 1
     associated_plan_id: str | None = None
     associated_route_id: str | None = None
-    privacy_level: PrivacyLevel = PrivacyLevel.PUBLIC_EXACT
+    privacy_level: PrivacyLevel = PrivacyLevel.PRIVATE_ONLY
     is_sensitive: bool = False
     notes: str | None = None
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
@@ -71,6 +71,15 @@ class DiscoveryRecord:
             raise ValueError("Coordinates cannot default to null island (0, 0)")
         if self.count < 1:
             raise ValueError("Discovery count must be at least 1")
+
+    def export_formatted_coordinates(self) -> tuple[float | None, float | None]:
+        """Apply privacy policy and sensitivity rules to exportable geographic coordinates."""
+        if self.is_sensitive or self.privacy_level == PrivacyLevel.PRIVATE_ONLY:
+            return (None, None)
+        if self.privacy_level == PrivacyLevel.PUBLIC_OBFUSCATED:
+            # Round coordinates to ~1.1km grid precision (2 decimal places)
+            return (round(self.latitude, 2), round(self.longitude, 2))
+        return (self.latitude, self.longitude)
 
     @classmethod
     def create(
@@ -87,9 +96,11 @@ class DiscoveryRecord:
         count: int = 1,
         associated_plan_id: str | None = None,
         associated_route_id: str | None = None,
+        privacy_level: PrivacyLevel = PrivacyLevel.PRIVATE_ONLY,
+        is_sensitive: bool = False,
         notes: str | None = None,
     ) -> "DiscoveryRecord":
-        """Factory method for instantiating a valid DiscoveryRecord."""
+        """Factory method for instantiating a valid DiscoveryRecord with PRIVATE_ONLY default privacy."""
         now = datetime.now(timezone.utc)
         return cls(
             discovery_id=uuid4(),
@@ -107,8 +118,8 @@ class DiscoveryRecord:
             count=count,
             associated_plan_id=associated_plan_id,
             associated_route_id=associated_route_id,
-            privacy_level=PrivacyLevel.PUBLIC_EXACT,
-            is_sensitive=False,
+            privacy_level=privacy_level,
+            is_sensitive=is_sensitive,
             notes=notes,
             created_at=now,
         )

@@ -32,7 +32,7 @@ class TaxonSupportBuilder:
             )
             photos = media_repository.get_assets_for_taxon(target_taxon, media_type=MediaType.PHOTO)
             audios = media_repository.get_assets_for_taxon(target_taxon, media_type=MediaType.AUDIO)
-            
+
             photo_avail = len(photos) > 0
             audio_avail = len(audios) > 0
             song_avail = audio_avail

@@ -12,7 +12,9 @@ from urllib.request import Request, urlopen
 class MediaDownloader:
     """Safely downloads and caches Creative Commons media assets with SHA256 integrity verification."""
 
-    USER_AGENT = "SidetrackApp/1.0 (https://github.com/admiralorbiter/Side-Tracked; contact@sidetrack.app)"
+    USER_AGENT = (
+        "SidetrackApp/1.0 (https://github.com/admiralorbiter/Side-Tracked; contact@sidetrack.app)"
+    )
 
     def __init__(self, manifest_path: Path | str, cache_dir: Path | str):
         self.manifest_path = Path(manifest_path)
@@ -40,21 +42,42 @@ class MediaDownloader:
             media_type = asset.get("media_type", "photo")
             common_name = asset.get("common_name", "Unknown Species")
 
+            # Verify permissions before caching
+            cache_permitted = asset.get("cache_permitted", True)
+            status = asset.get("verification_status", "approved_primary")
+            if not cache_permitted or status in ("rejected", "disallowed"):
+                print(
+                    f"  [{idx}/{len(assets)}] [SKIPPED] {common_name} ({asset_id}) -> Caching not permitted"
+                )
+                continue
+
             # Determine extension
             ext = self._determine_extension(url, media_type)
             file_name = f"{asset_id}{ext}"
             file_path = self.cache_dir / file_name
+            expected_hash = asset.get("sha256")
 
             # Check if file already exists and is non-empty
             if file_path.exists() and file_path.stat().st_size > 0:
                 existing_count += 1
                 checksum = self._compute_sha256(file_path)
+                if expected_hash and checksum != expected_hash:
+                    print(
+                        f"  [{idx}/{len(assets)}] [SHA MISMATCH] {common_name} ({asset_id}) expected {expected_hash}, got {checksum}"
+                    )
+                    failed_count += 1
+                    continue
                 asset["cached_path"] = f"media/cached/{file_name}"
-                asset["sha256"] = checksum
+                if not expected_hash:
+                    asset["sha256"] = checksum
                 print(f"  [{idx}/{len(assets)}] [EXISTS] {common_name} ({asset_id}) -> {file_name}")
                 continue
 
-            print(f"  [{idx}/{len(assets)}] [DOWNLOADING] {common_name} ({asset_id})...", end="", flush=True)
+            print(
+                f"  [{idx}/{len(assets)}] [DOWNLOADING] {common_name} ({asset_id})...",
+                end="",
+                flush=True,
+            )
 
             success = False
             for attempt in range(1, max_retries + 1):
@@ -69,11 +92,18 @@ class MediaDownloader:
                         temp_path = file_path.with_suffix(f"{ext}.tmp")
                         with open(temp_path, "wb") as out:
                             out.write(content)
-                        temp_path.replace(file_path)
 
-                        checksum = self._compute_sha256(file_path)
+                        checksum = self._compute_sha256(temp_path)
+                        if expected_hash and checksum != expected_hash:
+                            temp_path.unlink(missing_ok=True)
+                            raise ValueError(
+                                f"SHA256 mismatch: expected {expected_hash}, downloaded {checksum}"
+                            )
+
+                        temp_path.replace(file_path)
                         asset["cached_path"] = f"media/cached/{file_name}"
-                        asset["sha256"] = checksum
+                        if not expected_hash:
+                            asset["sha256"] = checksum
                         downloaded_count += 1
                         success = True
                         print(f" DONE ({len(content)} bytes)")
@@ -81,8 +111,10 @@ class MediaDownloader:
                         break
                 except HTTPError as err:
                     if err.code == 429:
-                        wait_time = 3.0 * (2 ** attempt)
-                        print(f" [429 Rate Limit - Sleeping {wait_time:.1f}s]...", end="", flush=True)
+                        wait_time = 3.0 * (2**attempt)
+                        print(
+                            f" [429 Rate Limit - Sleeping {wait_time:.1f}s]...", end="", flush=True
+                        )
                         time.sleep(wait_time)
                     elif attempt < max_retries:
                         time.sleep(1.0 * attempt)
@@ -108,7 +140,9 @@ class MediaDownloader:
             "existing": existing_count,
             "failed": failed_count,
         }
-        print(f"\nDownload summary: {summary['downloaded']} downloaded, {summary['existing']} pre-existing, {summary['failed']} failed out of {summary['total']} total assets.")
+        print(
+            f"\nDownload summary: {summary['downloaded']} downloaded, {summary['existing']} pre-existing, {summary['failed']} failed out of {summary['total']} total assets."
+        )
         return summary
 
     @staticmethod

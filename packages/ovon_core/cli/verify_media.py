@@ -8,7 +8,9 @@ from pathlib import Path
 from packages.ovon_core.media.provider import normalize_and_validate_license
 
 
-def verify_media_manifest(manifest_path: Path | str = "data/media_manifest.json", cache_dir: Path | str = "media/cached") -> bool:
+def verify_media_manifest(
+    manifest_path: Path | str = "data/media_manifest.json", cache_dir: Path | str = "media/cached"
+) -> bool:
     manifest_path = Path(manifest_path)
     cache_dir = Path(cache_dir)
 
@@ -48,7 +50,9 @@ def verify_media_manifest(manifest_path: Path | str = "data/media_manifest.json"
         try:
             normalize_and_validate_license(lic_str)
         except Exception as e:
-            print(f"[FAIL] {asset_id} ({common_name}): Invalid or disallowed license '{lic_str}': {e}")
+            print(
+                f"[FAIL] {asset_id} ({common_name}): Invalid or disallowed license '{lic_str}': {e}"
+            )
             invalid_licenses += 1
             success = False
 
@@ -68,7 +72,9 @@ def verify_media_manifest(manifest_path: Path | str = "data/media_manifest.json"
             file_path = matching[0] if matching else cache_dir / f"{asset_id}.jpg"
 
         if not file_path.exists() or file_path.stat().st_size == 0:
-            print(f"[FAIL] {asset_id} ({common_name}): Cached media file {file_path} missing or empty.")
+            print(
+                f"[FAIL] {asset_id} ({common_name}): Cached media file {file_path} missing or empty."
+            )
             missing_cached_files += 1
             success = False
         else:
