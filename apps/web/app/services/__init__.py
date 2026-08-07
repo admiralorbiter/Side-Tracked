@@ -2,6 +2,7 @@
 
 from apps.web.app.services.feedback_repository import WalkFeedbackRepository
 from apps.web.app.services.planner_service import PlanLoopPreview
+from apps.web.app.services.radar_service import BuildHabitatRadar
 from apps.web.app.services.route_service import BuildFieldPack, GetRouteDetail
 from apps.web.app.services.species_service import GetSpeciesProfile
 
@@ -11,4 +12,5 @@ __all__ = [
     "BuildFieldPack",
     "GetSpeciesProfile",
     "WalkFeedbackRepository",
+    "BuildHabitatRadar",
 ]

@@ -18,6 +18,55 @@
 
   <div id="sidetrack-map" class="map-container" data-geojson='{{ route.geojson_geometry | tojson if route.geojson_geometry else "" }}' style="height: 360px; max-height: 40vh; width: 100%; border-radius: var(--radius-md); margin-bottom: 2rem;"></div>
 
+  <!-- Habitat Radar — What's Around Here? -->
+  {% if habitat_radar %}
+  <div class="card" style="margin-bottom: 2rem; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(88, 125, 113, 0.4);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+      <h2 style="font-size: 1.35rem; font-weight: 800; color: #f8fafc;" tabindex="-1">
+        🌿 Habitat Radar — What's Around Here?
+      </h2>
+      <span class="route-badge badge-birdy" style="font-size: 0.8rem;">
+        {{ route.segments|length }} focal targets • {{ habitat_radar.total_catalog_matches }} catalog matches
+      </span>
+    </div>
+    <p style="color: var(--brand-sky); font-size: 0.9rem; margin-bottom: 1.25rem;">
+      Based on habitat types along your route, here are other species in Sidetrack's supported catalog worth watching for:
+    </p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; margin-bottom: 1rem;">
+      {% for guild, species_list in habitat_radar.by_guild.items() %}
+      <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.06);">
+        <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--brand-green); margin-bottom: 0.6rem;">
+          {{ guild.display_name }}
+        </h3>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.35rem;">
+          {% for rsp in species_list %}
+          <a href="{{ url_for('species.detail', taxon_id=rsp.taxon.ebird_code) }}" class="species-pill" style="text-decoration: none; font-size: 0.82rem;" title="Reason: {{ rsp.reason_codes | join(', ') }}">
+            {{ rsp.taxon.common_name }}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if habitat_radar.nearby|length > 8 %}
+    <details style="margin-top: 0.75rem;">
+      <summary style="cursor: pointer; color: var(--brand-sky); font-size: 0.88rem; font-weight: 600;">
+        View all {{ habitat_radar.total_catalog_matches }} supported catalog matches →
+      </summary>
+      <div style="display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.75rem; padding: 0.75rem; background: rgba(0,0,0,0.25); border-radius: var(--radius-sm);">
+        {% for rsp in habitat_radar.nearby %}
+        <a href="{{ url_for('species.detail', taxon_id=rsp.taxon.ebird_code) }}" class="species-pill" style="text-decoration: none; font-size: 0.8rem;">
+          {{ rsp.taxon.common_name }}
+        </a>
+        {% endfor %}
+      </div>
+    </details>
+    {% endif %}
+  </div>
+  {% endif %}
+
   <!-- Text-Equivalent Route Timeline Header -->
   <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;" tabindex="-1">Text-Equivalent Route Timeline & Field Pack</h2>
   <p style="color: var(--brand-sky); font-size: 0.95rem; margin-bottom: 1.5rem;">

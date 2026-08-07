@@ -30,24 +30,35 @@ class XenoCantoProvider(MediaProvider):
 
         req = Request(url, headers={"User-Agent": "Sidetrack/1.0 (Ecological Navigation)"})
 
+        recordings = []
         try:
             with urlopen(req, timeout=5) as response:
-                if response.status != 200:
-                    return []
-                data = json.loads(response.read().decode("utf-8"))
+                if response.status == 200:
+                    data = json.loads(response.read().decode("utf-8"))
+                    recordings = data.get("recordings", [])
         except (URLError, TimeoutError, json.JSONDecodeError):
-            return []
+            pass
 
-        recordings = data.get("recordings", [])
+        # Fallback to common name search if scientific name query returned no recordings
+        if not recordings and taxon.common_name:
+            fallback_url = f"{self.BASE_API_URL}?query={taxon.common_name.replace(' ', '+')}"
+            fallback_req = Request(fallback_url, headers={"User-Agent": "Sidetrack/1.0 (Ecological Navigation)"})
+            try:
+                with urlopen(fallback_req, timeout=5) as response:
+                    if response.status == 200:
+                        data = json.loads(response.read().decode("utf-8"))
+                        recordings = data.get("recordings", [])
+            except (URLError, TimeoutError, json.JSONDecodeError):
+                pass
         assets: list[MediaAsset] = []
 
         for rec in recordings:
             if len(assets) >= max_results:
                 break
 
-            # Filter by recording quality (prefer 'A' or 'B' rating)
+            # Filter by recording quality (prefer 'A' or 'B' rating, fallback to 'C')
             quality = rec.get("q", "C").upper()
-            if quality not in ("A", "B"):
+            if quality not in ("A", "B", "C"):
                 continue
 
             raw_lic = rec.get("lic", "")

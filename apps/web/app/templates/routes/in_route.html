@@ -46,6 +46,19 @@
           <p style="font-size: 1.05rem; color: #f8fafc;">{{ seg.field_cue.what_to_listen_for }}</p>
         </div>
 
+        {% if habitat_radar and seg.index in habitat_radar.by_segment %}
+        <div style="background: rgba(0,0,0,0.2); padding: 0.75rem 0.85rem; border-radius: var(--radius-sm); margin-bottom: 1rem; border: 1px solid rgba(255,255,255,0.06);">
+          <strong style="color: var(--brand-sky); font-size: 0.8rem; display: block; margin-bottom: 0.4rem;">🌿 ALSO WORTH WATCHING FOR ON THIS LEG:</strong>
+          <div style="display: flex; flex-wrap: wrap; gap: 0.35rem;">
+            {% for rsp in habitat_radar.by_segment[seg.index] %}
+            <span class="species-pill" style="font-size: 0.78rem; padding: 0.15rem 0.5rem; background: rgba(88,125,113,0.4);">
+              {{ rsp.taxon.common_name }}
+            </span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
         {% if field_pack and field_pack.media_assets %}
         <div x-show="!quietMode" style="margin-top: 1rem; background: rgba(0,0,0,0.25); padding: 0.85rem; border-radius: var(--radius-sm);">
           <strong style="color: var(--brand-sky); font-size: 0.85rem; display: block; margin-bottom: 0.5rem;">🔊 FOCAL SPECIES CALL AUDIO:</strong>

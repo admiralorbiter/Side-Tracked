@@ -8,51 +8,48 @@ from packages.ovon_core.media.repository import LocalMediaRepository
 from packages.ovon_core.media.wikimedia import WikimediaProvider
 from packages.ovon_core.media.xenocanto import XenoCantoProvider
 
-# Starter Pack of Kansas City Birds for Sprint 3
-STARTER_KC_BIRDS = [
-    ("Red-headed Woodpecker", "Melanerpes erythrocephalus", "rehwoo"),
-    ("American Robin", "Turdus migratorius", "amerob"),
-    ("Northern Cardinal", "Cardinalis cardinalis", "norcar"),
-    ("Blue Jay", "Cyanocitta cristata", "blujay"),
-    ("Tufted Titmouse", "Baeolophus bicolor", "tuftit"),
-    ("Carolina Wren", "Thryothorus ludovicianus", "carwre"),
-    ("Cedar Waxwing", "Bombycilla cedrorum", "cedwax"),
-]
+from packages.ovon_core.fixtures.kc_species_fixtures import ALL_KC_TAXA
+from packages.ovon_core.media.repository import LocalMediaRepository
+from packages.ovon_core.media.wikimedia import WikimediaProvider
+from packages.ovon_core.media.xenocanto import XenoCantoProvider
+
+
+import time
+from packages.ovon_core.domain import MediaType
 
 
 def run_ingestion(manifest_output: Path) -> None:
     """Run automated media ingestion pipeline for target taxa."""
-    repo = LocalMediaRepository()
-    xc_provider = XenoCantoProvider()
+    repo = LocalMediaRepository(manifest_output)
     wm_provider = WikimediaProvider()
 
-    print(f"Starting Media Ingestion Pipeline for {len(STARTER_KC_BIRDS)} species...")
+    print(f"Starting Media Ingestion Pipeline for {len(ALL_KC_TAXA)} species...")
 
-    for common_name, sci_name, ebird_code in STARTER_KC_BIRDS:
-        taxon = TaxonRef.create(common_name, sci_name, ebird_code)
-        print(f"\nProcessing {common_name} ({sci_name})...")
-
-        # Fetch audio from Xeno-Canto
-        try:
-            audio_assets = xc_provider.fetch_assets_for_taxon(taxon, max_results=2)
-            for a in audio_assets:
-                repo.register_asset(a)
-                print(f"  [AUDIO] {a.asset_id}: {a.attribution_text}")
-        except Exception as e:
-            print(f"  [AUDIO ERROR] Failed fetching audio for {common_name}: {e}")
+    for taxon in ALL_KC_TAXA:
+        print(f"\nProcessing {taxon.common_name} ({taxon.scientific_name})...")
+        time.sleep(0.15)
 
         # Fetch photo from Wikimedia Commons
         try:
-            photo_assets = wm_provider.fetch_assets_for_taxon(taxon, max_results=2)
+            photo_assets = wm_provider.fetch_assets_for_taxon(taxon, max_results=1, media_type=MediaType.PHOTO)
             for a in photo_assets:
                 repo.register_asset(a)
                 print(f"  [PHOTO] {a.asset_id}: {a.attribution_text}")
         except Exception as e:
-            print(f"  [PHOTO ERROR] Failed fetching photo for {common_name}: {e}")
+            print(f"  [PHOTO ERROR] Failed fetching photo for {taxon.common_name}: {e}")
+
+        # Fetch audio from Wikimedia Commons
+        try:
+            audio_assets = wm_provider.fetch_assets_for_taxon(taxon, max_results=1, media_type=MediaType.AUDIO)
+            for a in audio_assets:
+                repo.register_asset(a)
+                print(f"  [AUDIO] {a.asset_id}: {a.attribution_text}")
+        except Exception as e:
+            print(f"  [AUDIO ERROR] Failed fetching audio for {taxon.common_name}: {e}")
 
     # Save manifest
     repo.save_manifest(manifest_output)
-    print(f"\n✅ Media Ingestion Pipeline Complete! Manifest saved to: {manifest_output}")
+    print(f"\n[OK] Media Ingestion Pipeline Complete! Manifest saved to: {manifest_output}")
 
 
 if __name__ == "__main__":

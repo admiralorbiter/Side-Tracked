@@ -66,3 +66,20 @@ def test_kc_pilot_manifest_file():
     assert data["manifest_version"] == "0.2-kc-pilot"
     assert data["taxonomy_version"] == "Clements-2025"
     assert "amerob" in data["species_frequencies"]
+
+
+def test_candidate_provider_and_habitat_radar():
+    from packages.ovon_core.ecology.candidate_provider import KansasCityCandidateTaxaProvider
+    from packages.ovon_core.fixtures.routes_fixtures import ROUTE_EASY
+    from apps.web.app.services import BuildHabitatRadar
+
+    provider = KansasCityCandidateTaxaProvider()
+    candidates = provider.candidates(set(), week=20)
+    assert len(candidates) == 30
+
+    radar = BuildHabitatRadar(candidate_provider=provider).execute(ROUTE_EASY, season_week=20)
+    assert len(radar.focal) > 0
+    assert len(radar.nearby) > 0
+    assert len(radar.by_guild) > 0
+    assert radar.total_catalog_matches >= 10
+

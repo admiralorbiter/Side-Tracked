@@ -1,6 +1,7 @@
 """File and Memory Backed Media Repository Implementation."""
 
 import json
+import os
 from pathlib import Path
 from typing import Sequence
 
@@ -19,6 +20,7 @@ class LocalMediaRepository(MediaRepository):
     def __init__(self, manifest_path: Path | str | None = None):
         self._assets: dict[str, list[MediaAsset]] = {}  # taxon_id -> list of MediaAsset
         self.manifest_path = Path(manifest_path) if manifest_path else None
+        self._last_mtime: float = 0.0
         if self.manifest_path and self.manifest_path.exists():
             self.load_manifest(self.manifest_path)
 
@@ -41,13 +43,30 @@ class LocalMediaRepository(MediaRepository):
         self, taxon: TaxonRef, media_type: MediaType | None = None
     ) -> Sequence[MediaAsset]:
         """Retrieve cached media assets for a taxon."""
+        if self.manifest_path and self.manifest_path.exists():
+            try:
+                current_mtime = os.path.getmtime(self.manifest_path)
+                if current_mtime > self._last_mtime:
+                    self.load_manifest(self.manifest_path)
+            except Exception:
+                pass
+
         assets = self._assets.get(taxon.taxon_id, [])
+        if not assets:
+            canonical_key = f"species:ebird:{taxon.ebird_code.lower()}"
+            assets = self._assets.get(canonical_key, [])
+
         if media_type:
             return [a for a in assets if a.media_type == media_type]
         return tuple(assets)
 
     def load_manifest(self, path: Path) -> None:
         """Load media assets from a JSON manifest file."""
+        try:
+            self._last_mtime = os.path.getmtime(path)
+        except Exception:
+            pass
+
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
 

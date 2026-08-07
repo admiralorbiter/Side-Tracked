@@ -215,33 +215,45 @@ def results():
     )
 
 
+from apps.web.app.services import (
+    BuildFieldPack,
+    BuildHabitatRadar,
+    GetRouteDetail,
+    WalkFeedbackRepository,
+)
+
+
 @planner_bp.route("/plans/<plan_id>/routes/<route_id>")
 def route_detail(plan_id: str, route_id: str):
-    """Step 6: Plan-scoped route detail view."""
+    """Step 6: Plan-scoped route detail view with Habitat Radar."""
     route = _resolve_route_with_fallback(plan_id, route_id)
     if not route:
         return render_template("errors/404.html"), 404
     field_pack = BuildFieldPack().execute(route)
+    habitat_radar = BuildHabitatRadar().execute(route)
     return render_template(
-        "routes/detail.html", route=route, field_pack=field_pack, plan_id=plan_id
+        "routes/detail.html",
+        route=route,
+        field_pack=field_pack,
+        habitat_radar=habitat_radar,
+        plan_id=plan_id,
     )
-
-
-from apps.web.app.services import BuildFieldPack, GetRouteDetail, WalkFeedbackRepository
 
 
 @planner_bp.route("/plans/<plan_id>/routes/<route_id>/walk")
 def route_walk(plan_id: str, route_id: str):
-    """Step 8: Plan-scoped active Walk Mode."""
+    """Step 8: Plan-scoped active Walk Mode with glanceable Habitat Radar."""
     route = _resolve_route_with_fallback(plan_id, route_id)
     if not route:
         return render_template("errors/404.html"), 404
     field_pack = BuildFieldPack().execute(route)
+    habitat_radar = BuildHabitatRadar().execute(route)
     quiet_mode = session.get("quiet_mode", False)
     return render_template(
         "routes/in_route.html",
         route=route,
         field_pack=field_pack,
+        habitat_radar=habitat_radar,
         plan_id=plan_id,
         quiet_mode=quiet_mode,
     )
