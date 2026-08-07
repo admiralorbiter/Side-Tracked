@@ -1,11 +1,8 @@
 """Unit tests for Route Evidence domain models, engines, and services."""
 
-from datetime import datetime, timedelta, timezone
-
-import pytest
+from datetime import datetime, timezone
 
 from packages.ovon_core.domain.evidence import (
-    EvidenceLocation,
     EvidenceVisibility,
     NormalizedOccurrenceEvidence,
 )

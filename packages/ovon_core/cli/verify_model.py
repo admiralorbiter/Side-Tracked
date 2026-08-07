@@ -1,7 +1,5 @@
 """CLI Tool to verify Calibrated Focal Species Models and Spatial Holdout Metrics."""
 
-import sys
-
 from packages.ovon_core.domain.environmental_vector import (
     SIDETRACK_ENV_SCHEMA_V1,
     EnvironmentalFeatureVector,

@@ -1,11 +1,8 @@
 """Unit tests for Environmental Feature Vector models and extractor."""
 
-import pytest
-
 from packages.ovon_core.domain.environmental_vector import (
     SIDETRACK_ENV_SCHEMA_V1,
     EnvironmentalFeatureVector,
-    create_default_environmental_vector,
 )
 from packages.ovon_core.domain.habitat import HabitatType
 from packages.ovon_core.spatial.environmental_extractor import EnvironmentalFeatureExtractor

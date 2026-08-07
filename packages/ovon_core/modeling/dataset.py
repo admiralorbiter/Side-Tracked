@@ -1,7 +1,6 @@
 """Modeling Dataset Builder and Survey Matrix Assembly."""
 
 from dataclasses import dataclass
-from typing import Sequence
 
 from packages.ovon_core.domain.environmental_vector import (
     SIDETRACK_ENV_SCHEMA_V1,

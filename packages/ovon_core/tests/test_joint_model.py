@@ -1,7 +1,5 @@
 """Unit tests for Joint Occupancy and Detectability Architecture."""
 
-import pytest
-
 from packages.ovon_core.domain.environmental_vector import (
     SIDETRACK_ENV_SCHEMA_V1,
     EnvironmentalFeatureVector,

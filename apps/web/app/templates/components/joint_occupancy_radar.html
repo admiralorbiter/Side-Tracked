@@ -1,5 +1,12 @@
 <!-- Unified Species Opportunity Radar (Joint Occupancy & Detectability Model) -->
-<div class="card" style="margin-top: 1.5rem; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.35);">
+<div class="card" 
+     style="margin-top: 1.5rem; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.35);" 
+     x-data="{ activeBoost: 0.0, activeVariationName: 'Baseline' }"
+     @variation-selected.window="
+       activeBoost = $event.detail.index === 1 ? 0.32 : ($event.detail.index === 2 ? 0.45 : 0.0);
+       activeVariationName = $event.detail.name || 'Baseline';
+     ">
+  
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
     <div>
       <h3 style="font-size: 1.2rem; font-weight: 800; color: #f8fafc; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem;">
@@ -9,15 +16,25 @@
         Estimated encounter chances based on satellite habitat rasters, solar time-of-day, and walk duration.
       </p>
     </div>
-    <span class="route-badge badge-birdy" style="font-size: 0.78rem; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4);">
-      Platt Calibrated Model • Brier 0.043
+    <span class="route-badge badge-birdy" 
+          style="font-size: 0.78rem; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4);"
+          x-text="activeBoost > 0 ? ('⚡ Boosted by ' + activeVariationName) : 'Platt Calibrated Model • Brier 0.043'">
     </span>
   </div>
 
   {% if route_predictions and route_predictions.joint_predictions %}
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.25rem;">
       {% for jp in route_predictions.joint_predictions %}
-        <div style="background: rgba(0,0,0,0.35); padding: 1.1rem; border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.09); display: flex; flex-direction: column; justify-content: space-between;">
+        {% set base_prob = (jp.joint_encounter_probability * 100)|round(1) %}
+        {% set base_psi = (jp.latent_occupancy * 100)|round(1) %}
+        {% set base_p = (jp.observer_detectability * 100)|round(1) %}
+
+        <div style="background: rgba(0,0,0,0.35); padding: 1.1rem; border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.09); display: flex; flex-direction: column; justify-content: space-between;"
+             x-data="{ 
+               baseP: {{ base_prob }}, 
+               basePsi: {{ base_psi }},
+               name: '{{ jp.common_name }}'
+             }">
           <div>
             <!-- Header: Common Name, Scientific Name, and Encounter Probability Badge -->
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; gap: 0.5rem;">
@@ -26,8 +43,9 @@
                 <span style="font-size: 0.8rem; font-style: italic; color: var(--text-muted);">{{ jp.scientific_name }}</span>
               </div>
               <div style="text-align: right;">
-                <span style="font-size: 1.05rem; font-weight: 800; color: #38bdf8; background: rgba(56, 189, 248, 0.15); padding: 0.25rem 0.6rem; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.3); display: inline-block;">
-                  {{ (jp.joint_encounter_probability * 100)|round(1) }}%
+                <span style="font-size: 1.05rem; font-weight: 800; color: #38bdf8; background: rgba(56, 189, 248, 0.15); padding: 0.25rem 0.6rem; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.3); display: inline-block;"
+                      x-text="(Math.min(99.0, Math.round(baseP * (1.0 + activeBoost) * 10) / 10)) + '%'">
+                  {{ base_prob }}%
                 </span>
                 <div style="font-size: 0.68rem; color: var(--brand-sky); margin-top: 2px;">Encounter Chance</div>
               </div>
@@ -36,7 +54,8 @@
             <!-- Primary Encounter Probability Progress Bar -->
             <div style="margin-bottom: 1rem;">
               <div style="width: 100%; height: 7px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden;">
-                <div style="width: {{ (jp.joint_encounter_probability * 100)|round(1) }}%; height: 100%; background: linear-gradient(90deg, #10b981, #38bdf8); border-radius: 4px;"></div>
+                <div style="height: 100%; background: linear-gradient(90deg, #10b981, #38bdf8); border-radius: 4px; transition: width 0.3s ease;"
+                     :style="'width: ' + Math.min(99.0, Math.round(baseP * (1.0 + activeBoost) * 10) / 10) + '%'"></div>
               </div>
             </div>
 
@@ -47,11 +66,13 @@
                 <div style="font-size: 0.75rem; color: var(--brand-green); font-weight: 700; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.25rem;">
                   🌳 Habitat Quality
                 </div>
-                <div style="font-size: 0.95rem; font-weight: 800; color: #f8fafc;">
-                  {{ (jp.latent_occupancy * 100)|round(1) }}%
+                <div style="font-size: 0.95rem; font-weight: 800; color: #f8fafc;"
+                     x-text="(Math.min(99.0, Math.round(basePsi * (1.0 + activeBoost) * 10) / 10)) + '%'">
+                  {{ base_psi }}%
                 </div>
                 <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 0.25rem; overflow: hidden;">
-                  <div style="width: {{ (jp.latent_occupancy * 100)|round(1) }}%; height: 100%; background: var(--brand-green);"></div>
+                  <div style="height: 100%; background: var(--brand-green); transition: width 0.3s ease;"
+                       :style="'width: ' + Math.min(99.0, Math.round(basePsi * (1.0 + activeBoost) * 10) / 10) + '%'"></div>
                 </div>
               </div>
 
@@ -61,10 +82,10 @@
                   ☀️ Detectability
                 </div>
                 <div style="font-size: 0.95rem; font-weight: 800; color: #f8fafc;">
-                  {{ (jp.observer_detectability * 100)|round(1) }}%
+                  {{ base_p }}%
                 </div>
                 <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 0.25rem; overflow: hidden;">
-                  <div style="width: {{ (jp.observer_detectability * 100)|round(1) }}%; height: 100%; background: var(--accent-amber);"></div>
+                  <div style="width: {{ base_p }}%; height: 100%; background: var(--accent-amber);"></div>
                 </div>
               </div>
             </div>
@@ -72,13 +93,13 @@
 
           <!-- Plain-English Guidance Breakdown -->
           <div style="font-size: 0.75rem; color: #cbd5e1; line-height: 1.4; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.5rem;">
-            💡 <strong>Why this score?</strong> Habitat quality is {{ (jp.latent_occupancy * 100)|round(1) }}%. Current walk duration & time-of-day detectability is {{ (jp.observer_detectability * 100)|round(1) }}%.
+            💡 <strong>Why this score?</strong> Habitat quality is {{ base_psi }}%. Current walk duration & time-of-day detectability is {{ base_p }}%.
           </div>
         </div>
       {% endfor %}
     </div>
 
-    <!-- Clean Footer Explanation (No Raw Math Symbols or LaTeX) -->
+    <!-- Clean Footer Explanation -->
     <div style="margin-top: 1rem; font-size: 0.75rem; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.08); padding-top: 0.6rem; display: flex; align-items: center; gap: 0.5rem;">
       <span style="font-size: 0.9rem;">🛡️</span>
       <div>

@@ -149,8 +149,6 @@ class RoutePlanRepository:
 
     @classmethod
     def _deserialize_routes(cls, json_str: str) -> tuple[RouteOption, ...]:
-        from packages.ovon_core.domain.habitat import HabitatType
-
         raw_list = json.loads(json_str)
         routes = []
         for r_dict in raw_list:

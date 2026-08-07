@@ -22,17 +22,23 @@ from packages.ovon_core.domain.media import (
     MediaVerificationStatus,
     RouteFieldPack,
 )
-from packages.ovon_core.domain.request import JourneyIntent, LoopRequest
-from packages.ovon_core.domain.route import RouteOption, RoutePersona, RouteSegment, RouteStopAction
-from packages.ovon_core.domain.spatial import BoundingBox, Coordinate, SpatialCellId
-from packages.ovon_core.domain.taxonomy import FieldCueProfile, TaxonRef, TaxonSupport
-
 from packages.ovon_core.domain.prediction import (
     CalibratedSpeciesPrediction,
     JointOccupancyDetectabilityPrediction,
     PredictionProvenance,
     RoutePredictionSummary,
 )
+from packages.ovon_core.domain.request import JourneyIntent, LoopRequest
+from packages.ovon_core.domain.route import (
+    RouteOption,
+    RoutePersona,
+    RouteSegment,
+    RouteStopAction,
+    RouteVariationOption,
+    RouteVariationSummary,
+)
+from packages.ovon_core.domain.spatial import BoundingBox, Coordinate, SpatialCellId
+from packages.ovon_core.domain.taxonomy import FieldCueProfile, TaxonRef, TaxonSupport
 
 __all__ = [
     "DomainError",
@@ -59,6 +65,8 @@ __all__ = [
     "RouteStopAction",
     "RouteSegment",
     "RouteOption",
+    "RouteVariationOption",
+    "RouteVariationSummary",
     "TaxonomicRank",
     "AuthorityName",
     "TaxonCrosswalkEntry",

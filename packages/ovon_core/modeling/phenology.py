@@ -25,4 +25,3 @@ class DiurnalPhenologyKernel:
 
         # Birds are still visually and audibly detectable outside peak vocal hours
         return max(0.45, min(1.0, multiplier))
-

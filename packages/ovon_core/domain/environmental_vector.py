@@ -85,7 +85,7 @@ class EnvironmentalFeatureVector:
 
     def to_dict(self) -> dict[str, Any]:
         """Convert feature vector to dictionary representation."""
-        res = {name: val for name, val in zip(self.schema.feature_names, self.values)}
+        res = {name: val for name, val in zip(self.schema.feature_names, self.values, strict=False)}
         res["schema_id"] = self.schema.schema_id
         res["status"] = self.status
         return res

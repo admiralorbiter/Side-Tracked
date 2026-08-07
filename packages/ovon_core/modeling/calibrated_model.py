@@ -64,7 +64,7 @@ class CalibratedSpeciesModel:
     def predict_logit(self, feature_vector: EnvironmentalFeatureVector) -> float:
         """Compute linear logit score for an environmental feature vector."""
         values = feature_vector.values
-        logit = self.bias + sum(w * v for w, v in zip(self.weights, values))
+        logit = self.bias + sum(w * v for w, v in zip(self.weights, values, strict=False))
         return logit
 
     def predict_proba(self, feature_vector: EnvironmentalFeatureVector) -> float:

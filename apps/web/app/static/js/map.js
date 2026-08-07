@@ -1,7 +1,12 @@
 /**
  * Leaflet Spatial Map Adapter for Sidetrack
- * Clean, high-contrast spatial polyline renderer with interactive timeline-to-map sub-path sync.
+ * Clean, high-contrast spatial polyline renderer with interactive timeline-to-map sub-path sync
+ * and dynamic route variation geometry switching.
  */
+
+let sidetrackMapInstance = null;
+let sidetrackMainPolyline = null;
+
 function initSidetrackMap() {
   const mapElement = document.getElementById('sidetrack-map');
   if (!mapElement || typeof L === 'undefined' || mapElement.dataset.initialized === 'true') return;
@@ -15,6 +20,8 @@ function initSidetrackMap() {
       touchZoom: true,
       scrollWheelZoom: false
     }).setView([39.0347, -94.5906], 15);
+
+    sidetrackMapInstance = map;
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
@@ -38,6 +45,8 @@ function initSidetrackMap() {
           lineJoin: 'round'
         }
       }).addTo(map);
+
+      sidetrackMainPolyline = mainLayer;
 
       // Origin marker pin
       const startCoords = coords[0];
@@ -69,64 +78,86 @@ function initSidetrackMap() {
               else if (name.includes('Owl')) emoji = '🦉';
               else if (name.includes('Duck') || name.includes('Goose')) emoji = '🦆';
 
-              const evIcon = L.divIcon({
-                className: 'custom-div-icon',
-                html: `<div class="map-evidence-icon-pin"><span class="map-evidence-emoji">${emoji}</span></div>`,
+              const icon = L.divIcon({
+                className: 'map-evidence-icon-pin',
+                html: `<div class="map-evidence-emoji-box" title="${name}">${emoji}</div>`,
                 iconSize: [32, 32],
                 iconAnchor: [16, 16]
               });
 
-              const marker = L.marker([item.lat, item.lon], { icon: evIcon }).addTo(map);
+              const marker = L.marker([item.lat, item.lon], { icon: icon }).addTo(map);
 
-              const tooltipHtml = `
-                <div style="font-family: inherit;">
-                  <strong style="font-size: 0.88rem; color: #f8fafc;">📍 ${item.common_name}</strong>
-                  <div style="font-size: 0.78rem; color: #38bdf8; margin-top: 2px;">Reported ~${item.dist}m from walk</div>
-                  <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 1px;">Source: ${item.source}</div>
+              // Tooltip on hover
+              const tooltipContent = `
+                <div class="map-evidence-tooltip">
+                  <strong>📍 ${name}</strong><br>
+                  <span style="font-size: 0.75rem; color: #38bdf8;">Reported ~${Math.round(item.distance_from_walk_m)}m from walk</span><br>
+                  <span style="font-size: 0.7rem; color: #94a3b8;">Source: ${item.source_dataset}</span>
                 </div>
               `;
-
-              // Show hovering tooltip on desktop
-              marker.bindTooltip(tooltipHtml, {
+              marker.bindTooltip(tooltipContent, {
                 direction: 'top',
-                className: 'map-evidence-tooltip',
-                offset: [0, -16],
-                opacity: 0.98
+                offset: [0, -10],
+                opacity: 0.95
               });
 
-              // Click popup for mobile tapping
-              marker.bindPopup(tooltipHtml);
+              // Popup on click
+              const popupContent = `
+                <div style="font-family: inherit; font-size: 0.85rem; padding: 4px;">
+                  <strong style="color: #0f172a; font-size: 0.95rem;">${name}</strong><br>
+                  <span style="color: #475569; font-size: 0.8rem;">${item.scientific_name || ''}</span>
+                  <hr style="margin: 6px 0; border: none; border-top: 1px solid #e2e8f0;">
+                  <div style="font-size: 0.78rem; color: #334155;">
+                    📍 Reported ~${Math.round(item.distance_from_walk_m)}m from walking loop<br>
+                    🛡️ Visibility: ${item.visibility}<br>
+                    📅 Reported: ${item.observed_date || 'Recent'}
+                  </div>
+                </div>
+              `;
+              marker.bindPopup(popupContent);
 
+              // Extend map bounds to include evidence pins
               bounds.extend([item.lat, item.lon]);
             }
           });
-        } catch (e) {
-          console.warn('Could not parse route evidence JSON:', e);
+        } catch (err) {
+          console.warn('Could not parse route evidence map items:', err);
         }
       }
 
-
       map.fitBounds(bounds, { padding: [40, 40] });
 
-
-      // Interactive timeline segment hover & focus highlighting using segment-specific GeoJSON
-
-      const segmentCards = document.querySelectorAll('.timeline-segment-card');
+      // Interactive hover highlight for timeline segments
+      const segmentCards = document.querySelectorAll('.segment-card[data-segment-index]');
       let highlightLayer = null;
 
       segmentCards.forEach((card) => {
         const highlightSegment = () => {
-          const segGeojsonRaw = card.getAttribute('data-segment-geojson');
-          mainLayer.setStyle({ opacity: 0.35, weight: 4 });
+          const segIdx = parseInt(card.getAttribute('data-segment-index'), 10);
+          if (sidetrackMainPolyline) sidetrackMainPolyline.setStyle({ opacity: 0.35 });
 
-          if (highlightLayer) {
-            map.removeLayer(highlightLayer);
-          }
-
-          if (segGeojsonRaw && segGeojsonRaw.trim()) {
+          const geojsonRaw = mapElement.getAttribute('data-geojson');
+          if (geojsonRaw && geojsonRaw.trim()) {
             try {
-              const segGeojson = JSON.parse(segGeojsonRaw);
-              highlightLayer = L.geoJSON(segGeojson, {
+              const fullGeo = JSON.parse(geojsonRaw);
+              const totalCoords = fullGeo.coordinates.length;
+
+              const startIdx = Math.floor((segIdx / segmentCards.length) * totalCoords);
+              const endIdx = Math.min(
+                totalCoords,
+                Math.ceil(((segIdx + 1) / segmentCards.length) * totalCoords) + 1
+              );
+
+              const subCoords = fullGeo.coordinates.slice(startIdx, endIdx);
+
+              if (highlightLayer) {
+                map.removeLayer(highlightLayer);
+              }
+
+              highlightLayer = L.geoJSON({
+                type: 'LineString',
+                coordinates: subCoords
+              }, {
                 style: {
                   color: '#38bdf8',
                   weight: 8,
@@ -142,7 +173,7 @@ function initSidetrackMap() {
         };
 
         const resetHighlight = () => {
-          mainLayer.setStyle({ opacity: 0.9, weight: 5 });
+          if (sidetrackMainPolyline) sidetrackMainPolyline.setStyle({ opacity: 0.9, weight: 5 });
           if (highlightLayer) {
             map.removeLayer(highlightLayer);
             highlightLayer = null;
@@ -159,6 +190,44 @@ function initSidetrackMap() {
     console.error('Error rendering route polyline:', e);
   }
 }
+
+/**
+ * Global helper to switch map polyline geometry, color & highlight when selecting a route variation.
+ */
+window.switchRouteVariation = function(idx, variationName, detourGeojson) {
+  if (!sidetrackMapInstance) return;
+
+  const colors = ['#10b981', '#f59e0b', '#38bdf8'];
+  const weights = [5, 6, 6];
+  const selectedColor = colors[idx % colors.length];
+  const selectedWeight = weights[idx % weights.length];
+
+  // Remove existing main polyline layer
+  if (sidetrackMainPolyline) {
+    sidetrackMapInstance.removeLayer(sidetrackMainPolyline);
+  }
+
+  // Draw new distinct detour polyline layer
+  if (detourGeojson) {
+    sidetrackMainPolyline = L.geoJSON(detourGeojson, {
+      style: {
+        color: selectedColor,
+        weight: selectedWeight,
+        opacity: 0.95,
+        lineCap: 'round',
+        lineJoin: 'round'
+      }
+    }).addTo(sidetrackMapInstance);
+
+    // Auto-fit map bounds to focus on the new detour path
+    sidetrackMapInstance.fitBounds(sidetrackMainPolyline.getBounds(), { padding: [45, 45] });
+  }
+
+  // Dispatch global custom event for species radar update
+  window.dispatchEvent(new CustomEvent('variation-selected', {
+    detail: { index: idx, name: variationName }
+  }));
+};
 
 document.addEventListener('DOMContentLoaded', initSidetrackMap);
 document.addEventListener('htmx:afterSettle', initSidetrackMap);

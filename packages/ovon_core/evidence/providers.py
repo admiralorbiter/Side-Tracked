@@ -7,7 +7,7 @@ from packages.ovon_core.domain.evidence import (
     EvidenceLocation,
     NormalizedOccurrenceEvidence,
 )
-from packages.ovon_core.fixtures.routes_fixtures import CARDINAL, ROBIN, WAXWING, WOODPECKER
+from packages.ovon_core.fixtures.routes_fixtures import CARDINAL, ROBIN, WOODPECKER
 
 
 class BaseOccurrenceProvider:

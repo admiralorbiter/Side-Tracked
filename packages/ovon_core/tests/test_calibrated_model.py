@@ -1,7 +1,5 @@
 """Unit tests for Calibrated Species Model, Platt scaling, dataset builder, and evaluator."""
 
-import pytest
-
 from packages.ovon_core.domain.environmental_vector import (
     SIDETRACK_ENV_SCHEMA_V1,
     EnvironmentalFeatureVector,

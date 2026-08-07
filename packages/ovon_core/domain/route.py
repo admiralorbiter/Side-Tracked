@@ -3,7 +3,6 @@ from enum import Enum
 from typing import Any
 
 from packages.ovon_core.domain.habitat import HabitatType
-
 from packages.ovon_core.domain.media import FieldCue
 from packages.ovon_core.domain.spatial import Coordinate
 from packages.ovon_core.domain.taxonomy import TaxonRef
@@ -130,3 +129,25 @@ class RouteOption:
     @property
     def formatted_duration(self) -> str:
         return f"{self.duration_minutes} min"
+
+
+@dataclass(frozen=True, slots=True)
+class RouteVariationOption:
+    """Individual Pareto-optimal route detour variation."""
+
+    variation_id: str
+    name: str
+    description: str
+    added_distance_m: float
+    added_duration_min: float
+    opportunity_boost_percent: float
+    is_baseline: bool
+    geojson_geometry: dict | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class RouteVariationSummary:
+    """Read model containing available route loop variations for a route."""
+
+    route_id: str
+    variations: tuple[RouteVariationOption, ...]

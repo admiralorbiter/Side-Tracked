@@ -1,7 +1,5 @@
 """CLI tool to verify Environmental Feature Backbone models, schemas, and spatial extractors."""
 
-import sys
-
 from packages.ovon_core.domain.environmental_vector import (
     SIDETRACK_ENV_SCHEMA_V1,
     create_default_environmental_vector,

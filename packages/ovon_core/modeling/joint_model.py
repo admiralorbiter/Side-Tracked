@@ -1,7 +1,5 @@
 """Dual-Likelihood Joint Occupancy and Detectability Model Engine."""
 
-import math
-
 from packages.ovon_core.domain.environmental_vector import EnvironmentalFeatureVector
 from packages.ovon_core.modeling.calibrated_model import CalibratedSpeciesModel
 from packages.ovon_core.modeling.effort import EffortProtocolVector
@@ -35,7 +33,6 @@ class JointOccupancyDetectabilityModel:
         # Detectability combines diurnal vocal behavior and survey duration
         p_det = diurnal_mult * (0.6 + 0.4 * effort_scaling)
         return max(0.20, min(0.95, p_det))
-
 
     def predict_joint(
         self, env_vector: EnvironmentalFeatureVector, effort: EffortProtocolVector

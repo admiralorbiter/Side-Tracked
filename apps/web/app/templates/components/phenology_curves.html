@@ -232,7 +232,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const dActivity = diurnalActivity(hour);
     const sActivity = seasonalActivity(month);
-    const adjusted = Math.min(99, Math.max(1, basePsi * dActivity * sActivity));
+    const adjusted = Math.min(99, Math.max(1, baseEncounter * dActivity * sActivity));
 
     readoutSpecies.textContent = speciesName;
     readoutProb.textContent = adjusted.toFixed(1) + '%';

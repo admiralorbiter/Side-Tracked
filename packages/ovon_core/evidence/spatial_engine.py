@@ -1,7 +1,6 @@
 """Metric Spatial, Temporal, and Statistical Evidence Engine."""
 
 import math
-from datetime import datetime, timezone
 
 from packages.ovon_core.domain.spatial import Coordinate
 
