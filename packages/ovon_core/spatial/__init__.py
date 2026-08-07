@@ -11,6 +11,7 @@ from packages.ovon_core.spatial.h3_indexer import (
     is_within_kc_pilot_bounds,
     is_within_us_bounds,
     lat_lng_to_h3_cell,
+    polyline_to_h3_cells,
 )
 from packages.ovon_core.spatial.presets import (
     ENGLISH_LANDING_PARK,
@@ -27,6 +28,7 @@ __all__ = [
     "US_NATIONAL_BOUNDS",
     "KC_PILOT_BOUNDS",
     "lat_lng_to_h3_cell",
+    "polyline_to_h3_cells",
     "is_within_us_bounds",
     "is_within_kc_pilot_bounds",
     "GeocoderProvider",

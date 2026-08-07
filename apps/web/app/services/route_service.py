@@ -7,8 +7,10 @@ from packages.ovon_core.domain import (
     RouteFieldPack,
     RouteOption,
 )
+from packages.ovon_core.ecology import ProvisionalSpeciesSurface
 from packages.ovon_core.fixtures import ALL_FIXTURE_ROUTES
 from packages.ovon_core.media import MediaRepository
+from packages.ovon_core.spatial import polyline_to_h3_cells
 
 
 class GetRouteDetail:
@@ -25,10 +27,15 @@ class GetRouteDetail:
 
 
 class BuildFieldPack:
-    """Application Service for building a route-specific RouteFieldPack."""
+    """Application Service for building a route-specific RouteFieldPack with dynamic H3 ecological scoring."""
 
-    def __init__(self, media_repository: MediaRepository | None = None):
+    def __init__(
+        self,
+        media_repository: MediaRepository | None = None,
+        species_surface: ProvisionalSpeciesSurface | None = None,
+    ):
         self._media_repo = media_repository
+        self.species_surface = species_surface or ProvisionalSpeciesSurface()
 
     @property
     def media_repo(self) -> MediaRepository | None:
@@ -47,14 +54,22 @@ class BuildFieldPack:
 
         repo = self.media_repo
 
+        # Sample route geometry into H3 spatial cells
+        traversed_cells = polyline_to_h3_cells(route.geojson_geometry, resolution=8)
+
         for seg in route.segments:
             for sp in seg.focal_species:
                 if sp not in focal_taxa:
                     focal_taxa.append(sp)
+
                 if repo:
+                    # Query both photos and audio assets for each species
+                    photos = repo.get_assets_for_taxon(sp, media_type=MediaType.PHOTO)
                     audio = repo.get_assets_for_taxon(sp, media_type=MediaType.AUDIO)
-                    if audio and audio[0] not in media_assets:
-                        media_assets.append(audio[0])
+
+                    for asset in photos + audio:
+                        if asset not in media_assets:
+                            media_assets.append(asset)
 
             if seg.field_cue and seg.field_cue not in cues:
                 cues.append(seg.field_cue)

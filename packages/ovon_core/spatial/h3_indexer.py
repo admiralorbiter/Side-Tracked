@@ -33,6 +33,34 @@ def lat_lng_to_h3_cell(coord: Coordinate, resolution: int = 8) -> SpatialCellId:
     return SpatialCellId(resolution=resolution, cell_index=h3_index_str)
 
 
+def polyline_to_h3_cells(geojson_geometry: dict | None, resolution: int = 8) -> set[SpatialCellId]:
+    """Rasterize/sample GeoJSON LineString coordinates into traversed H3 spatial cells."""
+    if not geojson_geometry or "coordinates" not in geojson_geometry:
+        return set()
+
+    coords = geojson_geometry.get("coordinates", [])
+    if not coords:
+        return set()
+
+    cells: set[SpatialCellId] = set()
+
+    # Process each vertex and interpolate intermediate points along edges
+    for i in range(len(coords)):
+        lon, lat = coords[i][0], coords[i][1]
+        c = Coordinate(lat, lon)
+        cells.add(lat_lng_to_h3_cell(c, resolution=resolution))
+
+        if i < len(coords) - 1:
+            next_lon, next_lat = coords[i + 1][0], coords[i + 1][1]
+            # Interpolate midpoint for dense sampling
+            mid_lat = (lat + next_lat) / 2.0
+            mid_lon = (lon + next_lon) / 2.0
+            mid_c = Coordinate(mid_lat, mid_lon)
+            cells.add(lat_lng_to_h3_cell(mid_c, resolution=resolution))
+
+    return cells
+
+
 def is_within_us_bounds(coord: Coordinate) -> bool:
     """Return True if coordinate lies within US national bounding region."""
     return US_NATIONAL_BOUNDS.contains(coord)

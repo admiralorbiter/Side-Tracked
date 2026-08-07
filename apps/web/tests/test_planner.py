@@ -111,7 +111,7 @@ def test_plan_scoped_route_details(client):
     easy_resp = client.get(f"/plans/{plan_id}/routes/easy-1")
     assert easy_resp.status_code == 200
     assert b"The Easy One" in easy_resp.data
-    assert b"Lowest effort" in easy_resp.data
+    assert b"Lowest Effort" in easy_resp.data
 
 
 # Step 8: In-Route Segment View

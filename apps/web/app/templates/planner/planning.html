@@ -13,7 +13,11 @@
      hx-trigger="load delay:3.5s"
      hx-target="#planner-container"
      hx-swap="innerHTML">
-  
+
+  <noscript>
+    <meta http-equiv="refresh" content="3;url={{ url_for('planner.results') }}">
+  </noscript>
+
   <input type="hidden" name="origin" value="{{ origin }}">
   <input type="hidden" name="duration" value="{{ duration }}">
   {% if paved_only %}<input type="hidden" name="paved_only" value="true">{% endif %}

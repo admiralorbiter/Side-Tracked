@@ -1,12 +1,17 @@
-"""Unit and integration tests for deterministic ecological models and pilot catalog (Sprint 6.5)."""
+"""Unit and integration tests for deterministic ecological models and pilot catalog (Sprint 7)."""
 
 import json
 from pathlib import Path
 
+from packages.ovon_core.cli.verify_pilot import verify_pilot_package
 from packages.ovon_core.domain import Coordinate, TaxonRef
 from packages.ovon_core.ecology import HabitatType, ProvisionalSpeciesSurface
 from packages.ovon_core.fixtures.kansas_city import KC_PARK_ENTRANCES
-from packages.ovon_core.spatial import is_within_kc_pilot_bounds, lat_lng_to_h3_cell
+from packages.ovon_core.spatial import (
+    is_within_kc_pilot_bounds,
+    lat_lng_to_h3_cell,
+    polyline_to_h3_cells,
+)
 
 
 def test_park_entrances_catalog():
@@ -30,6 +35,25 @@ def test_provisional_species_surface_determinism():
 
     assert s1 == s2
     assert 0.0 <= s1 <= 1.0
+
+
+def test_polyline_to_h3_cells_traversal():
+    geom = {
+        "type": "LineString",
+        "coordinates": [
+            [-94.5906, 39.0347],
+            [-94.5910, 39.0350],
+            [-94.5915, 39.0355],
+        ],
+    }
+    cells = polyline_to_h3_cells(geom, resolution=8)
+    assert len(cells) > 0
+    for c in cells:
+        assert "h3_res8" in c.to_string()
+
+
+def test_verify_pilot_cli_integration():
+    assert verify_pilot_package() is True
 
 
 def test_kc_pilot_manifest_file():

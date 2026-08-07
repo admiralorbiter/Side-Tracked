@@ -38,6 +38,31 @@
   padding: 0;
 }
 
+/* Accessibility: Focus Visible High-Contrast Outline */
+:focus-visible {
+  outline: 3px solid var(--brand-green) !important;
+  outline-offset: 2px !important;
+}
+
+/* Skip Navigation Link */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--brand-green);
+  color: #ffffff;
+  padding: 8px 16px;
+  z-index: 1000;
+  text-decoration: none;
+  font-weight: 700;
+  border-radius: 0 0 8px 0;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
 body {
   font-family: var(--font-family);
   background-color: var(--bg-dark);
@@ -161,6 +186,7 @@ main.container {
   border: none;
   transition: all var(--transition-fast);
   text-decoration: none;
+  min-height: 44px; /* Mobile touch target minimum */
 }
 
 .btn-primary {
@@ -203,6 +229,7 @@ main.container {
   border-radius: var(--radius-sm);
   color: var(--text-main);
   font-size: 1rem;
+  min-height: 44px;
 }
 
 .input-text:focus {
@@ -319,3 +346,26 @@ footer {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
+/* Mobile Responsive Breakpoints */
+@media (max-width: 640px) {
+  header.navbar {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-start;
+    padding: 1rem;
+  }
+
+  nav a {
+    margin-left: 0;
+    margin-right: 1rem;
+    font-size: 0.85rem;
+  }
+
+  .card {
+    padding: 1.25rem;
+  }
+
+  .cue-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

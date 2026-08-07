@@ -10,7 +10,7 @@
   </div>
   {% endif %}
 
-  <form hx-post="{{ url_for('planner.planning') }}" hx-target="#planner-container" hx-swap="innerHTML">
+  <form action="{{ url_for('planner.planning') }}" method="POST" hx-post="{{ url_for('planner.planning') }}" hx-target="#planner-container" hx-swap="innerHTML">
     <input type="hidden" name="origin" value="{{ origin }}">
 
     <div class="form-group">

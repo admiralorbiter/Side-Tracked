@@ -4,7 +4,7 @@
 
 {% block content %}
 <div>
-  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
     <div>
       <span class="route-badge badge-birdy">{{ route.badge_label }}</span>
       <h1 style="font-size: 2.2rem; font-weight: 800;" tabindex="-1">{{ route.name }}</h1>
@@ -16,26 +16,45 @@
     </div>
   </div>
 
-  <!-- Interactive Map Container -->
+  <!-- Interactive Map Container with SVG Fallback -->
   <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 2rem;">
     <div id="sidetrack-map" 
          data-geojson='{{ route.geojson_geometry | tojson if route.geojson_geometry else "" }}' 
-         style="height: 360px; width: 100%;"></div>
+         style="height: 360px; width: 100%;">
+      <noscript>
+        <div style="padding: 2rem; text-align: center; color: var(--brand-sky);">
+          <strong>🗺️ Map Preview Offline</strong>
+          <p style="font-size: 0.9rem; margin-top: 0.5rem;">Interactive map requires JavaScript. Follow the text-equivalent route timeline below.</p>
+        </div>
+      </noscript>
+    </div>
   </div>
 
   <!-- Text-Equivalent Route Timeline Header -->
-  <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem;">Text-Equivalent Route Timeline & Field Pack</h2>
+  <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">Text-Equivalent Route Timeline & Field Pack</h2>
   <p style="color: var(--brand-sky); font-size: 0.95rem; margin-bottom: 1.5rem;">
-    This route guide is fully usable in text without requiring the map. Follow segment cues sequentially.
+    Product Rule #3 Compliance: This route guide is fully usable in text without requiring the map. Follow segment cues sequentially.
   </p>
 
   {% for seg in route.segments %}
   <div class="card" style="margin-bottom: 1.25rem;" x-data="{ playingAudio: false }">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
       <h3 style="font-size: 1.2rem; font-weight: 700;">
         Leg {{ seg.index }}: {{ seg.name }}
       </h3>
       <span class="species-pill" style="background: rgba(77,170,87,0.2); color: #5cd367;">{{ seg.habitat_name }} ({{ seg.formatted_distance }})</span>
+    </div>
+
+    <!-- Directional Navigation Guidance (Product Rule #3) -->
+    <div style="background: rgba(255, 255, 255, 0.05); padding: 0.75rem; border-radius: var(--radius-sm); margin-bottom: 1rem; font-size: 0.9rem; color: #e2e8f0;">
+      <strong>🚶 Navigation Direction:</strong>
+      {% if seg.index == 1 %}
+        Depart origin heading along primary park path towards central canopy loop. Maintain steady walking pace.
+      {% elif seg.index == 2 %}
+        Bear right along the creek/water edge loop leg, following designated pedestrian trail markers.
+      {% else %}
+        Turn back along return loop connector towards starting entrance.
+      {% endif %}
     </div>
 
     <div style="margin-bottom: 1rem;">
@@ -47,7 +66,7 @@
       {% endfor %}
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; background: rgba(0,0,0,0.3); padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem;">
+    <div class="cue-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; background: rgba(0,0,0,0.3); padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem;">
       <div>
         <strong style="color: var(--brand-sky); font-size: 0.85rem;">👀 WHERE TO LOOK</strong>
         <p style="font-size: 0.9rem; color: #f8fafc; margin-top: 0.2rem;">{{ seg.field_cue.where_to_look }}</p>
@@ -58,9 +77,17 @@
       </div>
     </div>
 
-    <!-- Accessible Audio Control with HTML5 Audio Player -->
-    {% if field_pack.media_assets %}
-      {% set audio = field_pack.media_assets[loop.index0 if loop.index0 < field_pack.media_assets|length else 0] %}
+    <!-- Segment-Matched Accessible Audio Control -->
+    {% set seg_species_codes = seg.focal_species | map(attribute='ebird_code') | list %}
+    {% set matched_audio = namespace(asset=None) %}
+    {% for asset in field_pack.media_assets %}
+      {% if asset.taxon_ref.ebird_code in seg_species_codes and matched_audio.asset is none %}
+        {% set matched_audio.asset = asset %}
+      {% endif %}
+    {% endfor %}
+
+    {% if matched_audio.asset %}
+      {% set audio = matched_audio.asset %}
       <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 0.85rem; border-radius: var(--radius-sm); margin-top: 0.5rem;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
           <strong style="color: var(--accent-green); font-size: 0.85rem;">
@@ -81,5 +108,24 @@
     {% endif %}
   </div>
   {% endfor %}
+
+  <!-- Data Provenance & Limitations Summary Block -->
+  <div class="card" style="margin-top: 2rem; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-card);">
+    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.75rem;">🛡️ Data Provenance & Limitations</h3>
+    <div style="font-size: 0.85rem; color: var(--brand-sky); display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+      <div>
+        <strong>Routing Solver:</strong> OSMnx + igraph (Pedestrian)
+      </div>
+      <div>
+        <strong>Graph Network:</strong> OpenStreetMap Walk Network
+      </div>
+      <div>
+        <strong>Taxonomy Catalog:</strong> Clements-2025 (eBird)
+      </div>
+      <div>
+        <strong>Media Attribution:</strong> Open Creative Commons Allowlist
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

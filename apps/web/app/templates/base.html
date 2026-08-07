@@ -20,6 +20,8 @@
 </head>
 <body x-data="{ currentStep: 'intent' }">
 
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
   <header class="navbar">
     <a href="{{ url_for('planner.index') }}" class="brand">
       <div class="brand-icon">S</div>
@@ -35,13 +37,15 @@
     </nav>
   </header>
 
-  <main class="container">
+  <main id="main-content" class="container">
     {% block content %}{% endblock %}
   </main>
 
   <footer>
     <p>Sidetrack v0.1 — Powered by OVON Research Core & OpenStreetMap</p>
     <p style="margin-top: 0.25rem; opacity: 0.7;">Birds of Greater Kansas City • Local-first deterministic discovery</p>
+  </footer>
+
   <!-- Global Single-Active Audio Controller (Ensures only one audio clip plays at a time) -->
   <script>
     document.addEventListener('play', function(e) {

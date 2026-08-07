@@ -2,25 +2,27 @@
  * Leaflet Spatial Map Adapter for Sidetrack
  * Clean, high-contrast spatial polyline renderer for pedestrian closed walking loops.
  */
-document.addEventListener('DOMContentLoaded', () => {
+function initSidetrackMap() {
   const mapElement = document.getElementById('sidetrack-map');
-  if (!mapElement || typeof L === 'undefined') return;
+  if (!mapElement || typeof L === 'undefined' || mapElement.dataset.initialized === 'true') return;
 
-  // Default fallback center: Loose Park, Kansas City
-  const map = L.map('sidetrack-map', {
-    zoomControl: true,
-    attributionControl: true
-  }).setView([39.0347, -94.5906], 15);
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '© OpenStreetMap contributors'
-  }).addTo(map);
-
-  const geojsonRaw = mapElement.getAttribute('data-geojson');
-  if (!geojsonRaw || !geojsonRaw.trim()) return;
+  mapElement.dataset.initialized = 'true';
 
   try {
+    // Default center: Loose Park, Kansas City
+    const map = L.map('sidetrack-map', {
+      zoomControl: true,
+      attributionControl: true
+    }).setView([39.0347, -94.5906], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    const geojsonRaw = mapElement.getAttribute('data-geojson');
+    if (!geojsonRaw || !geojsonRaw.trim()) return;
+
     const geojsonData = JSON.parse(geojsonRaw);
     const coords = geojsonData ? geojsonData.coordinates : [];
 
@@ -57,4 +59,8 @@ document.addEventListener('DOMContentLoaded', () => {
   } catch (e) {
     console.error('Error rendering route polyline:', e);
   }
-});
+}
+
+document.addEventListener('DOMContentLoaded', initSidetrackMap);
+document.addEventListener('htmx:afterSettle', initSidetrackMap);
+document.addEventListener('htmx:load', initSidetrackMap);

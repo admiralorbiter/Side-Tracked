@@ -1,6 +1,9 @@
-"""OSMnx + igraph C-backed Pedestrian Closed Loop Solver."""
+"""OSMnx + igraph Spatial Graph Routing Engine for OVON Core."""
 
 import math
+
+import networkx as nx
+import osmnx as ox
 
 try:
     import matplotlib
@@ -10,14 +13,8 @@ except Exception:
     pass
 
 import igraph as ig
-import networkx as nx
-import osmnx as ox
 
-from packages.ovon_core.domain import (
-    Coordinate,
-    LoopRequest,
-    RoutePersona,
-)
+from packages.ovon_core.domain import Coordinate, LoopRequest, RoutePersona
 from packages.ovon_core.routing.cache import DEFAULT_MAX_BUDGET_RADIUS_METERS, GraphCacheManager
 from packages.ovon_core.routing.provider import (
     LoopRouteCandidate,
@@ -27,11 +24,12 @@ from packages.ovon_core.routing.provider import (
 )
 from packages.ovon_core.spatial import lat_lng_to_h3_cell
 
-DEFAULT_WALK_SPEED_MPS = 1.25  # 1.25 m/s approx 4.5 km/h standard pedestrian speed
+# Standard pedestrian walking speed: 1.25 m/s (~4.5 km/h)
+DEFAULT_WALK_SPEED_MPS = 1.25
 
 
 class OSMnxIgraphRoutingProvider(RoutingProvider):
-    """OSMnx and igraph powered pedestrian network closed walking loop solver."""
+    """OSMnx NetworkX graph solver using C-backed igraph shortest paths with exact multiedge tracking."""
 
     def __init__(self, cache_manager: GraphCacheManager | None = None):
         self.cache_manager = cache_manager or GraphCacheManager()
@@ -107,7 +105,13 @@ class OSMnxIgraphRoutingProvider(RoutingProvider):
         target_time_seconds = request.duration_minutes * 60.0
         target_dist_meters = target_time_seconds * DEFAULT_WALK_SPEED_MPS
 
-        G_nx = self._get_or_fetch_nx_graph(request.origin)
+        # Dynamic search radius based on request duration budget
+        search_radius = max(
+            DEFAULT_MAX_BUDGET_RADIUS_METERS,
+            request.duration_minutes * 60.0 * DEFAULT_WALK_SPEED_MPS * 0.6,
+        )
+
+        G_nx = self._get_or_fetch_nx_graph(request.origin, search_radius_meters=search_radius)
         G_ig, node_to_idx, idx_to_node, node_coords, ig_edge_to_nx_key = self._convert_nx_to_igraph(
             G_nx
         )
@@ -122,32 +126,32 @@ class OSMnxIgraphRoutingProvider(RoutingProvider):
             (
                 RoutePersona.EASY,
                 "The Easy One",
-                "Shortest closed loop with paved trails and low elevation change.",
-                "Lowest effort",
-                "Paved park paths with standard suburban bird activity.",
+                "Shortest closed loop with low complexity",
+                "Lowest Effort",
+                "Lowest slope and simplest navigation path",
                 0.0,
-                2.0 * math.pi / 3.0,
-                0.35,
+                math.pi / 2.0,
+                0.30,
             ),
             (
                 RoutePersona.BIRDY,
                 "The Birdy One",
-                "Diverges into dense tree canopy and creek bed edge habitat.",
-                "Best bird opportunity",
-                "Adds dirt trail near Brush Creek for double species diversity.",
-                math.pi / 4.0,
-                math.pi,
+                "Balanced loop visiting varied habitat edges",
+                "Best Birding",
+                "Crosses canopy and water edge habitats",
+                math.pi / 3.0,
+                4.0 * math.pi / 3.0,
                 0.45,
             ),
             (
                 RoutePersona.WEIRD,
                 "The Weird One",
-                "Explores lesser-known perimeter tree line and old orchard edge.",
-                "Unusual habitat",
-                "Uneven terrain along forgotten overgrown fence line.",
-                math.pi / 2.0,
-                3.0 * math.pi / 2.0,
-                0.40,
+                "Exploratory loop stretching reach into novel sectors",
+                "Exploratory",
+                "Explores secondary trail networks",
+                2.0 * math.pi / 3.0,
+                5.0 * math.pi / 3.0,
+                0.55,
             ),
         ]
 
@@ -221,8 +225,14 @@ class OSMnxIgraphRoutingProvider(RoutingProvider):
                     edge_data = G_nx[u][v][key]
                     total_dist += float(edge_data.get("length", 100.0))
 
+                    # Determine traversal direction (forward vs reverse)
+                    source_idx = G_ig.es[e_idx].source
+                    is_reversed = node_to_idx[u] != source_idx
+
                     if "geometry" in edge_data:
                         geom_pts = list(edge_data["geometry"].coords)
+                        if is_reversed:
+                            geom_pts.reverse()
                         if coords_list:
                             geom_pts = geom_pts[1:]
                         for pt in geom_pts:
@@ -230,6 +240,8 @@ class OSMnxIgraphRoutingProvider(RoutingProvider):
                     else:
                         u_lat, u_lon = node_coords[node_to_idx[u]]
                         v_lat, v_lon = node_coords[node_to_idx[v]]
+                        if is_reversed:
+                            u_lat, u_lon, v_lat, v_lon = v_lat, v_lon, u_lat, u_lon
                         if not coords_list:
                             coords_list.append([round(u_lon, 6), round(u_lat, 6)])
                         coords_list.append([round(v_lon, 6), round(v_lat, 6)])
