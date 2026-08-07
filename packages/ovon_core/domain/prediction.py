@@ -38,6 +38,20 @@ class CalibratedSpeciesPrediction:
 
 
 @dataclass(frozen=True, slots=True)
+class JointOccupancyDetectabilityPrediction:
+    """Disentangled joint occupancy (psi) and detectability (p) prediction for a focal species."""
+
+    concept_id: str
+    common_name: str
+    scientific_name: str
+    latent_occupancy: float  # psi_s(x) in [0.0, 1.0]
+    observer_detectability: float  # p_s(x, t, u) in [0.0, 1.0]
+    joint_encounter_probability: float  # P = psi * p
+    detectability_breakdown: str
+    provenance: PredictionProvenance
+
+
+@dataclass(frozen=True, slots=True)
 class RoutePredictionSummary:
     """Read model containing empirical calibrated predictions for a planned route option."""
 
@@ -46,6 +60,9 @@ class RoutePredictionSummary:
     predictions: tuple[CalibratedSpeciesPrediction, ...]
     overall_calibration_status: str
     limitations: tuple[str, ...]
+    joint_predictions: tuple[JointOccupancyDetectabilityPrediction, ...] = field(
+        default_factory=tuple
+    )
 
     def to_dict(self) -> dict[str, Any]:
         """Convert prediction summary to JSON dictionary."""
@@ -64,6 +81,17 @@ class RoutePredictionSummary:
                     "calibration_status": p.provenance.calibration_status,
                 }
                 for p in self.predictions
+            ],
+            "joint_predictions": [
+                {
+                    "concept_id": jp.concept_id,
+                    "common_name": jp.common_name,
+                    "latent_occupancy": round(jp.latent_occupancy, 3),
+                    "observer_detectability": round(jp.observer_detectability, 3),
+                    "joint_encounter_probability": round(jp.joint_encounter_probability, 3),
+                    "breakdown": jp.detectability_breakdown,
+                }
+                for jp in self.joint_predictions
             ],
             "limitations": list(self.limitations),
         }

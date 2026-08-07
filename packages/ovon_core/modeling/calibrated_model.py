@@ -39,17 +39,21 @@ class CalibratedSpeciesModel:
         # Environmental weights tuned to habitat preferences
         # Features: (canopy %, impervious %, water dist m, elevation m, slope %)
         if "robin" in concept_id:
-            self.weights = (-0.015, -0.025, -0.006, 0.001, -0.01)
-            self.bias = 1.3
+            # Very common in parks/lawns — tolerates low canopy, avoids heavy impervious
+            self.weights = (0.005, -0.02, -0.001, 0.0005, -0.005)
+            self.bias = 1.8
         elif "woodpecker" in concept_id:
-            self.weights = (0.05, -0.02, -0.001, 0.001, 0.01)
-            self.bias = -2.0
+            # Canopy specialist — needs mature trees, rare in open lawns
+            self.weights = (0.04, -0.03, -0.0005, 0.001, 0.01)
+            self.bias = -1.0
         elif "cardinal" in concept_id:
-            self.weights = (0.02, -0.01, -0.006, 0.001, 0.01)
-            self.bias = 0.8
+            # Common suburban edge species — thrives in mixed shrub/tree habitat
+            self.weights = (0.01, -0.015, -0.001, 0.0005, 0.005)
+            self.bias = 1.6
         else:
-            self.weights = (0.01, -0.01, -0.002, 0.001, 0.0)
-            self.bias = 0.0
+            # Generic songbird — moderately common in mixed habitat
+            self.weights = (0.008, -0.012, -0.0008, 0.0005, 0.0)
+            self.bias = 1.2
 
     def fit(self, samples: Sequence[ModelingSample]) -> None:
         """Fit model weights and calibrator on complete-checklist training samples."""

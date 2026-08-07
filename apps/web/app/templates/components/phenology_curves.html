@@ -1,0 +1,268 @@
+<!-- Interactive Phenology Curves: Diurnal (Time-of-Day) & Seasonal (Time-of-Year) -->
+{% if route_predictions and route_predictions.joint_predictions %}
+<div class="card" style="margin-top: 1.5rem; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(77, 170, 87, 0.35);">
+
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+    <div>
+      <h3 style="font-size: 1.2rem; font-weight: 800; color: #f8fafc; margin-bottom: 0.2rem;">
+        📈 When to Walk — Timing Explorer
+      </h3>
+      <p style="font-size: 0.82rem; color: var(--brand-sky);">
+        Drag the sliders to explore how time-of-day and month affect your encounter chances.
+      </p>
+    </div>
+    <span class="route-badge badge-birdy" style="font-size: 0.78rem;" id="phenology-live-badge">
+      🟢 Live — Based on Current Time
+    </span>
+  </div>
+
+  <!-- Two-Column Responsive Layout for Diurnal and Seasonal Curves -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem;">
+
+    <!-- LEFT PANEL: Diurnal (Time-of-Day) Curve -->
+    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.06);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+        <span style="font-size: 0.9rem; font-weight: 700; color: #f8fafc;">☀️ Time of Day</span>
+        <span id="diurnal-time-label" style="font-size: 0.85rem; font-weight: 700; color: var(--accent-amber); background: rgba(245, 158, 11, 0.15); padding: 0.15rem 0.5rem; border-radius: 4px;"></span>
+      </div>
+      <div style="position: relative; height: 200px;">
+        <canvas id="diurnalChart"></canvas>
+      </div>
+      <div style="margin-top: 0.75rem;">
+        <input type="range" id="diurnal-slider" min="0" max="24" step="0.5" style="width: 100%; accent-color: var(--accent-amber); cursor: pointer;">
+        <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-muted);">
+          <span>12 AM</span><span>6 AM 🌅</span><span>12 PM</span><span>6 PM 🌇</span><span>12 AM</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: Seasonal (Time-of-Year) Curve -->
+    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.06);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+        <span style="font-size: 0.9rem; font-weight: 700; color: #f8fafc;">📅 Month of Year</span>
+        <span id="seasonal-month-label" style="font-size: 0.85rem; font-weight: 700; color: var(--brand-green); background: rgba(77, 170, 87, 0.15); padding: 0.15rem 0.5rem; border-radius: 4px;"></span>
+      </div>
+      <div style="position: relative; height: 200px;">
+        <canvas id="seasonalChart"></canvas>
+      </div>
+      <div style="margin-top: 0.75rem;">
+        <input type="range" id="seasonal-slider" min="1" max="12" step="1" style="width: 100%; accent-color: var(--brand-green); cursor: pointer;">
+        <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-muted);">
+          <span>Jan</span><span>Apr</span><span>Jul</span><span>Oct</span><span>Dec</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dynamic Probability Readout -->
+  <div id="phenology-readout" style="margin-top: 1rem; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: var(--radius-sm); padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+    <div style="font-size: 0.85rem; color: #f8fafc;">
+      <strong>Adjusted Encounter Estimate:</strong>
+      <span id="readout-species" style="color: var(--brand-sky);"></span>
+    </div>
+    <span id="readout-probability" style="font-size: 1.1rem; font-weight: 800; color: #38bdf8;"></span>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // Current real time
+  const now = new Date();
+  const currentHour = now.getHours() + now.getMinutes() / 60.0;
+  const currentMonth = now.getMonth() + 1; // 1-indexed
+
+  // Diurnal vocal activity curve (Gaussian centered around dawn ~6am)
+  function diurnalActivity(hour) {
+    const peak = 6.0; // Dawn chorus peak
+    const sigma = 3.5;
+    const diff = hour - peak;
+    const g = Math.exp(-(diff * diff) / (2 * sigma * sigma));
+    // Second minor peak at dusk (~18:30)
+    const duskPeak = 18.5;
+    const duskSigma = 2.5;
+    const duskDiff = hour - duskPeak;
+    const gDusk = 0.55 * Math.exp(-(duskDiff * duskDiff) / (2 * duskSigma * duskSigma));
+    return Math.max(0.15, Math.min(1.0, g + gDusk));
+  }
+
+  // Seasonal detection frequency curve (peaks in spring migration & breeding)
+  function seasonalActivity(month) {
+    // Spring peak (April-May), secondary fall peak (Sept-Oct)
+    const springPeak = 4.5;
+    const springSigma = 1.8;
+    const springDiff = month - springPeak;
+    const gSpring = Math.exp(-(springDiff * springDiff) / (2 * springSigma * springSigma));
+    const fallPeak = 9.5;
+    const fallSigma = 1.5;
+    const fallDiff = month - fallPeak;
+    const gFall = 0.65 * Math.exp(-(fallDiff * fallDiff) / (2 * fallSigma * fallSigma));
+    // Winter baseline
+    return Math.max(0.20, Math.min(1.0, gSpring + gFall));
+  }
+
+  // Generate curve data points
+  const diurnalHours = [];
+  const diurnalVals = [];
+  for (let h = 0; h <= 24; h += 0.5) {
+    diurnalHours.push(h);
+    diurnalVals.push(diurnalActivity(h));
+  }
+  const seasonalMonths = [];
+  const seasonalVals = [];
+  for (let m = 1; m <= 12; m++) {
+    seasonalMonths.push(m);
+    seasonalVals.push(seasonalActivity(m));
+  }
+
+  // Chart styling
+  const chartFont = { family: "'Inter', 'Segoe UI', sans-serif", size: 11 };
+  const gridColor = 'rgba(255,255,255,0.06)';
+  const tickColor = 'rgba(255,255,255,0.4)';
+
+  // ---- DIURNAL CHART ----
+  const diurnalCtx = document.getElementById('diurnalChart').getContext('2d');
+  const diurnalMarkerIdx = diurnalHours.indexOf(Math.round(currentHour * 2) / 2);
+
+  const diurnalPointBg = diurnalHours.map((h, i) => i === diurnalMarkerIdx ? '#f59e0b' : 'transparent');
+  const diurnalPointRadius = diurnalHours.map((h, i) => i === diurnalMarkerIdx ? 7 : 0);
+
+  const diurnalChart = new Chart(diurnalCtx, {
+    type: 'line',
+    data: {
+      labels: diurnalHours.map(h => {
+        const hr = Math.floor(h); const ampm = hr < 12 ? 'a' : 'p';
+        return hr % 3 === 0 && h === Math.floor(h) ? (hr === 0 ? '12a' : (hr > 12 ? (hr-12)+ampm : hr+ampm)) : '';
+      }),
+      datasets: [{
+        label: 'Vocal Activity',
+        data: diurnalVals,
+        borderColor: '#f59e0b',
+        backgroundColor: 'rgba(245, 158, 11, 0.12)',
+        borderWidth: 2.5,
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: diurnalPointBg,
+        pointRadius: diurnalPointRadius,
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => `Activity: ${(ctx.parsed.y * 100).toFixed(0)}%` } }
+      },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: tickColor, font: chartFont, maxRotation: 0 } },
+        y: { min: 0, max: 1, grid: { color: gridColor }, ticks: { color: tickColor, font: chartFont, callback: v => (v*100)+'%' } }
+      }
+    }
+  });
+
+  // ---- SEASONAL CHART ----
+  const seasonalCtx = document.getElementById('seasonalChart').getContext('2d');
+  const seasonalPointBg = seasonalMonths.map(m => m === currentMonth ? '#4daa57' : 'transparent');
+  const seasonalPointRadius = seasonalMonths.map(m => m === currentMonth ? 7 : 0);
+
+  const seasonalChart = new Chart(seasonalCtx, {
+    type: 'line',
+    data: {
+      labels: MONTHS,
+      datasets: [{
+        label: 'Seasonal Detection Frequency',
+        data: seasonalVals,
+        borderColor: '#4daa57',
+        backgroundColor: 'rgba(77, 170, 87, 0.12)',
+        borderWidth: 2.5,
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: seasonalPointBg,
+        pointRadius: seasonalPointRadius,
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => `Frequency: ${(ctx.parsed.y * 100).toFixed(0)}%` } }
+      },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: tickColor, font: chartFont } },
+        y: { min: 0, max: 1, grid: { color: gridColor }, ticks: { color: tickColor, font: chartFont, callback: v => (v*100)+'%' } }
+      }
+    }
+  });
+
+  // ---- SLIDERS ----
+  const diurnalSlider = document.getElementById('diurnal-slider');
+  const seasonalSlider = document.getElementById('seasonal-slider');
+  const diurnalLabel = document.getElementById('diurnal-time-label');
+  const seasonalLabel = document.getElementById('seasonal-month-label');
+  const readoutSpecies = document.getElementById('readout-species');
+  const readoutProb = document.getElementById('readout-probability');
+  const liveBadge = document.getElementById('phenology-live-badge');
+
+  // Base encounter probability from first joint prediction
+  const baseEncounter = {{ (route_predictions.joint_predictions[0].joint_encounter_probability * 100)|round(1) }};
+  const basePsi = {{ (route_predictions.joint_predictions[0].latent_occupancy * 100)|round(1) }};
+  const speciesName = '{{ route_predictions.joint_predictions[0].common_name }}';
+
+  diurnalSlider.value = currentHour;
+  seasonalSlider.value = currentMonth;
+
+  function formatHour(h) {
+    const hr = Math.floor(h);
+    const min = Math.round((h - hr) * 60);
+    const ampm = hr < 12 ? 'AM' : 'PM';
+    const display = hr === 0 ? 12 : (hr > 12 ? hr - 12 : hr);
+    return display + ':' + String(min).padStart(2, '0') + ' ' + ampm;
+  }
+
+  function updateReadout() {
+    const hour = parseFloat(diurnalSlider.value);
+    const month = parseInt(seasonalSlider.value);
+
+    diurnalLabel.textContent = formatHour(hour);
+    seasonalLabel.textContent = MONTHS[month - 1];
+
+    const dActivity = diurnalActivity(hour);
+    const sActivity = seasonalActivity(month);
+    const adjusted = Math.min(99, Math.max(1, basePsi * dActivity * sActivity));
+
+    readoutSpecies.textContent = speciesName;
+    readoutProb.textContent = adjusted.toFixed(1) + '%';
+
+    // Update diurnal chart marker
+    const sliderIdx = diurnalHours.indexOf(Math.round(hour * 2) / 2);
+    const newDPointBg = diurnalHours.map((h, i) => i === sliderIdx ? '#f59e0b' : 'transparent');
+    const newDPointR = diurnalHours.map((h, i) => i === sliderIdx ? 7 : 0);
+    diurnalChart.data.datasets[0].pointBackgroundColor = newDPointBg;
+    diurnalChart.data.datasets[0].pointRadius = newDPointR;
+    diurnalChart.update('none');
+
+    // Update seasonal chart marker
+    const newSPointBg = seasonalMonths.map(m => m === month ? '#4daa57' : 'transparent');
+    const newSPointR = seasonalMonths.map(m => m === month ? 7 : 0);
+    seasonalChart.data.datasets[0].pointBackgroundColor = newSPointBg;
+    seasonalChart.data.datasets[0].pointRadius = newSPointR;
+    seasonalChart.update('none');
+
+    // Update live badge
+    const isLive = Math.abs(hour - currentHour) < 0.5 && month === currentMonth;
+    liveBadge.textContent = isLive ? '🟢 Live — Based on Current Time' : '🔵 Adjusted — Exploring What-If';
+    liveBadge.style.borderColor = isLive ? 'rgba(77, 170, 87, 0.5)' : 'rgba(56, 189, 248, 0.5)';
+  }
+
+  diurnalSlider.addEventListener('input', updateReadout);
+  seasonalSlider.addEventListener('input', updateReadout);
+
+  // Initial render
+  updateReadout();
+});
+</script>
+{% endif %}

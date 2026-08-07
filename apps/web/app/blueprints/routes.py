@@ -9,12 +9,12 @@ routes_bp = Blueprint("routes", __name__)
 def detail(route_id):
     """Step 6 & 7: Route Detail & Text-Equivalent Field Pack & Route Evidence."""
     from packages.ovon_core.evidence.service import RouteEvidenceService
-    from packages.ovon_core.modeling.service import CalibratedModelService
+    from packages.ovon_core.modeling.joint_service import JointModelService
 
     route_service = GetRouteDetail()
     field_pack_service = BuildFieldPack()
     evidence_service = RouteEvidenceService()
-    model_service = CalibratedModelService()
+    model_service = JointModelService()
 
     route_domain = route_service.execute(None, route_id)
     if not route_domain:

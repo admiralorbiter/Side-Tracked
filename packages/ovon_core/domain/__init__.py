@@ -29,6 +29,7 @@ from packages.ovon_core.domain.taxonomy import FieldCueProfile, TaxonRef, TaxonS
 
 from packages.ovon_core.domain.prediction import (
     CalibratedSpeciesPrediction,
+    JointOccupancyDetectabilityPrediction,
     PredictionProvenance,
     RoutePredictionSummary,
 )
@@ -69,5 +70,6 @@ __all__ = [
     "RouteEvidenceSummary",
     "PredictionProvenance",
     "CalibratedSpeciesPrediction",
+    "JointOccupancyDetectabilityPrediction",
     "RoutePredictionSummary",
 ]

@@ -246,7 +246,7 @@ from apps.web.app.services import (
 def route_detail(plan_id: str, route_id: str):
     """Step 6: Plan-scoped route detail view with Habitat Radar, Route Evidence, and Calibrated Predictions."""
     from packages.ovon_core.evidence.service import RouteEvidenceService
-    from packages.ovon_core.modeling.service import CalibratedModelService
+    from packages.ovon_core.modeling.joint_service import JointModelService
 
     route = _resolve_route_with_fallback(plan_id, route_id)
     if not route:
@@ -255,7 +255,7 @@ def route_detail(plan_id: str, route_id: str):
     habitat_radar = BuildHabitatRadar().execute(route)
     evidence_service = RouteEvidenceService()
     route_evidence = evidence_service.build_evidence_summary(route)
-    model_service = CalibratedModelService()
+    model_service = JointModelService()
     route_predictions = model_service.predict_for_route(route)
 
     return render_template(
