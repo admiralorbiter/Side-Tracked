@@ -24,6 +24,12 @@
         Habitat: <strong>{{ seg.habitat_name }}</strong> • Distance: <strong>{{ seg.formatted_distance }}</strong>
       </p>
 
+      {% if seg.navigation_instruction %}
+      <div style="background: rgba(255, 255, 255, 0.08); padding: 0.75rem 1rem; border-radius: var(--radius-sm); margin-bottom: 1.25rem; color: #f1f5f9; font-size: 0.95rem;">
+        <strong>🚶 Navigation Direction:</strong> {{ seg.navigation_instruction }}
+      </div>
+      {% endif %}
+
       <div style="margin-bottom: 1rem;">
         <strong style="color: var(--brand-sky); font-size: 0.85rem; display: block; margin-bottom: 0.4rem;">👀 WHERE TO LOOK:</strong>
         <p style="font-size: 1.05rem; color: #f8fafc;">{{ seg.field_cue.where_to_look }}</p>
@@ -35,7 +41,7 @@
       </div>
     </div>
 
-    <div style="display: flex; justify-content: space-between; gap: 1rem;">
+    <div style="display: flex; justify-content: space-between; gap: 1rem; position: sticky; bottom: 1rem; background: var(--color-bg-card); padding: 0.75rem; border-radius: var(--radius-sm); box-shadow: var(--shadow-md); z-index: 10;">
       <button type="button" @click="currentSegment--" class="btn btn-secondary" :disabled="currentSegment === 0">
         ← Previous Leg
       </button>

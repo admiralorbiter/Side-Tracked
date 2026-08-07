@@ -83,48 +83,102 @@ class PlanLoopPreview:
 
             for cand in result.candidates:
                 if cand.persona == RoutePersona.EASY:
-                    base = ROUTE_EASY
                     focal = (ROBIN, CARDINAL)
                     cue = CUE_ROBIN
                 elif cand.persona == RoutePersona.BIRDY:
-                    base = ROUTE_BIRDY
                     focal = (CARDINAL, WOODPECKER)
                     cue = CUE_CARDINAL
-                elif cand.persona == RoutePersona.SCENIC:
-                    base = ROUTE_WEIRD
-                    focal = (WAXWING, WOODPECKER)
-                    cue = CUE_WAXWING
                 else:
-                    base = ROUTE_WEIRD
                     focal = (WAXWING, WOODPECKER)
                     cue = CUE_WAXWING
 
-                obs_pt1 = cand.waypoints[1] if cand.waypoints and len(cand.waypoints) > 1 else None
-                obs_pt2 = cand.waypoints[2] if cand.waypoints and len(cand.waypoints) > 2 else None
+                segments_list = []
+                if cand.segment_metrics and len(cand.segment_metrics) >= 2:
+                    m1 = cand.segment_metrics[0]
+                    m2 = cand.segment_metrics[1]
 
-                seg1 = RouteSegment(
-                    index=1,
-                    name=f"{cand.name} Outbound Leg",
-                    habitat_name="Woodland Edge & Parkland",
-                    distance_meters=round(cand.distance_meters * 0.4, 1),
-                    duration_minutes=round(float(cand.duration_minutes) * 0.4, 1),
-                    focal_species=(focal[0],),
-                    field_cue=cue,
-                    geojson_geometry=cand.geojson_geometry,
-                    observation_point=obs_pt1,
-                )
+                    # Distribute total candidate distance cleanly across segments so sum == total_dist exactly
+                    d1 = float(m1.get("distance_meters", cand.distance_meters * 0.4))
+                    d2 = round(cand.distance_meters - d1, 1)
 
-                seg2 = RouteSegment(
-                    index=2,
-                    name=f"{cand.name} Return Loop Leg",
-                    habitat_name="Canopy & Meadow Boundary",
-                    distance_meters=round(cand.distance_meters * 0.6, 1),
-                    duration_minutes=round(float(cand.duration_minutes) * 0.6, 1),
-                    focal_species=focal,
-                    field_cue=cue,
-                    geojson_geometry=cand.geojson_geometry,
-                    observation_point=obs_pt2,
-                )
+                    t1 = float(m1.get("duration_minutes", cand.duration_minutes * 0.4))
+                    t2 = round(float(cand.duration_minutes) - t1, 1)
+
+                    obs_pt1 = (
+                        cand.waypoints[1] if cand.waypoints and len(cand.waypoints) > 1 else None
+                    )
+                    obs_pt2 = (
+                        cand.waypoints[2] if cand.waypoints and len(cand.waypoints) > 2 else None
+                    )
+
+                    seg1 = RouteSegment(
+                        index=1,
+                        name=m1.get("name", f"{cand.name} Outbound Leg"),
+                        habitat_name=m1.get("habitat_name", "Woodland Edge & Parkland"),
+                        distance_meters=d1,
+                        duration_minutes=t1,
+                        focal_species=(focal[0],),
+                        field_cue=cue,
+                        geojson_geometry=m1.get("geojson_geometry"),
+                        observation_point=obs_pt1,
+                        navigation_instruction=m1.get(
+                            "navigation_instruction",
+                            f"Depart {request.origin_name} heading along primary park path.",
+                        ),
+                    )
+
+                    seg2 = RouteSegment(
+                        index=2,
+                        name=m2.get("name", f"{cand.name} Return Loop Leg"),
+                        habitat_name=m2.get("habitat_name", "Canopy & Meadow Boundary"),
+                        distance_meters=d2,
+                        duration_minutes=t2,
+                        focal_species=focal,
+                        field_cue=cue,
+                        geojson_geometry=m2.get("geojson_geometry"),
+                        observation_point=obs_pt2,
+                        navigation_instruction=m2.get(
+                            "navigation_instruction",
+                            f"Bear right onto return loop trail back to {request.origin_name}.",
+                        ),
+                    )
+                    segments_list = [seg1, seg2]
+                else:
+                    d1 = round(cand.distance_meters * 0.4, 1)
+                    d2 = round(cand.distance_meters - d1, 1)
+                    t1 = round(float(cand.duration_minutes) * 0.4, 1)
+                    t2 = round(float(cand.duration_minutes) - t1, 1)
+
+                    seg1 = RouteSegment(
+                        index=1,
+                        name=f"{cand.name} Outbound Leg",
+                        habitat_name="Woodland Edge & Parkland",
+                        distance_meters=d1,
+                        duration_minutes=t1,
+                        focal_species=(focal[0],),
+                        field_cue=cue,
+                        geojson_geometry=cand.geojson_geometry,
+                        observation_point=cand.waypoints[1]
+                        if cand.waypoints and len(cand.waypoints) > 1
+                        else None,
+                        navigation_instruction=f"Depart {request.origin_name} heading along primary park path.",
+                    )
+
+                    seg2 = RouteSegment(
+                        index=2,
+                        name=f"{cand.name} Return Loop Leg",
+                        habitat_name="Canopy & Meadow Boundary",
+                        distance_meters=d2,
+                        duration_minutes=t2,
+                        focal_species=focal,
+                        field_cue=cue,
+                        geojson_geometry=cand.geojson_geometry,
+                        observation_point=cand.waypoints[2]
+                        if cand.waypoints and len(cand.waypoints) > 2
+                        else None,
+                        navigation_instruction=f"Bear right onto return trail back to {request.origin_name}.",
+                    )
+                    segments_list = [seg1, seg2]
 
                 opt = RouteOption(
                     id=f"{cand.persona.name.lower()}-1"
@@ -137,7 +191,7 @@ class PlanLoopPreview:
                     distance_meters=cand.distance_meters,
                     badge_label=cand.badge_label,
                     tradeoff_description=cand.tradeoff_description,
-                    segments=(seg1, seg2),
+                    segments=tuple(segments_list),
                     geojson_geometry=cand.geojson_geometry,
                 )
 
@@ -146,7 +200,6 @@ class PlanLoopPreview:
 
                 options.append(opt)
 
-            # Generate comparative tradeoff descriptions relative to Easy baseline
             final_options = []
             for opt in options:
                 tradeoff_text = self.explanation_generator.generate_tradeoff_description(

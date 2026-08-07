@@ -37,6 +37,7 @@ class RouteSegment:
     field_cue: FieldCue
     geojson_geometry: dict | None = None
     observation_point: Coordinate | None = None
+    navigation_instruction: str = ""
 
     def __post_init__(self) -> None:
         if self.distance_meters <= 0:
@@ -81,15 +82,15 @@ class RouteOption:
         if not self.segments:
             raise ValueError("RouteOption must contain at least one segment.")
 
-        # Reconcile segment distance and duration totals against route totals
+        # Reconcile segment distance and duration totals against route totals (tolerance +-1%)
         total_seg_dist = sum(s.distance_meters for s in self.segments)
         total_seg_dur = sum(s.duration_minutes for s in self.segments)
 
-        if not (0.8 * self.distance_meters <= total_seg_dist <= 1.2 * self.distance_meters):
+        if not (0.99 * self.distance_meters <= total_seg_dist <= 1.01 * self.distance_meters):
             raise ValueError(
                 f"Summed segment distance ({total_seg_dist}m) does not reconcile with route distance ({self.distance_meters}m)."
             )
-        if not (0.8 * self.duration_minutes <= total_seg_dur <= 1.2 * self.duration_minutes):
+        if not (0.99 * self.duration_minutes <= total_seg_dur <= 1.01 * self.duration_minutes):
             raise ValueError(
                 f"Summed segment duration ({total_seg_dur}min) does not reconcile with route duration ({self.duration_minutes}min)."
             )

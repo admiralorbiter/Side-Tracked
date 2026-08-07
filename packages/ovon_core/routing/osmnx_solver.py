@@ -103,6 +103,76 @@ def calculate_spatial_corridor_overlap(
         return 0.0, 0.0
 
 
+def reconstruct_leg_geometry_and_metrics(
+    epath: list[int],
+    ig_edge_to_nx_key: list[tuple[int, int, int]],
+    G_nx: nx.MultiDiGraph,
+    G_ig: ig.Graph,
+    node_to_idx: dict[int, int],
+    node_coords: dict[int, tuple[float, float]],
+    leg_index: int,
+    origin_name: str,
+) -> tuple[dict, float, float, str, str]:
+    """Reconstruct exact GeoJSON sub-LineString, distance, duration, dominant trail name, and turn instruction for a leg."""
+    coords_list: list[list[float]] = []
+    leg_dist = 0.0
+    names: list[str] = []
+
+    for e_idx in epath:
+        u, v, key = ig_edge_to_nx_key[e_idx]
+        edge_data = G_nx[u][v][key]
+        leg_dist += float(edge_data.get("length", 100.0))
+
+        raw_name = edge_data.get("name")
+        if isinstance(raw_name, list) and raw_name:
+            raw_name = raw_name[0]
+        if raw_name and isinstance(raw_name, str):
+            names.append(raw_name)
+
+        source_idx = G_ig.es[e_idx].source
+        is_reversed = node_to_idx[u] != source_idx
+
+        if "geometry" in edge_data:
+            geom_pts = list(edge_data["geometry"].coords)
+            if is_reversed:
+                geom_pts.reverse()
+            if coords_list:
+                geom_pts = geom_pts[1:]
+            for pt in geom_pts:
+                coords_list.append([round(pt[0], 6), round(pt[1], 6)])
+        else:
+            u_lat, u_lon = node_coords[node_to_idx[u]]
+            v_lat, v_lon = node_coords[node_to_idx[v]]
+            if is_reversed:
+                u_lat, u_lon, v_lat, v_lon = v_lat, v_lon, u_lat, u_lon
+            if not coords_list:
+                coords_list.append([round(u_lon, 6), round(u_lat, 6)])
+            coords_list.append([round(v_lon, 6), round(v_lat, 6)])
+
+    if not coords_list:
+        coords_list = [[0.0, 0.0], [0.0, 0.0]]
+
+    leg_dur_min = round((leg_dist / DEFAULT_WALK_SPEED_MPS) / 60.0, 1)
+    dominant_name = names[0] if names else f"Park Trail Sector {leg_index}"
+
+    dist_str = f"{leg_dist / 1000.0:.1f}km" if leg_dist >= 1000 else f"{int(leg_dist)}m"
+    if leg_index == 1:
+        instruction = f"Depart {origin_name} heading along {dominant_name} ({dist_str})."
+    elif leg_index == 2:
+        instruction = (
+            f"Bear right onto {dominant_name}, following central canopy path ({dist_str})."
+        )
+    else:
+        instruction = f"Turn onto {dominant_name}, looping back to {origin_name} ({dist_str})."
+
+    sub_geom = {
+        "type": "LineString",
+        "coordinates": coords_list,
+    }
+
+    return sub_geom, round(leg_dist, 1), leg_dur_min, dominant_name, instruction
+
+
 class OSMnxIgraphRoutingProvider(RoutingProvider):
     """OSMnx NetworkX graph solver using C-backed igraph shortest paths with candidate pool generation."""
 
@@ -198,7 +268,6 @@ class OSMnxIgraphRoutingProvider(RoutingProvider):
         )
         origin_idx = node_to_idx[origin_node]
 
-        # Generate K=16 candidate loops across 8 compass directions and varying radius factors
         candidate_pool: list[LoopRouteCandidate] = []
         cardinal_bearings = [
             (0.0, math.pi / 2.0),
@@ -235,30 +304,25 @@ class OSMnxIgraphRoutingProvider(RoutingProvider):
                 w2_node = ox.distance.nearest_nodes(G_nx, w2_lon, w2_lat)
                 w2_idx = node_to_idx[w2_node]
 
-                # Leg 1: Origin -> W1
                 epath1 = G_ig.get_shortest_paths(
                     origin_idx, to=w1_idx, weights="weight", output="epath"
                 )[0]
                 if not epath1:
                     continue
 
-                # Temporarily penalize leg 1 weights for leg 2 calculation (anti-backtracking)
                 weights_copy = list(G_ig.es["weight"])
                 for e_idx in epath1:
                     weights_copy[e_idx] *= 3.0
 
-                # Leg 2: W1 -> W2
                 epath2 = G_ig.get_shortest_paths(
                     w1_idx, to=w2_idx, weights=weights_copy, output="epath"
                 )[0]
                 if not epath2:
                     continue
 
-                # Penalize leg 1 and leg 2 weights for leg 3 calculation
                 for e_idx in epath2:
                     weights_copy[e_idx] *= 3.0
 
-                # Leg 3: W2 -> Origin
                 epath3 = G_ig.get_shortest_paths(
                     w2_idx, to=origin_idx, weights=weights_copy, output="epath"
                 )[0]
@@ -268,55 +332,93 @@ class OSMnxIgraphRoutingProvider(RoutingProvider):
                 combined_epath = epath1 + epath2 + epath3
                 edge_seq = [ig_edge_to_nx_key[e_idx] for e_idx in combined_epath]
 
-                # Self-backtracking check B(R) <= 0.20
                 b_r = calculate_repeated_edge_ratio(edge_seq, G_nx)
                 if b_r > 0.20:
                     continue
 
-                coords_list: list[list[float]] = []
-                total_dist = 0.0
+                # Reconstruct sub-geometries and metrics per leg
+                leg1_geom, leg1_dist, leg1_dur, leg1_name, leg1_inst = (
+                    reconstruct_leg_geometry_and_metrics(
+                        epath1,
+                        ig_edge_to_nx_key,
+                        G_nx,
+                        G_ig,
+                        node_to_idx,
+                        node_coords,
+                        1,
+                        request.origin_name,
+                    )
+                )
+                leg2_geom, leg2_dist, leg2_dur, leg2_name, leg2_inst = (
+                    reconstruct_leg_geometry_and_metrics(
+                        epath2,
+                        ig_edge_to_nx_key,
+                        G_nx,
+                        G_ig,
+                        node_to_idx,
+                        node_coords,
+                        2,
+                        request.origin_name,
+                    )
+                )
+                leg3_geom, leg3_dist, leg3_dur, leg3_name, leg3_inst = (
+                    reconstruct_leg_geometry_and_metrics(
+                        epath3,
+                        ig_edge_to_nx_key,
+                        G_nx,
+                        G_ig,
+                        node_to_idx,
+                        node_coords,
+                        3,
+                        request.origin_name,
+                    )
+                )
 
-                for e_idx in combined_epath:
-                    u, v, key = ig_edge_to_nx_key[e_idx]
-                    edge_data = G_nx[u][v][key]
-                    total_dist += float(edge_data.get("length", 100.0))
-
-                    source_idx = G_ig.es[e_idx].source
-                    is_reversed = node_to_idx[u] != source_idx
-
-                    if "geometry" in edge_data:
-                        geom_pts = list(edge_data["geometry"].coords)
-                        if is_reversed:
-                            geom_pts.reverse()
-                        if coords_list:
-                            geom_pts = geom_pts[1:]
-                        for pt in geom_pts:
-                            coords_list.append([round(pt[0], 6), round(pt[1], 6)])
-                    else:
-                        u_lat, u_lon = node_coords[node_to_idx[u]]
-                        v_lat, v_lon = node_coords[node_to_idx[v]]
-                        if is_reversed:
-                            u_lat, u_lon, v_lat, v_lon = v_lat, v_lon, u_lat, u_lon
-                        if not coords_list:
-                            coords_list.append([round(u_lon, 6), round(u_lat, 6)])
-                        coords_list.append([round(v_lon, 6), round(v_lat, 6)])
-
-                if total_dist <= 0 or not coords_list:
+                total_dist = leg1_dist + leg2_dist + leg3_dist
+                if total_dist <= 0:
                     continue
-
-                if coords_list[0] != coords_list[-1]:
-                    coords_list.append(coords_list[0])
 
                 calc_dur_min = int(round((total_dist / DEFAULT_WALK_SPEED_MPS) / 60.0))
                 if not (min_budget_min <= calc_dur_min <= max_budget_min):
                     continue
 
+                all_coords = (
+                    leg1_geom["coordinates"]
+                    + leg2_geom["coordinates"][1:]
+                    + leg3_geom["coordinates"][1:]
+                )
+                if all_coords[0] != all_coords[-1]:
+                    all_coords.append(all_coords[0])
+
                 geojson_geom = {
                     "type": "LineString",
-                    "coordinates": coords_list,
+                    "coordinates": all_coords,
                 }
 
-                # Evaluate ecological score across traversed H3 cells
+                segment_metrics = (
+                    {
+                        "index": 1,
+                        "name": f"Outbound Leg ({leg1_name})",
+                        "habitat_name": "Woodland Edge & Parkland",
+                        "distance_meters": leg1_dist,
+                        "duration_minutes": leg1_dur,
+                        "geojson_geometry": leg1_geom,
+                        "navigation_instruction": leg1_inst,
+                    },
+                    {
+                        "index": 2,
+                        "name": f"Return Loop Leg ({leg2_name} & {leg3_name})",
+                        "habitat_name": "Canopy & Meadow Boundary",
+                        "distance_meters": round(leg2_dist + leg3_dist, 1),
+                        "duration_minutes": round(leg2_dur + leg3_dur, 1),
+                        "geojson_geometry": {
+                            "type": "LineString",
+                            "coordinates": leg2_geom["coordinates"] + leg3_geom["coordinates"][1:],
+                        },
+                        "navigation_instruction": leg2_inst,
+                    },
+                )
+
                 traversed_cells = polyline_to_h3_cells(geojson_geom, resolution=8)
                 eco_score = sum(
                     self.species_surface.get_relative_score(
@@ -342,6 +444,7 @@ class OSMnxIgraphRoutingProvider(RoutingProvider):
                     tradeoff_description="",
                     geojson_geometry=geojson_geom,
                     waypoints=waypoints,
+                    segment_metrics=segment_metrics,
                     edge_sequence=tuple(edge_seq),
                     repeated_edge_ratio=round(b_r, 3),
                     ecological_score=round(eco_score, 3),
@@ -350,9 +453,7 @@ class OSMnxIgraphRoutingProvider(RoutingProvider):
 
                 candidate_pool.append(candidate)
 
-        # Persona Utility Selection Phase
         if not candidate_pool:
-            # Fallback candidate if pool is empty due to dense network constraints
             dummy_geom = {
                 "type": "LineString",
                 "coordinates": [
@@ -374,7 +475,6 @@ class OSMnxIgraphRoutingProvider(RoutingProvider):
             )
             candidate_pool.append(cand)
 
-        # 1. Select Easy Candidate: Minimize duration budget error & distance
         easy_cand = min(
             candidate_pool,
             key=lambda c: (
@@ -392,6 +492,7 @@ class OSMnxIgraphRoutingProvider(RoutingProvider):
             tradeoff_description="Lowest physical effort and simplest navigation path",
             geojson_geometry=easy_cand.geojson_geometry,
             waypoints=easy_cand.waypoints,
+            segment_metrics=easy_cand.segment_metrics,
             edge_sequence=easy_cand.edge_sequence,
             repeated_edge_ratio=easy_cand.repeated_edge_ratio,
             ecological_score=easy_cand.ecological_score,
@@ -400,7 +501,6 @@ class OSMnxIgraphRoutingProvider(RoutingProvider):
 
         selected_candidates = [easy_opt]
 
-        # 2. Select Birdy Candidate: Maximize ecological score subject to spatial buffer overlap constraint
         birdy_candidates = []
         for c in candidate_pool:
             s_iou, s_contain = calculate_spatial_corridor_overlap(
@@ -441,6 +541,7 @@ class OSMnxIgraphRoutingProvider(RoutingProvider):
                 tradeoff_description="Crosses canopy and water edge habitats for higher bird discovery opportunity",
                 geojson_geometry=best_birdy.geojson_geometry,
                 waypoints=best_birdy.waypoints,
+                segment_metrics=best_birdy.segment_metrics,
                 edge_sequence=best_birdy.edge_sequence,
                 repeated_edge_ratio=best_birdy.repeated_edge_ratio,
                 ecological_score=best_birdy.ecological_score,
@@ -448,7 +549,6 @@ class OSMnxIgraphRoutingProvider(RoutingProvider):
             )
             selected_candidates.append(birdy_opt)
 
-        # 3. Select Weird / Scenic Candidate: Maximize novelty score subject to spatial buffer overlap against Easy & Birdy
         weird_candidates = []
         for c in candidate_pool:
             is_distinct = True
@@ -493,6 +593,7 @@ class OSMnxIgraphRoutingProvider(RoutingProvider):
                 tradeoff_description="Explores secondary trail sectors favoring unfamiliar habitat boundaries",
                 geojson_geometry=best_weird.geojson_geometry,
                 waypoints=best_weird.waypoints,
+                segment_metrics=best_weird.segment_metrics,
                 edge_sequence=best_weird.edge_sequence,
                 repeated_edge_ratio=best_weird.repeated_edge_ratio,
                 ecological_score=best_weird.ecological_score,

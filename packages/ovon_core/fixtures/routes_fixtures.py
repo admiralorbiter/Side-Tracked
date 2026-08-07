@@ -46,6 +46,7 @@ SEGMENT_EASY_1 = RouteSegment(
     focal_species=(ROBIN, CARDINAL),
     field_cue=CUE_ROBIN,
     observation_point=Coordinate(39.0355, -94.5920),
+    navigation_instruction="Depart North Entrance heading south along Loose Park Rose Garden Path for 600m.",
 )
 
 SEGMENT_EASY_2 = RouteSegment(
@@ -57,6 +58,7 @@ SEGMENT_EASY_2 = RouteSegment(
     focal_species=(CARDINAL, BLUE_JAY),
     field_cue=CUE_CARDINAL,
     observation_point=Coordinate(39.0325, -94.5880),
+    navigation_instruction="Turn left onto Loose Park Perimeter Path, looping back north to North Entrance for 1.2km.",
 )
 
 SEGMENT_BIRDY_1 = RouteSegment(
@@ -68,6 +70,7 @@ SEGMENT_BIRDY_1 = RouteSegment(
     focal_species=(CARDINAL, BLUE_JAY),
     field_cue=CUE_CARDINAL,
     observation_point=Coordinate(39.0360, -94.5875),
+    navigation_instruction="Depart North Entrance east along Loose Park Pond Trail for 800m.",
 )
 
 SEGMENT_BIRDY_2 = RouteSegment(
@@ -79,6 +82,7 @@ SEGMENT_BIRDY_2 = RouteSegment(
     focal_species=(WOODPECKER, TITMOUSE, WREN),
     field_cue=CUE_WOODPECKER,
     observation_point=Coordinate(39.0380, -94.5850),
+    navigation_instruction="Bear right onto Brush Creek Canopy Trail, following creek bank back to North Entrance for 1.4km.",
 )
 
 SEGMENT_WEIRD_1 = RouteSegment(
@@ -90,6 +94,7 @@ SEGMENT_WEIRD_1 = RouteSegment(
     focal_species=(WAXWING, TITMOUSE),
     field_cue=CUE_WAXWING,
     observation_point=Coordinate(39.0310, -94.5910),
+    navigation_instruction="Depart North Entrance southwest toward Old Orchard Trail for 900m.",
 )
 
 SEGMENT_WEIRD_2 = RouteSegment(
@@ -101,6 +106,7 @@ SEGMENT_WEIRD_2 = RouteSegment(
     focal_species=(WOODPECKER, WREN),
     field_cue=CUE_WOODPECKER,
     observation_point=Coordinate(39.0295, -94.5945),
+    navigation_instruction="Turn right along West Perimeter Fence Line, returning to North Entrance for 1.2km.",
 )
 
 # OpenStreetMap Pedestrian Network Walking Loop Geometries

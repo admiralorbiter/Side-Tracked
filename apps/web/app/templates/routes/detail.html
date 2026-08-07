@@ -37,7 +37,7 @@
   </p>
 
   {% for seg in route.segments %}
-  <div class="card" style="margin-bottom: 1.25rem;" x-data="{ playingAudio: false }">
+  <div class="card timeline-segment-card" tabindex="0" data-segment-index="{{ loop.index0 }}" style="margin-bottom: 1.25rem;" x-data="{ playingAudio: false }">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
       <h3 style="font-size: 1.2rem; font-weight: 700;">
         Leg {{ seg.index }}: {{ seg.name }}
@@ -47,14 +47,7 @@
 
     <!-- Directional Navigation Guidance (Product Rule #3) -->
     <div style="background: rgba(255, 255, 255, 0.05); padding: 0.75rem; border-radius: var(--radius-sm); margin-bottom: 1rem; font-size: 0.9rem; color: #e2e8f0;">
-      <strong>🚶 Navigation Direction:</strong>
-      {% if seg.index == 1 %}
-        Depart origin heading along primary park path towards central canopy loop. Maintain steady walking pace.
-      {% elif seg.index == 2 %}
-        Bear right along the creek/water edge loop leg, following designated pedestrian trail markers.
-      {% else %}
-        Turn back along return loop connector towards starting entrance.
-      {% endif %}
+      <strong>🚶 Navigation Direction:</strong> {{ seg.navigation_instruction }}
     </div>
 
     <div style="margin-bottom: 1rem;">
