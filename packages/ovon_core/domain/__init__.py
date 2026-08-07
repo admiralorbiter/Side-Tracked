@@ -15,6 +15,12 @@ from packages.ovon_core.domain.media import (
     MediaVerificationStatus,
     RouteFieldPack,
 )
+from packages.ovon_core.domain.concept import (
+    AuthorityName,
+    TaxonConcept,
+    TaxonCrosswalkEntry,
+    TaxonomicRank,
+)
 from packages.ovon_core.domain.habitat import HabitatType
 from packages.ovon_core.domain.request import JourneyIntent, LoopRequest
 from packages.ovon_core.domain.route import RouteOption, RoutePersona, RouteSegment, RouteStopAction
@@ -46,4 +52,8 @@ __all__ = [
     "RouteStopAction",
     "RouteSegment",
     "RouteOption",
+    "TaxonomicRank",
+    "AuthorityName",
+    "TaxonCrosswalkEntry",
+    "TaxonConcept",
 ]
