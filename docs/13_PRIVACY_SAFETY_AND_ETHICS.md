@@ -98,6 +98,21 @@ Precise route guidance can contribute to disturbance, harassment, nest pressure,
 
 - sensitivity flag in canonical taxonomy;
 - species/season/region-specific display policy;
+- formal `EvidenceVisibilityPolicy` enforcement:
+  - **`OPEN`**: Precise point display permitted subject to `coordinateUncertaintyInMeters`.
+  - **`GENERALIZED`**: Coarse spatial aggregation only (e.g. H3 grid or county level).
+  - **`OBSCURED_SOURCE`**: Never calculate precise metric distance from randomized points; display as broad-area indicator only.
+  - **`SENSITIVE`**: Suppress point locations and omit nearest-distance claims.
+  - **`PRIVATE`**: Default for user `DiscoveryRecord` items; never displayed publicly without explicit user action.
+
+## Prohibition of Exact-Location Inference
+
+Sidetrack strictly prohibits attempting to deanonymize or reconstruct exact locations for obscured or sensitive records:
+
+- **No Cross-Source Triangulation:** Never combine multiple obscured records across providers (e.g., eBird + iNaturalist + GBIF) to infer hidden coordinates.
+- **No Contextual Reconstruction:** Never infer exact sensitive locations using timestamp matching, neighboring open records from the same observer, photography background clues, or route geometry intersections.
+- **Sidetrack-Specific Extra Protection:** Sidetrack may enforce more restrictive visibility policies than source providers for locally vulnerable breeding colonies, winter roosts, active nest sites, or rare plant populations.
+
 - coordinate generalization;
 - exclusion from target search;
 - delayed or aggregated evidence;

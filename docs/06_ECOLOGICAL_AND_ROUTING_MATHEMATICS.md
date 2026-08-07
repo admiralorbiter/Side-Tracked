@@ -702,3 +702,130 @@ r_{HD}(i,\tau)=\psi_{s,i,t}\,\Delta p_{detect}(\tau,\tau+\Delta)\,w_s.
 \]
 
 The optimizer evaluates the reward at each proposed duration. Do not precompute one duration-dependent score and then multiply it by a second duration curve.
+
+---
+
+# 17. Route-local occurrence evidence mathematics
+
+The Sprint 13.75 Route Evidence Layer introduces non-conflated mathematical surfaces for occurrence evidence reported around a route corridor.
+
+## 17.1 Metric point-to-route spatial distance
+
+Given route LineString $R$ and occurrence $i$ at projected metric coordinate $x_i$:
+
+\[
+d_i = d(x_i, R) = \min_{x \in R} \| x_i - x \|.
+\]
+
+Project route $R$ and occurrence point $x_i$ into a local metric projection (e.g., AEQD or local State Plane) prior to distance calculation.
+
+## 17.2 Positional uncertainty propagation
+
+For occurrence $i$ with source-reported coordinate uncertainty radius $u_i$ (e.g., GBIF `coordinateUncertaintyInMeters`):
+
+\[
+\sigma_i^2 = \sigma_0^2 + u_i^2,
+\]
+
+where $\sigma_0$ is the baseline spatial scale parameter (e.g., 250 m).
+
+The spatial decay kernel is:
+
+\[
+K_d(i) = \exp\left( - \frac{d_i^2}{2\sigma_i^2} \right).
+\]
+
+> **Privacy Guardrail:** Do not apply uncertainty propagation to infer precision for intentionally randomized/obscured coordinates (e.g., iNaturalist 0.2° × 0.2° geoprivacy cells). Obscured records bypass spatial distance kernels and display as broad-area indicators only.
+
+## 17.3 Temporal and seasonal kernels
+
+### Temporal decay for recent evidence ($\Delta t_i$ days since report):
+
+\[
+K_t(i) = \exp\left( - \frac{\Delta t_i}{\tau} \right),
+\]
+
+where half-life parameter $\tau \in \{3, 7, 14, 30\}$ days.
+
+Provisional recent evidence index:
+
+\[
+E_s^{\text{recent}}(R, t) = \sum_{i \in O_s} q_i K_d(i) K_t(i),
+\]
+
+where $q_i$ is record quality weighting.
+
+### Seasonal historical evidence (cyclic week distance $d_T$):
+
+\[
+d_T(w_1, w_2) = \min\left( |w_1 - w_2|, 52 - |w_1 - w_2| \right).
+\]
+
+Seasonal kernel ($h \in \{1, 2, 4\}$ weeks):
+
+\[
+K_{\text{season}}(i) = \exp\left[ - \frac{d_T(w_i, w)^2}{2h^2} \right].
+\]
+
+Seasonal historical route evidence index:
+
+\[
+E_s^{\text{seasonal}}(R, w) = \sum_{i \in O_s} q_i K_d(i) K_{\text{season}}(i).
+\]
+
+## 17.4 Beta-Binomial shrinkage checklist detection rate
+
+For qualifying complete effort checklists $N$ within corridor/season, where $D_s$ checklists detect species $s$:
+
+\[
+\tilde{r}_s = \frac{D_s + \alpha}{N + \alpha + \beta},
+\]
+
+with weak uniform prior $\alpha = \beta = 1$. This prevents 1 detection / 1 checklist from returning misleading 100% rates.
+
+## 17.5 Observer-effort corrected relative evidence index
+
+Target-Group Background (TGB) sampling correction:
+
+\[
+E_s^{\text{relative}}(x) = \frac{\operatorname{KDE}_s(x)}{\operatorname{KDE}_{\text{all bird records}}(x) + \epsilon}.
+\]
+
+This measures whether species $s$ is reported frequently relative to total observer effort, mitigating observer bias toward popular parks.
+
+## 17.6 Integrated species distribution model (ISDM) dual likelihood
+
+- **Structured effort checklists (EBD/SED):**
+  \[
+  Y_{s,j}^{\text{EBD}} \sim \text{Bernoulli}\left( p_{s,j}^{\text{enc}} \right)
+  \]
+- **Presence-only opportunistic data (GBIF / iNaturalist):**
+  \[
+  N_{s,p}^{\text{PO}} \sim \text{Poisson}\left( \lambda_s(x,t) \, b_p(x,t) \right),
+  \]
+  where $b_p(x,t)$ models platform-specific sampling bias.
+
+## 17.7 Route corridor evidence integral
+
+\[
+A_s(R) = \frac{1}{L(R)} \int_R e_s(x) \, dl.
+\]
+
+Differentiates a route with one isolated 100 m hotspot from a route with sustained moderate evidence across a 2 km corridor.
+
+## 17.8 Model–evidence disagreement metric
+
+\[
+D_s(x,t) = z\left( E_s^{\text{recent}} \right) - z\left( P_s^{\text{model}} \right).
+\]
+
+Quantifies spatial divergence between recent citizen-science reports and model expectation for research search modes.
+
+## 17.9 Under-documented route gap search
+
+\[
+U_{\text{gap}}(R) = \frac{1}{L(R)} \int_R \text{Opportunity}_s(x,t) \, [1 - C(x,t)] \, dl,
+\]
+
+where $C(x,t)$ measures observation coverage.
+

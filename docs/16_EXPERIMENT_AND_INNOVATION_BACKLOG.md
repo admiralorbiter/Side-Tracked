@@ -241,7 +241,70 @@ Use rain, humidity, substrate, canopy, and season.
 
 ---
 
+# Route Evidence Experiments
+
+## E-37 — Route evidence distance kernel
+
+**Question:** At what spatial scale do nearby occurrence reports meaningfully predict later route-level detections?  
+**Compare:** $100\text{ m}, 250\text{ m}, 500\text{ m}, 1000\text{ m}$ spatial bandwidths $\sigma_0$.  
+**Evaluation:** Held-out complete checklists along route corridors.
+
+## E-38 — Recent evidence temporal decay
+
+**Question:** How quickly does the usefulness of recent occurrence evidence decay?  
+**Compare:** 3-day, 7-day, 14-day, 30-day temporal decay kernels $\tau$.  
+**Evaluation:** Evaluated separately for resident species, migrants, eruptive species, and waterbirds.
+
+## E-39 — Seasonal historical evidence
+
+**Question:** Does cyclic-week weighting outperform calendar-month aggregation?  
+**Hypothesis:** Cyclic-week distance $d_T(w_1, w_2)$ better distinguishes rapid spring migration arrivals than monthly counts.
+
+## E-40 — Observation-effort corrected route evidence
+
+**Question:** Does target-group background (TGB) effort normalization mitigate popular-park observer bias?  
+**Compare:** Raw species occurrence count versus relative effort ratio $E_s^{\text{relative}}(x) = \frac{\operatorname{KDE}_s(x)}{\operatorname{KDE}_{\text{all records}}(x) + \epsilon}$.
+
+## E-41 — Model–evidence disagreement
+
+**Question:** Does divergence between model prediction and recent reports identify ecological events?  
+**Formula:** $D_s(x,t) = z(E_s^{\text{recent}}) - z(P_s^{\text{model}})$.  
+**Study:** Whether high disagreement predicts migration pulses, novel habitat colonization, or model miss.
+
+## E-42 — Under-documented route objective
+
+**Question:** Can Sidetrack identify high-opportunity, low-coverage routes for field survey effort?  
+**Formula:** $U_{\text{gap}}(R) = \frac{1}{L(R)} \int_R \text{Opportunity}_s(x,t) \, [1 - C(x,t)] \, dl$.
+
+## E-43 — Evidence ribbon visualization
+
+**Question:** Which UI representation minimizes map clutter and species-chasing behavior?  
+**Compare:** Raw occurrence points vs clustered points vs corridor heat ribbon vs text-only summaries.
+
+## E-44 — Provider disagreement
+
+**Question:** How do eBird, iNaturalist, and GBIF occurrence surfaces diverge spatially?  
+**Metrics:** Rank correlation, spatial overlap, and Jensen-Shannon divergence across urban vs rural strata.
+
+## E-45 — Coordinate uncertainty propagation
+
+**Question:** Does incorporating source uncertainty $u_i$ into $\sigma_i^2 = \sigma_0^2 + u_i^2$ improve spatial reliability?  
+**Compare:** Ignoring uncertainty vs hard cutoff vs uncertainty-weighted decay kernels.
+
+## E-46 — Evidence freshness explanation
+
+**Question:** Which provenance text yields the highest user trust without false expectations?  
+**Compare:** *"3 reports nearby"* vs *"3 reports in last 7 days"* vs *"3 reports nearby; most recent yesterday; 18 historical May checklists"*.
+
+## E-47 — Evidence-driven route optimization (Field Lab Only)
+
+**Question:** Does routing users toward recent public reports improve encounter rates without causing hotspot crowding?  
+**Compare:** Habitat-driven route vs recent-evidence-driven route vs hybrid route.
+
+---
+
 # Graduation gate
+
 
 An experiment may enter the stable product when:
 

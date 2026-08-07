@@ -42,9 +42,62 @@ Stable internal identifier used across data sources. Common names are display la
 
 ## Occurrence evidence
 
-A record that a taxon was reported present. It does not imply a complete checklist or non-detection information.
+A record indicating that a taxon was reported present at some time and spatial resolution. Occurrence evidence can be presence-only (eBird Recent, GBIF, iNaturalist) and does not imply a complete checklist survey or nondetection.
+
+## Checklist location
+
+The published coordinate associated with an eBird checklist. Sidetrack describes these as *"reported from a checklist location near this walk"* rather than assuming the animal was located at that exact coordinate.
+
+## Observation point
+
+A source coordinate intended to represent an occurrence location, accompanied by whatever positional uncertainty the provider supplies.
+
+## Coordinate uncertainty
+
+The radius around a published point that contains the actual occurrence location (e.g. GBIF `coordinateUncertaintyInMeters`).
+
+## Geoprivacy
+
+The privacy level assigned by a provider (`open`, `obscured`, `private`). Obscured records use randomized coordinates within a coarse cell (~0.2° × 0.2°) and cannot support precise route-distance claims.
+
+## Recent evidence
+
+Occurrence records close in time to the planned walk (typically from the last 30 days via eBird Recent or iNaturalist APIs). Recent evidence is an empirical report index, not an encounter probability.
+
+## Seasonal evidence
+
+Older historical occurrences weighted according to how close their cyclic week is to the planned walk date ($d_T(w_1, w_2)$).
+
+## Evidence coverage
+
+The density of qualifying observation effort near a location and time. Coverage is not species occurrence probability.
+
+## Observation effort
+
+Where and how intensively people looked. Citizen-science data are strongly biased by observer travel choices.
+
+## Route evidence
+
+The normalized set of biodiversity occurrence reports near a route corridor, maintained as a distinct product layer ("Reports Near This Walk") separate from Habitat Radar and empirical models.
+
+## Evidence ribbon
+
+A subtle visual or text-equivalent timeline representation showing relative occurrence report intensity along a route corridor without scattering raw map points.
+
+## Model–evidence disagreement
+
+A standardized comparison between empirical model predictions and recent/historical evidence ($D_s(x,t) = z(E_s^{\text{recent}}) - z(P_s^{\text{model}})$), used to highlight ecological surprises or data gaps.
+
+## Under-documentation
+
+A measure of locations where Sidetrack predicts high ecological opportunity but observation coverage is low ($U_{\text{gap}}(R)$).
+
+## Duplicate lineage
+
+A provenance record (`duplicate_cluster_id`) linking the same real-world observation imported across multiple platforms (e.g., an iNaturalist research-grade observation exported to GBIF).
 
 ## Complete checklist
+
 
 A structured survey event where the observer indicated that all detected species were reported and effort metadata are available/eligible.
 

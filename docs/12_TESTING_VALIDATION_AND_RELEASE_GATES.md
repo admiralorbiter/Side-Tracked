@@ -65,7 +65,12 @@ Cover:
 - domain validation;
 - canonical taxonomy;
 - cyclic weeks;
-- evidence-type rules;
+- evidence-type rules (presence-only vs complete-checklist zero-filling);
+- metric point-to-LineString spatial distance ($d_i$);
+- geoprivacy enforcement (open, obscured, private);
+- sensitive species location suppression;
+- lineage-aware iNaturalist->GBIF deduplication;
+- coordinate uncertainty propagation;
 - environmental schema compatibility;
 - route time decomposition;
 - opportunity/reward functions;
@@ -73,6 +78,7 @@ Cover:
 - attribution rendering;
 - privacy redaction;
 - sensitive-species suppression.
+
 
 ## Contract tests
 

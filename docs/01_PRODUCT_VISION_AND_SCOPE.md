@@ -16,7 +16,20 @@ The product answers a user question:
 
 > Where should I go, what might I encounter, and why is this route worth my time?
 
+### Core Principle
+
+> **Sidetrack combines habitat, community evidence, scientific models, and personal discovery—but never pretends those are the same kind of knowledge.**
+
+The public product maintains an explicit three-way distinction across information types:
+
+1. **HABITAT RADAR** — What habitat suggests based on environmental context and structure.
+2. **REPORTS NEAR THIS WALK** — What people and data sources have actually reported in the surrounding area (Route Evidence Layer).
+3. **MODEL** — What Sidetrack's empirical models estimate.
+
+These three layers answer separate questions and are **never merged into a single arbitrary score**.
+
 ---
+
 
 
 ## First-use product promise
@@ -277,11 +290,18 @@ The public app is not:
 
 - a safety guarantee;
 - a guarantee that a species will be detected;
+- an exact rare-species chase map or live tracking radar;
+- a raw occurrence-dot dump;
+- a tool that equates report density with species abundance or current presence;
+- a tool that treats lack of reports as species absence;
+- a tool that treats presence-only records as nondetection-capable surveys;
+- a tool that treats an obscured or sensitive location as more precise than the source permits;
 - a replacement for official trail or transit information;
 - a source of exact sensitive-species locations;
 - a field-identification classifier;
 - an authoritative occupancy product before validation;
 - an eBird submission client unless an approved integration is developed.
+
 
 ---
 

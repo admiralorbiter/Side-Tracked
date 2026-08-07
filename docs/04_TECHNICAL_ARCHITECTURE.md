@@ -111,6 +111,7 @@ Examples:
 
 - `PlanNatureLoop`
 - `PlanNatureTrip`
+- `BuildRouteEvidence` / `RouteEvidenceService`
 - `BuildFieldPack`
 - `CompareRouteMenu`
 - `ExplainRoute`
@@ -119,6 +120,57 @@ Examples:
 
 They coordinate domain providers and repositories.
 
+### Route Evidence Architecture
+
+The `RouteEvidenceService` generates source-aware, privacy-safe evidence read models (`RouteEvidenceSummary`) for planned route options:
+
+```text
+RouteOption
+   │
+   ▼
+RouteEvidenceService
+   │
+   ├── RecentOccurrenceProvider
+   │       ├── eBird Recent Adapter
+   │       ├── iNaturalist Observation Adapter
+   │       └── GBIF Occurrence Adapter
+   │
+   ├── HistoricalEvidenceRepository
+   │       └── Normalized EBD / GBIF / iNat Parquet Tables
+   │
+   ├── ChecklistCoverageRepository
+   │       └── EBD + SED Derived Coverage Tables
+   │
+   ├── DiscoveryRepository
+   │       └── User's Private Sidetrack Sightings
+   │
+   ├── EvidenceDeduplicator
+   │       └── Lineage-Aware Duplicate Cluster Engine
+   │
+   ├── EvidenceVisibilityPolicy
+   │       └── Sensitive & Geoprivacy Enforcement
+   │
+   └── RouteEvidenceSummarizer
+           │
+           ▼
+       RouteEvidenceSummary (Read Model for Web Layer)
+```
+
+#### Provider Protocol
+
+```python
+class RouteEvidenceProvider(Protocol):
+    """Protocol for occurrence evidence providers."""
+
+    def query_route(
+        self,
+        route_geometry: LineString,
+        taxon_ids: list[str],
+        time_window_days: int,
+        visibility_policy: EvidenceVisibilityPolicy,
+    ) -> list[NormalizedOccurrenceEvidence]: ...
+```
+
 ### Domain core
 
 Contains:
@@ -126,7 +178,8 @@ Contains:
 - value objects;
 - route request/option types;
 - taxon identifiers;
-- evidence records;
+- normalized occurrence evidence (`NormalizedOccurrenceEvidence`);
+- evidence visibility policies (`EvidenceVisibilityPolicy`);
 - ecological predictions;
 - reward functions;
 - provenance;
@@ -138,14 +191,15 @@ The domain package must not import Flask.
 
 Contains:
 
-- SQLite repositories;
+- SQLite repositories (`RoutePlanRepository`, `WalkFeedbackRepository`, `DiscoveryRepository`);
 - `OSMnx` + `igraph` spatial routing solver adapter;
 - geocoder adapter;
 - EBD/SED loaders;
-- GBIF and iNaturalist adapters;
+- GBIF, iNaturalist, and eBird Recent API adapters;
+- semantic evidence cache (`EvidenceCache`);
 - raster stores;
-- cache;
 - file artifact registry.
+
 
 ---
 

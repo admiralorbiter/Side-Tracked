@@ -6,8 +6,9 @@ The documents separate four concerns:
 
 1. **The public product** — what the person sees and does.
 2. **The application platform** — how Flask, SQLite, routing, media, and data fit together.
-3. **The OVON engine** — ecological evidence, opportunity models, and optimization.
-4. **The laboratory** — experiments that may eventually graduate into the stable product.
+3. **The OVON engine** — ecological evidence (Sprint 13.75 Route Evidence Layer), environmental backbone (Sprint 13.5), opportunity models, and optimization.
+4. **The laboratory** — experiments (E-01 through E-47) that may eventually graduate into the stable product.
+
 
 ## Recommended reading paths
 

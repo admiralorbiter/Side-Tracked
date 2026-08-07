@@ -98,6 +98,21 @@ Only evaluated/calibrated model output is labeled probability. Provisional outpu
 
 Raw address text is not persisted or logged by default.
 
+## D-024 / ADR-024 — Route Evidence Is Separate From Ecological Prediction
+
+**Context:** Citizen-science platforms (eBird Recent, EBD/SED, GBIF, iNaturalist) report real-world occurrence records near routes. A common product temptation is to blend occurrence counts with habitat models and calibrated probabilities into a single "bird score".
+
+**Decision:** Occurrence evidence (*Reports Near This Walk*), checklist coverage, ecological habitat predictions (*Habitat Radar*), empirical model estimates (*Calibrated Model*), and personal user discoveries (*My Sightings*) remain separate typed domain objects, separate read models, and separate UI components.
+
+**Rejected:**
+- One universal "bird score" or combined probability index;
+- Conflating raw report density with species abundance or occurrence probability;
+- Presenting model predictions disguised as observation reports;
+- Silently feeding unvalidated recent occurrence counts into the route optimization reward function.
+
+**Rationale:** Structured checklists, opportunistic presence-only records, and habitat models represent fundamentally different scientific processes with different spatial uncertainties, sampling biases, and legal/privacy constraints. Keeping them distinct preserves scientific truthfulness, avoids false precision, and prevents unsafe species chasing.
+
+
 ## D-014 — Sensitive species protection
 
 Precise public guidance can be suppressed, generalized, delayed, or excluded based on taxon, place, and season.

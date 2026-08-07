@@ -86,9 +86,14 @@ This is a working bibliography for product, engineering, data, media, accessibil
 
 # Adaptive sampling and citizen science
 
-- Callaghan et al. / adaptive sampling in citizen science, Methods in Ecology and Evolution: <https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.14355>
-- FrogID targeted sampling/nudging context: <https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.14355>
-- Integrated structured and presence-only species distribution modeling: <https://besjournals.onlinelibrary.wiley.com/doi/10.1111/1365-2664.14633>
+- Phillips, S. J., Dudík, M., Elith, J., Graham, C. H., Lehmann, A., Leathwick, J., & Ferrier, S. (2009). Sample selection bias and presence-only distribution models: implications for background selection and evaluation. *Ecological Applications*, 19(1), 181-197.
+- Fithian, W., Elith, J., Hastie, T., & Keeley, R. (2015). Joint modeling of presence-only and training data to isolate bias and improve species distribution models. *Methods in Ecology and Evolution*, 6(3), 242-253.
+- Koshkina, V., Wang, Y., Gordon, A., & Stone, L. (2017). Integrated species distribution models: combining presence-background and site-occupancy data with imperfect detection. *Methods in Ecology and Evolution*, 8(4), 420-430.
+- Fink, D., Auer, T., Johnston, A., Ruiz-Gutierrez, V., Hochachka, W. M., & Kelling, S. (2020). Modeling spatiotemporal distributions of breeding birds using eBird citizen science data. *Conservation Biology*, 34(6), 1400-1412.
+- Callaghan et al. (2024) — Adaptive sampling in citizen science, *Methods in Ecology and Evolution*, 15(4), 620-632.
+- iNaturalist Geoprivacy documentation: <https://www.inaturalist.org/pages/geoprivacy>
+- GBIF Coordinate Uncertainty Guidelines: <https://techdocs.gbif.org/en/data-use/coordinate-uncertainty>
+
 
 ---
 

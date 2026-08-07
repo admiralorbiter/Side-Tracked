@@ -156,20 +156,53 @@ All cards use the same units, evidence window, travel assumptions, and supported
 
 ## Route detail
 
-The route detail page is organized for action:
+The route detail page is organized into an explicit three-way evidence hierarchy:
 
 1. **Route summary**
 2. **Before-you-go field pack**
-3. **Map and text route timeline**
-4. **Segment cards**
-5. **Comfort, access, and safety**
-6. **Why this route**
-7. **Data and limitations**
-8. **Start route**
+3. **Habitat Radar** (*What habitat suggests*)
+4. **Reports Near This Walk** (*What people/data sources have reported*)
+5. **Map and text route timeline**
+6. **Segment cards**
+7. **Comfort, access, and safety**
+8. **Why this route**
+9. **Data and limitations**
+10. **Start route**
 
-The field pack appears before the dense map controls because it prepares the person for the actual experience.
+The field pack and habitat radar appear before dense evidence maps to prepare the user for the actual walking experience.
 
 ---
+
+## Reports Near This Walk (Route Evidence Layer)
+
+The **Reports Near This Walk** section displays normalized biodiversity occurrence reports near the route without implying current presence, abundance, or exact organism positions.
+
+### User Filters & Tabs
+
+- **Recent** (up to 30 days ago, e.g., eBird Recent, iNaturalist)
+- **Seasonal History** (historical occurrences weighted by cyclic-week closeness from EBD/SED, GBIF)
+- **My Sightings** (private personal `DiscoveryRecord` items)
+
+### Sample Evidence Presentation Cards
+
+> **Northern Flicker**  
+> Reported from 3 nearby public checklist locations in the last 14 days.  
+> Nearest displayable report location: about 480 m from this route.  
+> Most recent: 2 days ago. Source: eBird.
+
+> **Baltimore Oriole**  
+> Regularly reported in this area during early May in previous years.  
+> No qualifying recent public report found.
+
+> **Obscured Record (iNaturalist)**  
+> Reported in the broader area. *(No precise route distance claims calculated from randomized coordinates).*
+
+### In-Route Non-Chasing Rules
+
+- Evidence map layers are **OFF by default** to minimize map clutter and screen distraction.
+- Walk mode strictly avoids "Pokémon radar" chasing alerts (e.g. *"Northern Flicker 132 m ahead!"*).
+- In-route guidance presents calm contextual notes: *"Recent context: Northern Flickers have public reports from this broader area recently."*
+
 
 ## Before-you-go field pack
 

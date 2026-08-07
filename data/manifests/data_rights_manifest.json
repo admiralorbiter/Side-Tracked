@@ -1,5 +1,5 @@
 {
-  "manifest_version": "1.0",
+  "manifest_version": "1.1",
   "datasets": [
     {
       "provider": "Cornell Lab of Ornithology",
@@ -7,8 +7,11 @@
       "version": "ebd_relMay-2026",
       "retrieval_date": "2026-05-15",
       "license_terms_version": "eBird Terms of Use v2.0",
-      "raw_redistribution_allowed": false,
-      "derived_redistribution_allowed": true,
+      "approved_purpose": "Approved non-commercial research & education request",
+      "raw_redistribution": "prohibited",
+      "derived_publication_status": "terms_review_required",
+      "commercial_use": "permission_required",
+      "storage_class": "private_raw",
       "storage_location": "data/private/ebird/raw/",
       "processing_code_version": "ovon_core_v1.0"
     },
@@ -18,11 +21,28 @@
       "version": "gbif_2026_snapshot",
       "retrieval_date": "2026-05-15",
       "license_terms_version": "CC-BY 4.0",
-      "raw_redistribution_allowed": true,
-      "derived_redistribution_allowed": true,
+      "approved_purpose": "Open access research & public attribution",
+      "raw_redistribution": "permitted_with_attribution",
+      "derived_publication_status": "open_attribution",
+      "commercial_use": "permitted_with_attribution",
+      "storage_class": "derived_public",
       "storage_location": "data/derived/gbif/",
+      "processing_code_version": "ovon_core_v1.0"
+    },
+    {
+      "provider": "iNaturalist",
+      "dataset_name": "iNaturalist Research-grade Observations",
+      "version": "inat_2026_snapshot",
+      "retrieval_date": "2026-05-15",
+      "license_terms_version": "CC-BY 4.0 / CC-BY-NC 4.0",
+      "approved_purpose": "Open access research & public attribution",
+      "raw_redistribution": "permitted_per_record_license",
+      "derived_publication_status": "geoprivacy_enforced",
+      "commercial_use": "per_record_license",
+      "storage_class": "derived_public",
+      "storage_location": "data/derived/inat/",
       "processing_code_version": "ovon_core_v1.0"
     }
   ],
-  "created_at": "2026-08-07T16:35:00Z"
+  "created_at": "2026-08-07T17:16:00Z"
 }

@@ -8,12 +8,17 @@ Sidetrack connects nature routing with personal ecological discovery. Rather tha
 
 ## 🗺️ Master Release Sequence
 
+> [!NOTE]
+> Detailed technical specifications, exit gates, and deliverables for each sprint are maintained in the canonical [09_IMPLEMENTATION_ROADMAP_AND_SPRINTS.md](file:///c:/Users/admir/Github/Side-Tracked/docs/09_IMPLEMENTATION_ROADMAP_AND_SPRINTS.md).
+
 | Milestone | Target Scope | Core Deliverables |
 | :--- | :--- | :--- |
 | **Sprint 11.6** | **Product Hardening & Life Cycle** | `WalkSession` lifecycle, plan provenance logging, typed `RouteSegment.habitat_type`, dynamic calendar week, `TaxonSupportBuilder` import fix, outcome-aware blocked route flow. |
 | **Sprint 12** | **Taxon Concept Registry** | Sidetrack UUID `concept_id` crosswalking eBird, GBIF, iNaturalist; durable identity preventing taxonomy lumping/splitting breaks. |
 | **Sprint 13** | **EBD/SED Checklist Pipeline** | Effort-based complete checklist ingestion, observer effort normalization, presence-only vs complete checklist evidence separation. |
+| **Sprint 13.25** | **Evidence Truth Hardening** | Fail-closed evidence guards, complete checklist zero-filling identity validation, slash candidate masking, subspecies rollup, named-column EBD/SED TSV join, astronomical solar sunrise calculation, default `PRIVATE_ONLY` discoveries, and read-only DB schema verification (Completed). |
 | **Sprint 13.5** | **Environmental Feature Backbone** | Real environmental extraction (NLCD canopy, hydrography water edge, USGS 3DEP elevation) replacing string label inference. |
+| **Sprint 13.75** | **Route Evidence Layer** | Privacy-safe, source-aware occurrence evidence layer ("Reports Near This Walk") integrating eBird Recent, EBD/SED history, GBIF, iNaturalist, line-to-point metric distance, uncertainty propagation, and lineage deduplication. |
 | **Sprint 14** | **Calibrated Species Model** | First calibrated species occupancy model, repeatable model contract, seasonal candidate index $CandidateTaxaIndex(cell, week)$. |
 | **National Backbone** | **National Expansion Foundations** | Scalable spatial cell matrix, national taxonomy crosswalk, regional candidate indices. |
 | **Sprint 15** | **My Local Birds / Discovery Deck** | Visual photo cards ("Regular birds around you this month"), "Saw / Heard / Listen" interactions, personal novelty routing persona (*The New Bird One*). |
@@ -22,6 +27,7 @@ Sidetrack connects nature routing with personal ecological discovery. Rather tha
 | **Sprint 18** | **Detour Frontier** | Dynamic detour budget time-cost tradeoffs. |
 | **Sprint 19** | **Search Lab Productization** | Production-ready Search Lab exploration interface. |
 | **Sprint 20+** | **Advanced Capabilities** | Multi-taxa support (plants, trees, insects), transit routing, personalized preference learning. |
+
 
 ---
 

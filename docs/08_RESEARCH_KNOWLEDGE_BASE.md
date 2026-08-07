@@ -6,7 +6,33 @@ Sidetrack sits at the intersection of ecology, routing, citizen science, human-c
 
 ---
 
-# 1. Adaptive citizen-science sampling
+# 1. Sampling effort bias & target-group background
+
+Biodiversity occurrence data from citizen-science platforms (eBird, iNaturalist, GBIF) are heavily biased by observer access, urban density, and popular birding locations.
+
+Phillips et al. (2009) established **target-group background sampling** to correct presence-only distribution models by selecting background points with similar observer bias.
+
+Sidetrack application:
+
+- Raw occurrence counts reflect observer popularity rather than true species abundance.
+- Route Evidence provides an effort-corrected relative evidence index $E_s^{\text{relative}}(x) = \frac{\text{KDE}_s(x)}{\text{KDE}_{\text{all records}}(x) + \epsilon}$ to highlight species that are genuinely over-represented relative to total local observation effort.
+
+---
+
+# 2. Integrated species distribution models (ISDMs)
+
+Fithian et al. (2015) and Koshkina et al. (2017) demonstrated that jointly modeling structured survey data (e.g. complete effort checklists) and opportunistic presence-background data under an integrated likelihood framework outperforms modeling either dataset alone.
+
+Sidetrack application:
+
+- Complete-checklist events (EBD/SED) provide structured Bernoulli detection/nondetection likelihoods.
+- Opportunistic presence-only records (GBIF / iNaturalist / eBird Recent) provide Poisson point-process intensity likelihoods with platform-specific sampling bias parameters $b_p(x,t)$.
+- The architecture maintains separate evidence types rather than flattening them into a single pseudo-dataset.
+
+---
+
+# 3. Adaptive citizen-science sampling
+
 
 Citizen-science data are spatially and temporally uneven because volunteers choose where and when to observe. Adaptive sampling directs a subset of effort toward informative locations.
 

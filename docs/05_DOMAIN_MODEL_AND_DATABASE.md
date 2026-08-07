@@ -89,7 +89,96 @@ class ProvenanceRef:
 
 ## Evidence model
 
-Separate event and species outcomes.
+Separate observation event, presence-only occurrences, complete checklists, and read summaries.
+
+### Evidence Enums
+
+```python
+class EvidenceLocation(Enum):
+    OBSERVATION_POINT = "observation_point"
+    CHECKLIST_LOCATION = "checklist_location"
+    OBSCURED_PUBLIC_POINT = "obscured_public_point"
+    COARSE_REGION = "coarse_region"
+    UNKNOWN = "unknown"
+
+
+class EvidenceVisibility(Enum):
+    EXACT_DISPLAY_ALLOWED = "exact_display_allowed"
+    UNCERTAINTY_DISPLAY_ONLY = "uncertainty_display_only"
+    COARSE_DISPLAY_ONLY = "coarse_display_only"
+    HIDDEN = "hidden"
+```
+
+### NormalizedOccurrenceEvidence
+
+```python
+@dataclass(frozen=True)
+class NormalizedOccurrenceEvidence:
+    occurrence_id: str
+    concept_id: str  # Resolved Sidetrack TaxonConcept UUID
+    source_origin: str  # "ebird_recent", "gbif", "inat", "ebd"
+    source_occurrence_id: str
+    source_event_id: str | None
+    source_dataset_id: str | None
+    source_dataset_version: str | None
+    source_record_url: str | None
+    original_taxon_id: str | None
+    original_scientific_name: str
+    taxonomy_authority: str
+    taxonomy_authority_version: str
+    observed_at: datetime
+    latitude: float
+    longitude: float
+    coordinate_uncertainty_m: float | None
+    coordinate_precision: float | None
+    geodetic_datum: str
+    location_semantics: EvidenceLocation
+    geoprivacy: str  # "open", "obscured", "private"
+    basis_of_record: str
+    review_status: str
+    occurrence_status: str  # "PRESENT"
+    is_presence_only: bool  # True for eBird Recent, GBIF, iNat
+    sensitive: bool
+    observation_license: str
+    lineage_id: str | None
+    duplicate_cluster_id: str | None
+    retrieved_at: datetime
+    transformation_version: str
+```
+
+### Route Evidence Read Models
+
+```python
+@dataclass(frozen=True)
+class SpeciesRouteEvidence:
+    concept_id: str
+    recent_reports: int
+    seasonal_reports: int
+    nearest_displayable_report: Coordinate | None
+    nearest_distance_m: float | None
+    distance_claim_allowed: bool
+    eligible_checklist_count: int
+    checklist_detection_count: int
+    checklist_detection_rate: float | None
+    evidence_score: float
+    evidence_score_status: str
+    source_names: tuple[str, ...]
+    freshness_days: float | None
+    visibility_policy: EvidenceVisibility
+
+
+@dataclass(frozen=True)
+class RouteEvidenceSummary:
+    route_id: str
+    generated_at: datetime
+    recent_species_count: int
+    historical_species_count: int
+    total_checklist_coverage: int
+    species_evidence: tuple[SpeciesRouteEvidence, ...]
+    by_segment: dict[str, tuple[SpeciesRouteEvidence, ...]]
+    limitations: tuple[str, ...]
+    provenance: ProvenanceRef
+```
 
 ### ObservationEvent
 
@@ -98,6 +187,7 @@ Fields:
 - `event_id`
 - `source_id`
 - `source_event_id`
+
 - `observed_at`
 - `latitude`
 - `longitude`

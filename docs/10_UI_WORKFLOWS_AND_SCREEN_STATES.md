@@ -248,6 +248,29 @@ Show:
 
 ### The Weird One
 
+Primary goal: exploratory / serendipitous route only when evidence supports a real difference.
+
+---
+
+# 5.5 Reports Near This Walk (Route Evidence States)
+
+This section of the Route Detail screen displays occurrence reports near the route.
+
+## UI Sub-States
+
+1. **`recent_reports_active`**: Displays recent public occurrences (e.g. eBird Recent, iNaturalist) from the last 30 days within the route corridor.
+2. **`historical_active`**: Displays cyclic-week matched historical occurrences and complete-checklist detection rates from EBD/SED and GBIF.
+3. **`my_sightings_active`**: Displays user's personal private `DiscoveryRecord` encounters.
+
+## Degraded & Privacy Screen States
+
+- **No Recent Records:** *"No qualifying recent public reports were found near this route. That does not mean these species are absent."*
+- **Provider Unavailable:** *"Recent eBird reports could not be loaded. Habitat and historical evidence are still available."*
+- **Generalized / Obscured Location:** *"Public reports exist in the broader area, but their locations are intentionally generalized."* (Omits precise metric distance claims).
+- **Sensitive Species Protection:** *"Some evidence may be withheld or generalized to protect sensitive wildlife."* (Suppresses point locations and distance claims).
+- **Insufficient Historical Effort:** *"There are too few comparable complete checklists to summarize historical detection rates reliably."*
+
+
 Primary goal: supported novelty or exploration.
 
 Show:

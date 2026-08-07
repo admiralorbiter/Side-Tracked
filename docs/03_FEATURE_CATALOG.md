@@ -100,12 +100,18 @@ This is an intentionally broad catalog. It is not a commitment to build everythi
 - **P0** route-wide relative species opportunity list
 - **P0** segment-level habitat–season match
 - **P0** clear provisional/model status
+- **P1** recent route occurrence context ("Reports Near This Walk", up to 30 days)
+- **P1** historical seasonal evidence (cyclic-week matched EBD/SED, GBIF)
+- **P1** complete-checklist coverage context
+- **P1** source-aware occurrence display & geoprivacy aggregation
 - **P1** calibrated focal-species encounter model
 - **P1** expected encounter by observation duration
 - **P1** species-specific uncertainty
-- **P1** complete-checklist coverage
 - **P2** community-level latent assemblage
 - **P2** personal novelty
+- **LAB** observer-effort corrected presence-only surface ($E_s^{\text{relative}}$)
+- **LAB** model–evidence disagreement frontier ($D_s(x,t)$)
+- **LAB** under-documented route gap search ($U_{\text{gap}}(R)$)
 - **LAB** integrated presence-only and checklist model
 - **BLOCKED** public use of restricted products without permission
 
@@ -120,8 +126,10 @@ This is an intentionally broad catalog. It is not a commitment to build everythi
 - **P2** arrival-front search
 - **P2** personal target list
 - **LAB** platform-disagreement frontier
+- **LAB** model–evidence surprise frontier
 - **LAB** static versus radar-triggered opportunity
 - **DEFERRED** public exact rare-species chase map
+
 
 ## B3. Species bundles
 

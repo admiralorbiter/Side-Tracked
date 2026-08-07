@@ -387,6 +387,108 @@ Create the effort-aware dataset pipeline for offline derived models.
 - zero-filling occurs strictly on eligible complete checklists;
 - raw restricted data remains private and excluded from public redistribution.
 
+## Sprint 13.25: Evidence Truth & Architecture Hardening (Completed)
+
+### Goal
+
+Eliminate implicit scientific fallbacks, fix taxonomy crosswalk collisions, enforce complete-checklist boundaries, parse authentic EBD/SED TSVs, calculate true astronomical solar time, and establish default private discoveries.
+
+### Deliverables
+
+- Fail-closed `validate_non_detection()` in `packages/ovon_core/evidence/boundary.py`;
+- Independent Sidetrack concept UUID identity (`sidetrack_concept:<slug>`) with collision checking and slash/subspecies resolution in `packages/ovon_core/taxonomy/concept_registry.py`;
+- Complete-checklist zero-filling identity validation, slash candidate masking (`detected=None`), subspecies parent rollup, and single-cell presence collapse in `packages/ovon_core/pipeline/zero_filler.py`;
+- Authentic named-column EBD/SED TSV parsers with schema header validation and join in `packages/ovon_core/pipeline/ebd_ingest.py`;
+- Protocol-specific distance/area missingness rules and true astronomical solar time sunrise calculation in `packages/ovon_core/pipeline/effort_filter.py`;
+- Spatial disk footprint renaming (`possible_extent_cell_ids`, `is_aeqd_buffered=False`) in `packages/ovon_core/spatial/checklist_buffer.py`;
+- `SpatialCellId` runtime fix in `packages/ovon_core/spatial/candidate_index.py`;
+- Default `PRIVATE_ONLY` discovery records and export coordinate obfuscation in `packages/ovon_core/domain/discovery.py` & `discovery_repository.py`;
+- Experimental Sidetrack Survey Mode UI opt-in and idempotent walk session management;
+- Typed segment `habitat_type` persistence in `apps/web/app/services/planner_service.py`;
+- Read-only `db-verify` task and SHA256 integrity checks in `packages/ovon_core/cli/verify_db.py` & `downloader.py`;
+- Multi-source presence normalization scaffold in `packages/ovon_core/evidence/multisource.py`.
+
+### Exit gate
+
+- 88/88 test items pass cleanly across full pytest suite;
+- zero-filling fails closed on non-qualifying evidence tiers;
+- EBD/SED TSV reader handles column order permutations without column index assumptions;
+- read-only `verify_db` and mutating `migrate_db` verify `route_plans.db`, `walk_feedback.db`, and `discovery.db`.
+
+## Sprint 13.5: Environmental Feature Backbone
+
+### Goal
+
+Extract real environmental feature vectors (NLCD land cover canopy, hydrography water edge, USGS 3DEP elevation/slope) along route geometries to replace presentation string label inference with true spatial rasters.
+
+### Deliverables
+
+- Raster ingestion pipeline for NLCD Land Cover (30m) and USGS 3DEP Elevation;
+- Vector buffer extraction for hydrography water edges and canopy boundary distance;
+- `EnvironmentalFeatureVector` domain model bound to route segments and H3 spatial cells;
+- Segments populate real canopy density %, water proximity meters, and slope gradients.
+
+### Exit gate
+
+- segment habitat classification is computed from spatial feature rasters rather than string heuristics;
+- feature vector extraction is deterministic and reproducible across spatial holdouts;
+- degraded fallback returns clean default vectors when spatial rasters are unmapped.
+
+## Sprint 13.75: Route Evidence Layer
+
+### Goal
+
+Build a privacy-safe, source-aware occurrence evidence layer that answers *"What biodiversity observations have been reported near this route?"* without conflating occurrence reports with model probabilities, precise organism locations, or complete-checklist nondetections.
+
+### Prerequisite
+
+Sprint 13.5 Environmental Feature Backbone is complete enough that route segments have real environmental context rather than presentation-label inference.
+
+### Deliverables
+
+- **Occurrence Domain Models:** `NormalizedOccurrenceEvidence`, `SourceLineage`, `EvidenceLocation` enum (`OBSERVATION_POINT`, `CHECKLIST_LOCATION`, `OBSCURED_PUBLIC_POINT`, `COARSE_REGION`, `UNKNOWN`), `EvidenceVisibility` enum (`EXACT_DISPLAY_ALLOWED`, `UNCERTAINTY_DISPLAY_ONLY`, `COARSE_DISPLAY_ONLY`, `HIDDEN`), `DuplicateCluster`, `RouteEvidenceSummary`, and `SpeciesRouteEvidence`.
+- **Provider Adapters:** eBird Recent occurrence adapter, GBIF occurrence adapter, iNaturalist observation adapter, historical EBD/SED evidence repository, and private Sidetrack `DiscoveryRepository` adapter.
+- **Taxonomy:** All occurrences resolve through `TaxonConceptRegistry`; unresolved records are quarantined; no external-ID-to-eBird-code guessing.
+- **Deduplication:** Lineage-aware iNaturalist->GBIF duplicate detection; provider-specific duplicate IDs; duplicate clusters preserved (`duplicate_cluster_id`, `canonical_occurrence_id`, `source_lineages[]`).
+- **Spatial Engine:** Route bounding region + 1 km margin query; local metric CRS projection; exact point-to-LineString metric distance calculation ($d_i$); configurable corridor bands (0–250 m, 250–750 m, 750–1500 m); `coordinateUncertaintyInMeters` propagation.
+- **Temporal Engine:** Recent evidence index $E_s^{\text{recent}}(R,t)$; seasonal historical evidence $E_s^{\text{seasonal}}(R,w)$; cyclic-week distance matching ($d_T(w_1, w_2)$).
+- **Privacy & Ethics:** `EvidenceVisibilityPolicy`; sensitive taxon suppression; obscured/public/private handling; no precise distance claims from randomized coordinates ("reported in broader area"); no exact-location inference from neighboring records or timestamps.
+- **Application Service & Read Models:** `RouteEvidenceService` / `BuildRouteEvidence`; `RouteEvidenceSummary` and `SpeciesRouteEvidence` read models.
+- **UI:** "Reports Near This Walk" section; Recent / Seasonal / My Sightings filters; optional map toggle (off by default); non-chasing in-route guidance ("Recent context" card, no Pokémon-style chasing alerts); visible source/date/provenance.
+- **Caching & Governance:** Provider-specific semantic cache with TTL; stale-data indicators; `data_rights_manifest.json` updates.
+
+### Exit gate (20 Items)
+
+1. No presence-only occurrence creates a nondetection.
+2. Every visible occurrence resolves to a canonical Sidetrack `concept_id`.
+3. Every record retains source and source-record lineage.
+4. Duplicate iNaturalist-via-GBIF evidence does not count twice.
+5. Precise route distance is shown only when source precision supports it.
+6. `coordinateUncertaintyInMeters` affects spatial interpretation rather than being discarded.
+7. Obscured iNaturalist records never receive precise route-distance claims.
+8. Private locations are never displayed.
+9. Sensitive species never expose precise points or indirect route clues.
+10. eBird coordinates are described as checklist/report locations rather than exact bird positions.
+11. Recent observation density is never called probability or abundance.
+12. Historical occurrence density is never called absence coverage.
+13. Complete-checklist statistics use only eligible effort-qualified checklists.
+14. Evidence layers are usable without the map.
+15. Evidence map is off by default.
+16. Every public evidence item exposes source and date.
+17. Provider/data-rights manifests verify.
+18. Source failure produces a truthful degraded state rather than an empty "nothing here" interpretation.
+19. Same frozen local evidence inputs produce deterministic route summaries.
+20. Tests prove all privacy/sensitive branches.
+
+### Required Degraded States
+
+- **No recent records:** *"No qualifying recent public reports were found near this route. That does not mean these species are absent."*
+- **Provider unavailable:** *"Recent eBird reports could not be loaded. Habitat and historical evidence are still available."*
+- **Only obscured evidence:** *"Public reports exist in the broader area, but their locations are intentionally generalized."*
+- **Insufficient historical effort:** *"There are too few comparable complete checklists to summarize historical detection rates reliably."*
+- **Sensitive evidence:** Silently omit location detail with generic note: *"Some evidence may be withheld or generalized to protect sensitive wildlife."*
+
+
 ## Sprint 14: First calibrated focal species & spatial holdouts
 
 ### Goal

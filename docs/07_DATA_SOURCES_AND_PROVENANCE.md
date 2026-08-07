@@ -14,23 +14,24 @@ The application must answer three questions for every value:
 
 # 1. Source-role matrix
 
-| Source | Primary role | Can support non-detection? | Public-app concerns |
-|---|---|---:|---|
-| eBird EBD + SED | Complete-checklist encounter modeling | Yes, after complete-checklist validation and zero filling | Raw-data and derived-product terms |
-| eBird recent API | Recent occurrence map | No | API key, rate limits, occurrence-only semantics |
-| eBird Status and Trends | Strong prior/range/abundance research layer | Not directly | Web/app and decision-support terms require explicit Cornell consent |
-| GBIF | Presence-only occurrences and source comparison | No | Dataset-specific licenses, DOI citations, and coordinate quality |
-| iNaturalist | Photo-supported presence-only occurrences | No | Observation licenses, obscured coordinates, deduplication against GBIF |
-| USGS GAP Analysis | Landscape-scale suitable habitat priors | No | Coarse habitat prediction, NOT a local encounter probability |
-| OpenStreetMap | Route graph, access, POIs | No | ODbL attribution and data provenance |
-| Valhalla | Routing service using OSM/GTFS | N/A | deployment and data freshness |
-| KCATA GTFS | Transit schedules and accessibility fields | N/A | feed update and attribution |
-| Annual NLCD (2025) | Land cover, imperviousness, canopy | N/A | public-domain data, versioning |
-| USGS 3DEP | High-resolution elevation data | N/A | unrestricted public domain data |
-| NHDPlus / Hydrography | Water and stream context | N/A | spatial resolution and nearest-feature method |
-| Daymet/weather | Weather covariates | N/A | temporal resolution and forecast versus historical distinction |
-| BirdCast/NEXRAD | Migration intensity and future dynamic routes | N/A | product terms, temporal/spatial scale |
-| Local municipal data | trails, closures, trees, heat, facilities | N/A | jurisdiction-specific quality and update cadence |
+| Source | Primary role | Route Evidence Display Role | Can support non-detection? | Public-app concerns |
+|---|---|---|---:|---|
+| eBird EBD + SED | Complete-checklist encounter modeling | Historical effort & seasonal detection rate | Yes, after complete-checklist validation and zero filling | Terms review, private raw storage, non-redistribution |
+| eBird recent API | Recent occurrence map | Fresh checklist-location context (up to 30 days, <=50 km) | No | API rate limits, checklist-location language |
+| eBird Status and Trends | Strong prior/range/abundance research layer | Prior comparison / cold-start baseline | Not directly | Web/app terms require explicit Cornell permission |
+| GBIF | Presence-only occurrences and source comparison | Broad historical presence-only & non-bird context | No | Dataset-specific licenses, DOI citations, `coordinateUncertaintyInMeters` |
+| iNaturalist | Photo-supported presence-only occurrences | Photo-supported presence-only | No | Geoprivacy (Open/Obscured/Private), deduplication vs GBIF |
+| Sidetrack Discoveries | Personal user sighting deck | Private sighting layer ("My Sightings") | No | Default `PRIVATE_ONLY`, user privacy |
+| USGS GAP Analysis | Landscape-scale suitable habitat priors | Ecological context | No | Coarse habitat prediction, NOT a local encounter probability |
+| OpenStreetMap | Route graph, access, POIs | Route geometry & network | No | ODbL attribution and data provenance |
+| Valhalla | Routing service using OSM/GTFS | Pedestrian route solver | N/A | deployment and data freshness |
+| KCATA GTFS | Transit schedules and accessibility fields | Transit access | N/A | feed update and attribution |
+| Annual NLCD (2025) | Land cover, imperviousness, canopy | Canopy & land cover rasters | N/A | public-domain data, versioning |
+| USGS 3DEP | High-resolution elevation data | Slope & elevation rasters | N/A | unrestricted public domain data |
+| NHDPlus / Hydrography | Water and stream context | Water edge buffer distance | N/A | spatial resolution and nearest-feature method |
+| Daymet/weather | Weather covariates | Phenology/weather priors | N/A | temporal resolution and forecast versus historical distinction |
+| BirdCast/NEXRAD | Migration intensity and future dynamic routes | Dynamic migration context | N/A | product terms, temporal/spatial scale |
+| Local municipal data | trails, closures, trees, heat, facilities | Facility / comfort overlays | N/A | jurisdiction-specific quality and update cadence |
 
 ---
 
@@ -98,32 +99,33 @@ Use cases:
 - habitat analog seed data;
 - source-disagreement analysis;
 - supplementary historical context;
-- public demonstration.
+- non-bird multi-taxon expansion.
 
-Store:
+Required fields to preserve:
 
-- GBIF occurrence key;
-- dataset key;
-- scientific name;
-- taxon key;
-- event date;
-- coordinates;
-- coordinate uncertainty;
-- basis of record;
-- occurrence status;
-- license;
-- source institution.
+- GBIF occurrence key (`gbifID`);
+- dataset key (`datasetKey`) & dataset title;
+- dataset DOI / download DOI;
+- taxon key (`taxonKey`);
+- basis of record (`basisOfRecord`);
+- occurrence status (`occurrenceStatus`);
+- event date (`eventDate`);
+- latitude & longitude;
+- coordinate uncertainty (`coordinateUncertaintyInMeters`);
+- coordinate precision & geodetic datum;
+- license (`license`);
+- institution & publishing organization (`publishingOrgKey`);
+- `recordedBy` if usable;
+- quality issues / flags.
 
-Filtering:
+Filtering & Quality Enforcement:
 
-- valid coordinates;
+- valid non-zero coordinates;
 - plausible dates;
-- appropriate basis of record;
-- remove obvious fossil/captive records where relevant;
-- inspect coordinate uncertainty;
-- preserve flagged records rather than silently accepting them.
-
-GBIF records may originate from eBird. Source-level deduplication is necessary before treating platforms as independent evidence.
+- appropriate basis of record (exclude fossils, captive, human observation without verification where required);
+- incorporate `coordinateUncertaintyInMeters` into spatial decay kernels;
+- preserve flagged records rather than silently accepting them;
+- license terms must be loaded from actual dataset metadata, never defaulted to generic `CC-BY 4.0`.
 
 ---
 
@@ -136,7 +138,47 @@ Use cases:
 - urban and accessible occurrence context;
 - platform-disagreement analysis.
 
-Store:
+### Geoprivacy Rules
+
+iNaturalist records carry explicit geoprivacy levels:
+
+1. **`open`**: Precise coordinates are public. Exact route-distance calculation is permitted (subject to `coordinateUncertaintyInMeters`).
+2. **`obscured`**: Coordinates are intentionally randomized within a 0.2° × 0.2° cell (~22 km × 22 km) and positional accuracy is broadened.
+   - **Rule:** Never calculate exact route-distance claims from randomized coordinates.
+   - **UI Language:** Display as *"Reported in the broader area"*, set `distance_claim_allowed = False`, and omit precise distance metrics.
+3. **`private`**: Coordinate is hidden.
+   - **Rule:** Never include in public maps or route evidence summaries.
+
+---
+
+# 5. Lineage-aware Deduplication (GBIF / iNaturalist / eBird)
+
+Research-grade iNaturalist records are regularly exported to GBIF. An iNaturalist record and its corresponding GBIF record represent a single occurrence lineage, not two independent observations.
+
+### Lineage Hierarchy
+
+Deduplication MUST follow a strict hierarchy rather than raw probabilistic clustering:
+
+1. **Exact source-record linkage** (e.g., GBIF record linking directly to iNaturalist observation ID).
+2. **Provider-parent linkage** (e.g., GBIF dataset key matching iNaturalist dataset export).
+3. **Stable external IDs** (e.g., identical observer, timestamp, and coordinate).
+4. **Probabilistic spatiotemporal clustering** (only as a secondary fallback).
+
+### Provenance Preservation
+
+Rather than deleting duplicate records:
+
+- Assign a shared `duplicate_cluster_id`;
+- Designate a `canonical_occurrence_id`;
+- Maintain `source_lineages[]` containing all source records.
+
+---
+
+# 6. Data Ingestion Cleanup Requirements
+
+1. **No Default License Fallbacks:** Remove any hardcoded `CC-BY 4.0` defaults. Licenses must be extracted directly from record/dataset metadata.
+2. **Strict Taxon Gatekeeping:** Remove any fallbacks attempting to treat external taxon identifiers as eBird codes. If an external ID does not exist in `TaxonConceptRegistry`, flag the record as `unresolved_taxon` and quarantine it for review.
+
 
 - observation ID;
 - taxon ID;
