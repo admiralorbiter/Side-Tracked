@@ -1,7 +1,7 @@
 """Derived TaxonSupport Builder for factual support provenance."""
 
 from packages.ovon_core.domain.media import MediaType
-from packages.ovon_core.domain.taxonomy import TaxonSupport
+from packages.ovon_core.domain.taxonomy import TaxonRef, TaxonSupport
 from packages.ovon_core.fixtures.kc_species_fixtures import KC_FIELD_CUE_PROFILES
 from packages.ovon_core.media.repository import MediaRepository
 
@@ -25,7 +25,6 @@ class TaxonSupportBuilder:
 
         if media_repository:
             # Query actual manifest inventory
-            from packages.ovon_core.domain import TaxonRef
             target_taxon = taxon or TaxonRef.create(
                 common_name=ebird_code.upper(),
                 scientific_name=f"Taxon {ebird_code}",

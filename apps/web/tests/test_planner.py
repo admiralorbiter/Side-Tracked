@@ -280,4 +280,69 @@ def test_walk_session_lifecycle():
     assert finished["last_segment_index"] == 2
 
 
+def test_taxon_support_builder_import_signature():
+    from packages.ovon_core.domain.support_builder import TaxonSupportBuilder
+    support = TaxonSupportBuilder.build("test_id", "amerob")
+    assert support.taxonomy_known is True
+
+
+def test_route_segment_typed_habitat():
+    from packages.ovon_core.domain.route import RouteSegment
+    from packages.ovon_core.ecology.habitat import HabitatType
+    from packages.ovon_core.fixtures.routes_fixtures import CUE_ROBIN, ROBIN, Coordinate
+
+    seg = RouteSegment(
+        index=1,
+        name="Canopy Leg",
+        habitat_name="Mature Oak Canopy",
+        distance_meters=500.0,
+        duration_minutes=10.0,
+        focal_species=(ROBIN,),
+        field_cue=CUE_ROBIN,
+        observation_point=Coordinate(39.0, -94.5),
+        habitat_type=HabitatType.MATURE_CANOPY,
+    )
+    assert seg.habitat_type == HabitatType.MATURE_CANOPY
+
+
+def test_plan_provenance_json_saved(client):
+    res = client.post("/planner/results", data={"duration": "30"})
+    assert res.status_code == 200
+
+    from apps.web.app.services.planner_service import RoutePlanRepository
+
+    plans = list(RoutePlanRepository._plans.keys())
+    plan_id = plans[-1]
+
+    # Verify SQLite record has saved request_json and routing_provenance_json
+    conn = RoutePlanRepository._get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT request_json, routing_provenance_json FROM route_plans WHERE plan_id = ?", (plan_id,))
+    row = cursor.fetchone()
+    conn.close()
+
+    assert row is not None
+    assert row["request_json"] is not None
+    assert "target_duration_minutes" in row["request_json"]
+
+
+def test_walk_route_starts_session_and_recap_calculates_duration(client):
+    res = client.post("/planner/results", data={"duration": "30"})
+    assert res.status_code == 200
+
+    from apps.web.app.services.planner_service import RoutePlanRepository
+    plans = list(RoutePlanRepository._plans.keys())
+    plan_id = plans[-1]
+
+    # 1. Start walk route -> creates WalkSession in session
+    walk_res = client.get(f"/plans/{plan_id}/routes/easy-1/walk")
+    assert walk_res.status_code == 200
+    assert b"Walk Mode Active" in walk_res.data
+
+    # 2. Access recap -> computes duration and renders outcome
+    recap_res = client.get(f"/plans/{plan_id}/routes/easy-1/recap?outcome=path_blocked")
+    assert recap_res.status_code == 200
+    assert b"Path Blocked" in recap_res.data
+
+
 

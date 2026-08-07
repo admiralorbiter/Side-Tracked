@@ -3,7 +3,8 @@
 import hashlib
 from dataclasses import dataclass, field
 
-from packages.ovon_core.domain import SpatialCellId, TaxonRef
+from packages.ovon_core.domain.spatial import SpatialCellId
+from packages.ovon_core.domain.taxonomy import TaxonRef
 from packages.ovon_core.ecology.habitat import HabitatType
 
 # Baseline provisional detectability scores relative to habitat type across 30 KC species

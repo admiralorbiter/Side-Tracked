@@ -3,7 +3,8 @@
 from dataclasses import dataclass
 from typing import Protocol
 
-from packages.ovon_core.domain import SpatialCellId, TaxonRef
+from packages.ovon_core.domain.spatial import SpatialCellId
+from packages.ovon_core.domain.taxonomy import TaxonRef
 from packages.ovon_core.ecology.habitat import HabitatType
 from packages.ovon_core.ecology.species_surface import ProvisionalSpeciesSurface
 from packages.ovon_core.fixtures.kc_species_fixtures import ALL_KC_TAXA

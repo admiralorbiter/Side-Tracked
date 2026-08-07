@@ -8,6 +8,7 @@ from packages.ovon_core.domain import (
     RouteSegment,
     TaxonRef,
 )
+from packages.ovon_core.ecology.habitat import HabitatType
 
 # Canonical Taxa Fixtures
 ROBIN = TaxonRef.create("American Robin", "Turdus migratorius", "amerob")
@@ -47,6 +48,7 @@ SEGMENT_EASY_1 = RouteSegment(
     field_cue=CUE_ROBIN,
     observation_point=Coordinate(39.0355, -94.5920),
     navigation_instruction="Depart North Entrance heading south along Loose Park Rose Garden Path for 600m.",
+    habitat_type=HabitatType.OPEN_PARKLAND,
 )
 
 SEGMENT_EASY_2 = RouteSegment(
@@ -59,6 +61,7 @@ SEGMENT_EASY_2 = RouteSegment(
     field_cue=CUE_CARDINAL,
     observation_point=Coordinate(39.0325, -94.5880),
     navigation_instruction="Turn left onto Loose Park Perimeter Path, looping back north to North Entrance for 1.2km.",
+    habitat_type=HabitatType.OPEN_PARKLAND,
 )
 
 SEGMENT_BIRDY_1 = RouteSegment(
@@ -71,6 +74,7 @@ SEGMENT_BIRDY_1 = RouteSegment(
     field_cue=CUE_CARDINAL,
     observation_point=Coordinate(39.0360, -94.5875),
     navigation_instruction="Depart North Entrance east along Loose Park Pond Trail for 800m.",
+    habitat_type=HabitatType.POND_WATER_EDGE,
 )
 
 SEGMENT_BIRDY_2 = RouteSegment(
@@ -83,6 +87,7 @@ SEGMENT_BIRDY_2 = RouteSegment(
     field_cue=CUE_WOODPECKER,
     observation_point=Coordinate(39.0380, -94.5850),
     navigation_instruction="Bear right onto Brush Creek Canopy Trail, following creek bank back to North Entrance for 1.4km.",
+    habitat_type=HabitatType.MATURE_CANOPY,
 )
 
 SEGMENT_WEIRD_1 = RouteSegment(
@@ -95,6 +100,7 @@ SEGMENT_WEIRD_1 = RouteSegment(
     field_cue=CUE_WAXWING,
     observation_point=Coordinate(39.0310, -94.5910),
     navigation_instruction="Depart North Entrance southwest toward Old Orchard Trail for 900m.",
+    habitat_type=HabitatType.ORCHARD_EDGE,
 )
 
 SEGMENT_WEIRD_2 = RouteSegment(
@@ -107,6 +113,7 @@ SEGMENT_WEIRD_2 = RouteSegment(
     field_cue=CUE_WOODPECKER,
     observation_point=Coordinate(39.0295, -94.5945),
     navigation_instruction="Turn right along West Perimeter Fence Line, returning to North Entrance for 1.2km.",
+    habitat_type=HabitatType.MATURE_CANOPY,
 )
 
 # OpenStreetMap Pedestrian Network Walking Loop Geometries

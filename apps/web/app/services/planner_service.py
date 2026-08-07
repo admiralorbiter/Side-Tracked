@@ -251,7 +251,7 @@ class RoutePlanRepository:
 
         req_json = json.dumps({
             "origin": {"lat": loop_request.origin.latitude, "lon": loop_request.origin.longitude} if loop_request else None,
-            "target_duration_minutes": loop_request.target_duration_minutes if loop_request else None,
+            "target_duration_minutes": loop_request.duration_minutes if loop_request else None,
             "paved_only": loop_request.paved_only if loop_request else False,
             "quiet_mode": loop_request.quiet_mode if loop_request else False,
         }) if loop_request else None

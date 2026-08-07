@@ -14,14 +14,19 @@ from packages.ovon_core.ecology.recommender import DefaultSegmentSpeciesRecommen
 from packages.ovon_core.spatial.h3_indexer import polyline_to_h3_cells
 
 
+from datetime import datetime, timezone
+
 class BuildHabitatRadar:
     """Application service for constructing route-level and segment-level Habitat Radar."""
 
     def __init__(self, candidate_provider: CandidateTaxaProvider | None = None):
         self.candidate_provider = candidate_provider or KansasCityCandidateTaxaProvider()
 
-    def execute(self, route: RouteOption, season_week: int = 20) -> HabitatRadar:
+    def execute(self, route: RouteOption, season_week: int | None = None) -> HabitatRadar:
         """Calculate length-weighted habitat radar species ranking for a route."""
+        if season_week is None:
+            season_week = datetime.now(timezone.utc).isocalendar().week
+
         # 1. Traversed H3 cells for route geometry
         traversed_cells = polyline_to_h3_cells(route.geojson_geometry, resolution=8)
 
@@ -47,16 +52,19 @@ class BuildHabitatRadar:
             else:
                 seg_cells = traversed_cells
 
-            # 2. Resolve habitat keyword mapping to HabitatType
-            hab_str = seg.habitat_name.lower()
-            if "canopy" in hab_str or "woodland" in hab_str or "tree" in hab_str:
-                seg_habitat = HabitatType.MATURE_CANOPY
-            elif "water" in hab_str or "creek" in hab_str or "pond" in hab_str or "riparian" in hab_str:
-                seg_habitat = HabitatType.POND_WATER_EDGE
-            elif "orchard" in hab_str or "fruit" in hab_str or "shrub" in hab_str:
-                seg_habitat = HabitatType.ORCHARD_EDGE
+            # 2. Use typed habitat_type directly if present, with keyword fallback
+            if hasattr(seg, "habitat_type") and seg.habitat_type:
+                seg_habitat = seg.habitat_type
             else:
-                seg_habitat = HabitatType.OPEN_PARKLAND
+                hab_str = seg.habitat_name.lower()
+                if "canopy" in hab_str or "woodland" in hab_str or "tree" in hab_str:
+                    seg_habitat = HabitatType.MATURE_CANOPY
+                elif "water" in hab_str or "creek" in hab_str or "pond" in hab_str or "riparian" in hab_str:
+                    seg_habitat = HabitatType.POND_WATER_EDGE
+                elif "orchard" in hab_str or "fruit" in hab_str or "shrub" in hab_str:
+                    seg_habitat = HabitatType.ORCHARD_EDGE
+                else:
+                    seg_habitat = HabitatType.OPEN_PARKLAND
 
             # Evaluate recommender for segment context
             recommender = DefaultSegmentSpeciesRecommender()

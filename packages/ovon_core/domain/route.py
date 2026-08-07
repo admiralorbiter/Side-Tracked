@@ -4,6 +4,7 @@ from enum import Enum
 from packages.ovon_core.domain.media import FieldCue
 from packages.ovon_core.domain.spatial import Coordinate
 from packages.ovon_core.domain.taxonomy import TaxonRef
+from packages.ovon_core.domain.habitat import HabitatType
 
 
 class RoutePersona(str, Enum):
@@ -38,6 +39,7 @@ class RouteSegment:
     geojson_geometry: dict | None = None
     observation_point: Coordinate | None = None
     navigation_instruction: str = ""
+    habitat_type: HabitatType = HabitatType.OPEN_PARKLAND
 
     def __post_init__(self) -> None:
         if self.distance_meters <= 0:

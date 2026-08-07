@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 
-from packages.ovon_core.domain import TaxonRef
+from packages.ovon_core.domain.taxonomy import TaxonRef
 from packages.ovon_core.ecology.ecology_profile import HabitatGuild
 
 

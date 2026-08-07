@@ -5,8 +5,16 @@
 {% block content %}
 <div class="card" style="max-width: 700px; margin: 0 auto; padding: 2rem;">
   <div style="text-align: center; margin-bottom: 1.5rem;">
-    <span class="route-badge badge-birdy">Walk Completed ✨</span>
-    <h1 style="font-size: 2.2rem; font-weight: 800; margin: 0.75rem 0 0.25rem 0;" tabindex="-1">Walk Recap & Feedback</h1>
+    {% if outcome == 'path_blocked' %}
+      <span class="route-badge" style="background: rgba(244,63,94,0.2); color: #f43f5e; border: 1px solid rgba(244,63,94,0.4);">🚧 Path Blocked</span>
+      <h1 style="font-size: 2.2rem; font-weight: 800; margin: 0.75rem 0 0.25rem 0;" tabindex="-1">Walk Interrupted — Path Blocked</h1>
+    {% elif outcome == 'partial' %}
+      <span class="route-badge" style="background: rgba(234,179,8,0.2); color: #eab308; border: 1px solid rgba(234,179,8,0.4);">🚶 Partial Walk</span>
+      <h1 style="font-size: 2.2rem; font-weight: 800; margin: 0.75rem 0 0.25rem 0;" tabindex="-1">Partial Walk Recap</h1>
+    {% else %}
+      <span class="route-badge badge-birdy">Walk Completed ✨</span>
+      <h1 style="font-size: 2.2rem; font-weight: 800; margin: 0.75rem 0 0.25rem 0;" tabindex="-1">Walk Recap & Feedback</h1>
+    {% endif %}
     <p style="color: var(--brand-sky); font-size: 1.05rem;">
       You explored <strong>{{ route.name }}</strong> ({{ route.formatted_distance }} • {{ route.formatted_duration }}).
     </p>

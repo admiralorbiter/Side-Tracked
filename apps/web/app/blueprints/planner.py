@@ -191,7 +191,11 @@ def results():
 
     service = PlanLoopPreview()
     menu_result = service.execute(loop_req)
-    plan_id = RoutePlanRepository.save_plan(menu_result.routes)
+    plan_id = RoutePlanRepository.save_plan(
+        menu_result.routes,
+        loop_request=loop_req,
+        routing_provenance={"source": menu_result.source, "warning": menu_result.warning},
+    )
 
     if request.headers.get("HX-Request"):
         resp = make_response(
@@ -221,6 +225,7 @@ from apps.web.app.services import (
     GetRouteDetail,
     WalkFeedbackRepository,
 )
+from datetime import datetime, timezone
 
 
 @planner_bp.route("/plans/<plan_id>/routes/<route_id>")
@@ -242,10 +247,15 @@ def route_detail(plan_id: str, route_id: str):
 
 @planner_bp.route("/plans/<plan_id>/routes/<route_id>/walk")
 def route_walk(plan_id: str, route_id: str):
-    """Step 8: Plan-scoped active Walk Mode with glanceable Habitat Radar."""
+    """Step 8: Plan-scoped active Walk Mode with glanceable Habitat Radar and WalkSession lifecycle."""
     route = _resolve_route_with_fallback(plan_id, route_id)
     if not route:
         return render_template("errors/404.html"), 404
+
+    # Start or retrieve active WalkSession
+    walk_session = WalkFeedbackRepository.start_session(plan_id, route_id)
+    session["active_walk_session"] = walk_session
+
     field_pack = BuildFieldPack().execute(route)
     habitat_radar = BuildHabitatRadar().execute(route)
     quiet_mode = session.get("quiet_mode", False)
@@ -256,15 +266,30 @@ def route_walk(plan_id: str, route_id: str):
         habitat_radar=habitat_radar,
         plan_id=plan_id,
         quiet_mode=quiet_mode,
+        walk_session_id=walk_session.get("session_id"),
     )
 
 
 @planner_bp.route("/plans/<plan_id>/routes/<route_id>/recap")
 def route_recap(plan_id: str, route_id: str):
-    """Step 9: Plan-scoped walk recap."""
+    """Step 9: Plan-scoped walk recap with WalkSession duration and outcome context."""
     route = _resolve_route_with_fallback(plan_id, route_id)
     if not route:
         return render_template("errors/404.html"), 404
+
+    active_session = session.get("active_walk_session")
+    actual_duration = None
+    outcome_override = request.args.get("outcome")
+
+    if active_session and active_session.get("plan_id") == plan_id and active_session.get("route_id") == route_id:
+        try:
+            started = datetime.fromisoformat(active_session["started_at"])
+            now = datetime.now(timezone.utc)
+            elapsed_minutes = max(1, round((now - started).total_seconds() / 60))
+            actual_duration = elapsed_minutes
+        except Exception:
+            pass
+
     field_pack = BuildFieldPack().execute(route)
     saved_feedback = WalkFeedbackRepository.get_feedback_for_plan(plan_id, route_id)
     return render_template(
@@ -273,12 +298,14 @@ def route_recap(plan_id: str, route_id: str):
         field_pack=field_pack,
         plan_id=plan_id,
         saved_feedback=saved_feedback,
+        actual_duration=actual_duration or route.duration_minutes,
+        outcome=outcome_override or (saved_feedback[0]["outcome"] if saved_feedback else "completed"),
     )
 
 
 @planner_bp.route("/plans/<plan_id>/routes/<route_id>/feedback", methods=["POST"])
 def route_feedback(plan_id: str, route_id: str):
-    """Save versioned user walk observation feedback."""
+    """Save versioned user walk observation feedback linked to WalkSession."""
     route = _resolve_route_with_fallback(plan_id, route_id)
     if not route:
         return render_template("errors/404.html"), 404
@@ -288,6 +315,12 @@ def route_feedback(plan_id: str, route_id: str):
 
     duration_raw = request.form.get("actual_duration")
     duration_minutes = int(duration_raw) if duration_raw and duration_raw.isdigit() else route.duration_minutes
+
+    active_session = session.get("active_walk_session")
+    walk_session_id = None
+    if active_session and active_session.get("plan_id") == plan_id and active_session.get("route_id") == route_id:
+        walk_session_id = active_session.get("session_id")
+        WalkFeedbackRepository.finish_session(walk_session_id, outcome=outcome, last_segment_index=len(route.segments))
 
     field_pack = BuildFieldPack().execute(route)
     observations = {}
@@ -315,6 +348,7 @@ def route_feedback(plan_id: str, route_id: str):
             observations=observations,
             duration_minutes=duration_minutes,
             notes=notes,
+            walk_session_id=walk_session_id,
             evidence_eligibility="user_recall_only",
         )
     except Exception as e:
