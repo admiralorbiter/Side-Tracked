@@ -6,7 +6,7 @@
 <div class="card" style="max-width: 700px; margin: 0 auto;" x-data="{ currentSegment: 0 }">
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
     <span class="route-badge badge-birdy">Walk Mode Active</span>
-    <a href="{{ url_for('routes.detail', route_id=route.id) }}" class="btn btn-secondary" style="font-size: 0.85rem;">Pause Walk</a>
+    <a href="{% if plan_id %}{{ url_for('planner.route_detail', plan_id=plan_id, route_id=route.id) }}{% else %}{{ url_for('routes.detail', route_id=route.id) }}{% endif %}" class="btn btn-secondary" style="font-size: 0.85rem;">Pause Walk</a>
   </div>
 
   <h1 style="font-size: 2rem; font-weight: 800; margin-bottom: 0.25rem;" tabindex="-1">{{ route.name }}</h1>
@@ -50,7 +50,7 @@
         Next Leg →
       </button>
 
-      <a href="{{ url_for('routes.recap', route_id=route.id) }}" x-show="currentSegment === {{ route.segments|length - 1 }}" class="btn btn-primary">
+      <a href="{% if plan_id %}{{ url_for('planner.route_recap', plan_id=plan_id, route_id=route.id) }}{% else %}{{ url_for('routes.recap', route_id=route.id) }}{% endif %}" x-show="currentSegment === {{ route.segments|length - 1 }}" class="btn btn-primary">
         Finish Walk & View Recap ✨
       </a>
     </div>

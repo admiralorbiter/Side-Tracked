@@ -18,11 +18,20 @@ class GetRouteDetail:
 
     def execute(self, route_id: str) -> RouteOption | None:
         """Retrieve distinct route option or None if not found."""
+        from apps.web.app.services.planner_service import RoutePlanRepository
+
         clean_id = route_id.lower().strip()
+        # First check plan repository for plan-scoped routes across all active plans
+        for plan_routes in RoutePlanRepository._plans.values():
+            for r in plan_routes:
+                if r.id == clean_id:
+                    return r
+
         if current_app and "active_routes" in current_app.extensions:
             active: RouteOption | None = current_app.extensions["active_routes"].get(clean_id)
             if active and isinstance(active, RouteOption):
                 return active
+
         return ALL_FIXTURE_ROUTES.get(clean_id)
 
 

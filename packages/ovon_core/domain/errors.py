@@ -29,3 +29,9 @@ class TaxonNotFoundError(DomainError):
     """Raised when a species identifier cannot be resolved to a canonical TaxonRef."""
 
     pass
+
+
+class NoFeasibleLoopError(DomainError):
+    """Raised when candidate generator finds no budget-compliant loops for a request."""
+
+    pass

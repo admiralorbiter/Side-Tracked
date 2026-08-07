@@ -2,6 +2,7 @@ import re
 
 from flask import Blueprint, current_app, make_response, render_template, request, session
 
+from apps.web.app.services import BuildFieldPack, GetRouteDetail
 from apps.web.app.services.planner_service import PlanLoopPreview, RoutePlanRepository
 from packages.ovon_core.domain import (
     Coordinate,
@@ -33,7 +34,6 @@ def _resolve_origin_coordinate(origin_str: str) -> tuple[Coordinate, str]:
     if not clean_str:
         return DEFAULT_COORDINATE, "Loose Park, Kansas City, MO"
 
-    # Check Preset catalog
     clean_lower = clean_str.lower()
     for p_id, p in PRESETS_BY_ID.items():
         if (
@@ -43,7 +43,6 @@ def _resolve_origin_coordinate(origin_str: str) -> tuple[Coordinate, str]:
         ):
             return p.coordinate, f"{p.name}, {p.city_state}"
 
-    # Check Current Location pattern: "Current Location (39.0347, -94.5906)"
     coords_match = re.search(r"Current Location \((-?\d+\.\d+),\s*(-?\d+\.\d+)\)", clean_str)
     if coords_match:
         try:
@@ -55,7 +54,6 @@ def _resolve_origin_coordinate(origin_str: str) -> tuple[Coordinate, str]:
         except ValueError:
             pass
 
-    # Attempt Nominatim Geocoding via application extension
     geocoder: GeocoderProvider | None = None
     if current_app and "geocoder_provider" in current_app.extensions:
         geocoder = current_app.extensions["geocoder_provider"]
@@ -65,7 +63,6 @@ def _resolve_origin_coordinate(origin_str: str) -> tuple[Coordinate, str]:
     if geocoder:
         res = geocoder.geocode(clean_str)
         if res and is_within_kc_pilot_bounds(res.coordinate):
-            # Privacy Scrub: Extract coarse city/park name rather than exact street address
             clean_display = res.display_name.split(",")[0].strip()
             return res.coordinate, clean_display
 
@@ -73,6 +70,22 @@ def _resolve_origin_coordinate(origin_str: str) -> tuple[Coordinate, str]:
         f"We couldn't find a supported location for '{clean_str}' within the Kansas City pilot area. "
         "Please try a park name (e.g. Loose Park, Swope Park) or select a park preset."
     )
+
+
+def _resolve_route_with_fallback(plan_id: str, route_id: str):
+    """Resolve RouteOption by plan_id, with robust fallback to GetRouteDetail if plan expired."""
+    route = RoutePlanRepository.get_route(plan_id, route_id)
+    if route:
+        return route
+
+    detail_service = GetRouteDetail()
+    route = detail_service.execute(route_id)
+    if route:
+        return route
+
+    # Fallback to persona prefix (e.g. birdy-2 -> birdy-1)
+    prefix = route_id.split("-")[0] + "-1"
+    return detail_service.execute(prefix)
 
 
 @planner_bp.route("/")
@@ -216,12 +229,34 @@ def results():
 @planner_bp.route("/plans/<plan_id>/routes/<route_id>")
 def route_detail(plan_id: str, route_id: str):
     """Step 6: Plan-scoped route detail view."""
-    from apps.web.app.services import BuildFieldPack
-
-    route = RoutePlanRepository.get_route(plan_id, route_id)
+    route = _resolve_route_with_fallback(plan_id, route_id)
     if not route:
         return render_template("errors/404.html"), 404
     field_pack = BuildFieldPack().execute(route)
     return render_template(
         "routes/detail.html", route=route, field_pack=field_pack, plan_id=plan_id
+    )
+
+
+@planner_bp.route("/plans/<plan_id>/routes/<route_id>/walk")
+def route_walk(plan_id: str, route_id: str):
+    """Step 8: Plan-scoped active Walk Mode."""
+    route = _resolve_route_with_fallback(plan_id, route_id)
+    if not route:
+        return render_template("errors/404.html"), 404
+    field_pack = BuildFieldPack().execute(route)
+    return render_template(
+        "routes/in_route.html", route=route, field_pack=field_pack, plan_id=plan_id
+    )
+
+
+@planner_bp.route("/plans/<plan_id>/routes/<route_id>/recap")
+def route_recap(plan_id: str, route_id: str):
+    """Step 9: Plan-scoped walk recap."""
+    route = _resolve_route_with_fallback(plan_id, route_id)
+    if not route:
+        return render_template("errors/404.html"), 404
+    field_pack = BuildFieldPack().execute(route)
+    return render_template(
+        "routes/recap.html", route=route, field_pack=field_pack, plan_id=plan_id
     )

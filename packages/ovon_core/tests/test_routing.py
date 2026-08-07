@@ -115,7 +115,7 @@ def test_calculate_loop_returns_valid_budget_compliant_result():
     for cand in result.candidates:
         assert cand.duration_minutes > 0
         assert cand.distance_meters > 0
-        assert req.duration_minutes * 0.40 <= cand.duration_minutes <= req.duration_minutes * 1.25
+        assert req.duration_minutes * 0.80 <= cand.duration_minutes <= req.duration_minutes * 1.05
         assert "LineString" in cand.geojson_geometry["type"]
         assert len(cand.geojson_geometry["coordinates"]) >= 3
 

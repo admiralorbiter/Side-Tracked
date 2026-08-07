@@ -55,34 +55,35 @@ function initSidetrackMap() {
 
       map.fitBounds(mainLayer.getBounds(), { padding: [40, 40] });
 
-      // Interactive timeline segment hover & focus highlighting
+      // Interactive timeline segment hover & focus highlighting using segment-specific GeoJSON
       const segmentCards = document.querySelectorAll('.timeline-segment-card');
       let highlightLayer = null;
 
       segmentCards.forEach((card) => {
         const highlightSegment = () => {
-          const idx = parseInt(card.getAttribute('data-segment-index') || '0', 10);
+          const segGeojsonRaw = card.getAttribute('data-segment-geojson');
           mainLayer.setStyle({ opacity: 0.35, weight: 4 });
 
           if (highlightLayer) {
             map.removeLayer(highlightLayer);
           }
 
-          // Compute sliced sub-coordinates for active leg highlight
-          const totalPoints = coords.length;
-          const midPoint = Math.floor(totalPoints / 2);
-          const subCoords = idx === 0 ? coords.slice(0, midPoint + 1) : coords.slice(midPoint);
-
-          highlightLayer = L.polyline(
-            subCoords.map((c) => [c[1], c[0]]),
-            {
-              color: '#38bdf8',
-              weight: 8,
-              opacity: 1.0,
-              lineCap: 'round',
-              lineJoin: 'round'
+          if (segGeojsonRaw && segGeojsonRaw.trim()) {
+            try {
+              const segGeojson = JSON.parse(segGeojsonRaw);
+              highlightLayer = L.geoJSON(segGeojson, {
+                style: {
+                  color: '#38bdf8',
+                  weight: 8,
+                  opacity: 1.0,
+                  lineCap: 'round',
+                  lineJoin: 'round'
+                }
+              }).addTo(map);
+            } catch (err) {
+              console.warn('Could not parse segment GeoJSON:', err);
             }
-          ).addTo(map);
+          }
         };
 
         const resetHighlight = () => {

@@ -16,6 +16,7 @@ except Exception:
 import igraph as ig
 
 from packages.ovon_core.domain import Coordinate, LoopRequest, RoutePersona, TaxonRef
+from packages.ovon_core.domain.errors import NoFeasibleLoopError
 from packages.ovon_core.ecology import HabitatType, ProvisionalSpeciesSurface
 from packages.ovon_core.routing.cache import DEFAULT_MAX_BUDGET_RADIUS_METERS, GraphCacheManager
 from packages.ovon_core.routing.provider import (
@@ -29,6 +30,10 @@ from packages.ovon_core.spatial import lat_lng_to_h3_cell, polyline_to_h3_cells
 # Standard pedestrian walking speed: 1.25 m/s (~4.5 km/h)
 DEFAULT_WALK_SPEED_MPS = 1.25
 
+# Strict time budget ratio bounds (0.80B <= T(R) <= 1.05B)
+MIN_BUDGET_RATIO = 0.80
+MAX_BUDGET_RATIO = 1.05
+
 
 def calculate_jaccard_edge_overlap(epath_a: list[int], epath_b: list[int]) -> float:
     """Calculate Jaccard edge overlap coefficient between two candidate edge paths."""
@@ -41,15 +46,15 @@ def calculate_jaccard_edge_overlap(epath_a: list[int], epath_b: list[int]) -> fl
 def calculate_repeated_edge_ratio(
     edge_sequence: list[tuple[int, int, int]], G_nx: nx.MultiDiGraph
 ) -> float:
-    """Calculate self-backtracking metric B(R) = length traversed more than once / total route length."""
+    """Calculate self-backtracking metric B(R) = sum(max(0, n_e - 1) * L_e) / L_total."""
     if not edge_sequence:
         return 0.0
 
-    edge_counts: dict[tuple[int, int, int], int] = {}
+    edge_counts: dict[tuple[int, int], int] = {}
     total_len = 0.0
 
     for u, v, k in edge_sequence:
-        canonical_edge = (min(u, v), max(u, v), k)
+        canonical_edge = (min(u, v), max(u, v))
         edge_counts[canonical_edge] = edge_counts.get(canonical_edge, 0) + 1
         if G_nx.has_edge(u, v, key=k):
             total_len += float(G_nx[u][v][k].get("length", 100.0))
@@ -61,12 +66,14 @@ def calculate_repeated_edge_ratio(
 
     repeated_len = 0.0
     for u, v, k in edge_sequence:
-        canonical_edge = (min(u, v), max(u, v), k)
-        if edge_counts[canonical_edge] > 1:
-            if G_nx.has_edge(u, v, key=k):
-                repeated_len += float(G_nx[u][v][k].get("length", 100.0))
-            else:
-                repeated_len += 100.0
+        canonical_edge = (min(u, v), max(u, v))
+        count = edge_counts[canonical_edge]
+        if count > 1:
+            edge_len = (
+                float(G_nx[u][v][k].get("length", 100.0)) if G_nx.has_edge(u, v, key=k) else 100.0
+            )
+            # Count only excess traversals beyond the first
+            repeated_len += ((count - 1) / float(count)) * edge_len
 
     return repeated_len / total_len
 
@@ -79,7 +86,7 @@ def calculate_spatial_corridor_overlap(
         coords_a = geom_a.get("coordinates", [])
         coords_b = geom_b.get("coordinates", [])
         if len(coords_a) < 2 or len(coords_b) < 2:
-            return 0.0, 0.0
+            return 1.0, 1.0
 
         line_a = LineString(coords_a)
         line_b = LineString(coords_b)
@@ -92,7 +99,7 @@ def calculate_spatial_corridor_overlap(
         union_area = buf_a.union(buf_b).area
 
         if union_area <= 0:
-            return 0.0, 0.0
+            return 1.0, 1.0
 
         s_iou = inter_area / union_area
         min_area = min(buf_a.area, buf_b.area)
@@ -100,7 +107,8 @@ def calculate_spatial_corridor_overlap(
 
         return s_iou, s_contain
     except Exception:
-        return 0.0, 0.0
+        # Invalid geometry should be rejected, not treated as 100% distinct
+        return 1.0, 1.0
 
 
 def reconstruct_leg_geometry_and_metrics(
@@ -113,7 +121,7 @@ def reconstruct_leg_geometry_and_metrics(
     leg_index: int,
     origin_name: str,
 ) -> tuple[dict, float, float, str, str]:
-    """Reconstruct exact GeoJSON sub-LineString, distance, duration, dominant trail name, and turn instruction for a leg."""
+    """Reconstruct exact GeoJSON sub-LineString, distance, duration, dominant trail name, and route note for a leg."""
     coords_list: list[list[float]] = []
     leg_dist = 0.0
     names: list[str] = []
@@ -159,11 +167,9 @@ def reconstruct_leg_geometry_and_metrics(
     if leg_index == 1:
         instruction = f"Depart {origin_name} heading along {dominant_name} ({dist_str})."
     elif leg_index == 2:
-        instruction = (
-            f"Bear right onto {dominant_name}, following central canopy path ({dist_str})."
-        )
+        instruction = f"Continue onto {dominant_name}, following central canopy path ({dist_str})."
     else:
-        instruction = f"Turn onto {dominant_name}, looping back to {origin_name} ({dist_str})."
+        instruction = f"Follow {dominant_name}, looping back to {origin_name} ({dist_str})."
 
     sub_geom = {
         "type": "LineString",
@@ -249,7 +255,7 @@ class OSMnxIgraphRoutingProvider(RoutingProvider):
         return G_ig, node_to_idx, idx_to_node, node_coords, ig_edge_to_nx_key
 
     def calculate_loop(self, request: LoopRequest) -> RoutingResult:
-        """Generate 3 closed walking loop candidates (Easy, Birdy, Weird/Scenic) using candidate pool selection."""
+        """Generate closed walking loop candidates using strict budget ratio enforcement and spatial diversity."""
         target_time_seconds = request.duration_minutes * 60.0
         target_dist_meters = target_time_seconds * DEFAULT_WALK_SPEED_MPS
 
@@ -279,11 +285,12 @@ class OSMnxIgraphRoutingProvider(RoutingProvider):
             (3.0 * math.pi / 2.0, 0.0),
             (7.0 * math.pi / 4.0, math.pi / 4.0),
         ]
-        radius_factors = [0.25, 0.40, 0.55, 0.70]
+        radius_factors = [0.8, 1.1, 1.4, 1.7, 2.0, 2.3]
 
         cardinal = TaxonRef.create("Northern Cardinal", "Cardinalis cardinalis", "norcar")
-        min_budget_min = request.duration_minutes * 0.40
-        max_budget_min = request.duration_minutes * 1.25
+        # Strict time-budget bounds (0.80B <= T(R) <= 1.05B)
+        min_budget_min = request.duration_minutes * MIN_BUDGET_RATIO
+        max_budget_min = request.duration_minutes * MAX_BUDGET_RATIO
 
         for angle1, angle2 in cardinal_bearings:
             for radius_factor in radius_factors:
@@ -379,6 +386,7 @@ class OSMnxIgraphRoutingProvider(RoutingProvider):
                     continue
 
                 calc_dur_min = int(round((total_dist / DEFAULT_WALK_SPEED_MPS) / 60.0))
+                # Strict budget ratio check
                 if not (min_budget_min <= calc_dur_min <= max_budget_min):
                     continue
 
@@ -387,8 +395,13 @@ class OSMnxIgraphRoutingProvider(RoutingProvider):
                     + leg2_geom["coordinates"][1:]
                     + leg3_geom["coordinates"][1:]
                 )
-                if all_coords[0] != all_coords[-1]:
-                    all_coords.append(all_coords[0])
+
+                # Validate closed-loop geometry: reject if start/end separation > 25m
+                start_coord = Coordinate(all_coords[0][1], all_coords[0][0])
+                end_coord = Coordinate(all_coords[-1][1], all_coords[-1][0])
+                closure_error_m = start_coord.haversine_distance_meters(end_coord)
+                if closure_error_m > 25.0:
+                    continue
 
                 geojson_geom = {
                     "type": "LineString",
@@ -453,27 +466,11 @@ class OSMnxIgraphRoutingProvider(RoutingProvider):
 
                 candidate_pool.append(candidate)
 
+        # Do not manufacture straight-line dummy geometries. Raise NoFeasibleLoopError if pool is empty.
         if not candidate_pool:
-            dummy_geom = {
-                "type": "LineString",
-                "coordinates": [
-                    [request.origin.longitude, request.origin.latitude],
-                    [request.origin.longitude + 0.002, request.origin.latitude + 0.002],
-                    [request.origin.longitude, request.origin.latitude],
-                ],
-            }
-            cand = LoopRouteCandidate(
-                persona=RoutePersona.EASY,
-                name="The Easy One",
-                tagline="Shortest closed loop",
-                duration_minutes=request.duration_minutes,
-                distance_meters=round(target_dist_meters, 1),
-                badge_label="Lowest Effort",
-                tradeoff_description="Lowest physical effort",
-                geojson_geometry=dummy_geom,
-                waypoints=(request.origin, request.origin),
+            raise NoFeasibleLoopError(
+                f"No budget-compliant walking loop candidates found for origin '{request.origin_name}' and duration {request.duration_minutes} min."
             )
-            candidate_pool.append(cand)
 
         easy_cand = min(
             candidate_pool,
@@ -485,11 +482,11 @@ class OSMnxIgraphRoutingProvider(RoutingProvider):
         easy_opt = LoopRouteCandidate(
             persona=RoutePersona.EASY,
             name="The Easy One",
-            tagline="Shortest closed loop with low complexity",
+            tagline="Shortest closed loop matching target walk time",
             duration_minutes=easy_cand.duration_minutes,
             distance_meters=easy_cand.distance_meters,
             badge_label="Lowest Effort",
-            tradeoff_description="Lowest physical effort and simplest navigation path",
+            tradeoff_description="Closest fit to requested walk time with shortest total distance",
             geojson_geometry=easy_cand.geojson_geometry,
             waypoints=easy_cand.waypoints,
             segment_metrics=easy_cand.segment_metrics,
@@ -509,19 +506,6 @@ class OSMnxIgraphRoutingProvider(RoutingProvider):
             if s_iou <= 0.45 and s_contain <= 0.60:
                 birdy_candidates.append(c)
 
-        if not birdy_candidates:
-            other_cands = [c for c in candidate_pool if c != easy_cand]
-            if other_cands:
-                birdy_candidates = [
-                    min(
-                        other_cands,
-                        key=lambda c: calculate_spatial_corridor_overlap(
-                            c.geojson_geometry, easy_opt.geojson_geometry, buffer_meters=75.0
-                        )[1],
-                    )
-                ]
-
-        best_birdy_raw = None
         if birdy_candidates:
             best_birdy = max(
                 birdy_candidates,
@@ -530,7 +514,6 @@ class OSMnxIgraphRoutingProvider(RoutingProvider):
                     -abs(c.duration_minutes - request.duration_minutes),
                 ),
             )
-            best_birdy_raw = best_birdy
             birdy_opt = LoopRouteCandidate(
                 persona=RoutePersona.BIRDY,
                 name="The Birdy One",
@@ -549,6 +532,7 @@ class OSMnxIgraphRoutingProvider(RoutingProvider):
             )
             selected_candidates.append(birdy_opt)
 
+        # Do not force a 3rd route if spatial diversity thresholds fail against both Easy & Birdy
         weird_candidates = []
         for c in candidate_pool:
             is_distinct = True
@@ -561,19 +545,6 @@ class OSMnxIgraphRoutingProvider(RoutingProvider):
                     break
             if is_distinct:
                 weird_candidates.append(c)
-
-        if not weird_candidates:
-            used_raw = [easy_cand] + ([best_birdy_raw] if best_birdy_raw else [])
-            other_cands = [c for c in candidate_pool if c not in used_raw]
-            if other_cands:
-                weird_candidates = [
-                    min(
-                        other_cands,
-                        key=lambda c: calculate_spatial_corridor_overlap(
-                            c.geojson_geometry, easy_opt.geojson_geometry, buffer_meters=75.0
-                        )[1],
-                    )
-                ]
 
         if weird_candidates:
             best_weird = max(
