@@ -98,8 +98,16 @@ class RealEnvironmentalFeatureExtractor:
 
         self.manifest = json.loads(self.manifest_path.read_text(encoding="utf-8"))
 
-        self.canopy_path = self.raw_spatial_dir / "nlcd" / "canopy_2023.tif"
-        self.impervious_path = self.raw_spatial_dir / "nlcd" / "impervious_2025.tif"
+        canopy_p = self.raw_spatial_dir / "nlcd" / "canopy_2021.tif"
+        if not canopy_p.exists():
+            canopy_p = self.raw_spatial_dir / "nlcd" / "canopy_2023.tif"
+        self.canopy_path = canopy_p
+
+        impervious_p = self.raw_spatial_dir / "nlcd" / "impervious_2021.tif"
+        if not impervious_p.exists():
+            impervious_p = self.raw_spatial_dir / "nlcd" / "impervious_2025.tif"
+        self.impervious_path = impervious_p
+
         self.dem_path = self.raw_spatial_dir / "3dep" / "dem_10m.tif"
         self.hydro_path = self.raw_spatial_dir / "3dhp" / "hydrography.geojson"
 

@@ -6,8 +6,10 @@ from packages.ovon_core.domain.environmental_vector import create_default_enviro
 from packages.ovon_core.domain.prediction import (
     CalibratedSpeciesPrediction,
     JointOccupancyDetectabilityPrediction,
+    PredictionProvenance,
     RoutePredictionSummary,
 )
+
 from packages.ovon_core.domain.route import RouteOption
 from packages.ovon_core.modeling.effort import EffortProtocolVector
 from packages.ovon_core.modeling.joint_model import JointOccupancyDetectabilityModel
@@ -91,9 +93,16 @@ class JointModelService:
                     "solar_altitude_degrees": effort.sun_altitude_degrees,
                 }
                 joint_p = empirical_artifact.predict_probability(feat_dict)
-                avg_psi = round(joint_p * 0.9, 3)
-                avg_p = round(joint_p / max(0.01, avg_psi), 3) if avg_psi > 0 else joint_p
-                provenance = f"Empirical Model v{empirical_artifact.model_version} ({empirical_artifact.status})"
+                avg_psi = joint_p
+                avg_p = 1.0
+                prov_obj = PredictionProvenance(
+                    model_id=f"empirical_logistic_{concept_id.split(':')[-1]}",
+                    model_version=empirical_artifact.model_version,
+                    training_cutoff_date="2026-08-01",
+                    calibration_status=empirical_artifact.status,
+                    brier_score=empirical_artifact.brier_score,
+                    ece_score=empirical_artifact.ece,
+                )
                 promoted_count += 1
             else:
                 psis = [heuristic_model.predict_occupancy(v) for v in seg_vecs]
@@ -102,7 +111,7 @@ class JointModelService:
                 avg_psi = sum(psis) / len(psis)
                 avg_p = sum(ps) / len(ps)
                 joint_p = max(0.01, min(0.99, avg_psi * avg_p))
-                provenance = heuristic_model.occupancy_model.get_provenance()
+                prov_obj = heuristic_model.occupancy_model.get_provenance()
 
             tier = "high" if joint_p >= 0.50 else ("medium" if joint_p >= 0.25 else "low")
 
@@ -114,11 +123,11 @@ class JointModelService:
                     encounter_probability=round(joint_p, 3),
                     relative_opportunity_score=round(avg_psi, 3),
                     confidence_tier=tier,
-                    provenance=provenance,
+                    provenance=prov_obj,
                 )
             )
 
-            breakdown = f"Habitat Quality: {avg_psi*100:.1f}% • Time & Effort Detectability: {avg_p*100:.1f}% ({effort.survey_duration_minutes:.0f}m walk at {effort.sun_altitude_degrees:.1f}° real-time sun angle)"
+            breakdown = f"Empirical Encounter Model: {joint_p*100:.1f}% ({effort.survey_duration_minutes:.0f}m walk at {effort.sun_altitude_degrees:.1f}° real-time sun angle)"
 
             joint_predictions.append(
                 JointOccupancyDetectabilityPrediction(
@@ -129,7 +138,7 @@ class JointModelService:
                     observer_detectability=round(avg_p, 3),
                     joint_encounter_probability=round(joint_p, 3),
                     detectability_breakdown=breakdown,
-                    provenance=provenance,
+                    provenance=prov_obj,
                 )
             )
 

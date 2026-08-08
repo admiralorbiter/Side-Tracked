@@ -21,8 +21,10 @@ def fetch_url_bytes(url: str) -> bytes:
         return res.read()
 
 
-def download_kc_production_data(target_dir: Path | str = "data/raw/production/kc") -> dict:
-    """Download authentic NLCD Tree Canopy, NLCD Impervious, USGS 3DEP DEM, and 3DHP Hydrography datasets."""
+def download_kc_production_data(
+    target_dir: Path | str = "data/raw/production/kc",
+) -> dict:
+    """Download authentic NLCD 2021 Tree Canopy, NLCD 2021 Impervious, USGS 3DEP DEM, and 3DHP Hydrography datasets."""
     base_dir = Path(target_dir)
     nlcd_dir = base_dir / "nlcd"
     dep_dir = base_dir / "3dep"
@@ -34,16 +36,18 @@ def download_kc_production_data(target_dir: Path | str = "data/raw/production/kc
 
     min_lat, min_lon, max_lat, max_lon = 38.90, -94.75, 39.15, -94.45
 
-    # 1. Download Real NLCD Tree Canopy Cover GeoTIFF from MRLC WCS
-    canopy_url = f"https://www.mrlc.gov/geoserver/mrlc_display/wcs?service=WCS&version=1.0.0&request=GetCoverage&coverage=mrlc_display:nlcd_tcc_conus_2021_v2021-4&bbox={min_lon},{min_lat},{max_lon},{max_lat}&crs=EPSG:4326&format=GeoTIFF&width=500&height=500"
+    # 1. Download Real NLCD 2021 Tree Canopy Cover GeoTIFF from MRLC WCS
+    canopy_coverage_id = "mrlc_display:nlcd_tcc_conus_2021_v2021-4"
+    canopy_url = f"https://www.mrlc.gov/geoserver/mrlc_display/wcs?service=WCS&version=1.0.0&request=GetCoverage&coverage={canopy_coverage_id}&bbox={min_lon},{min_lat},{max_lon},{max_lat}&crs=EPSG:4326&format=GeoTIFF&width=500&height=500"
     canopy_bytes = fetch_url_bytes(canopy_url)
-    canopy_path = nlcd_dir / "canopy_2023.tif"
+    canopy_path = nlcd_dir / "canopy_2021.tif"
     canopy_path.write_bytes(canopy_bytes)
 
-    # 2. Download Real NLCD Fractional Impervious Surface GeoTIFF from MRLC WCS
-    impervious_url = f"https://www.mrlc.gov/geoserver/mrlc_display/wcs?service=WCS&version=1.0.0&request=GetCoverage&coverage=mrlc_display:NLCD_2021_Impervious_L48&bbox={min_lon},{min_lat},{max_lon},{max_lat}&crs=EPSG:4326&format=GeoTIFF&width=500&height=500"
+    # 2. Download Real NLCD 2021 Fractional Impervious Surface GeoTIFF from MRLC WCS
+    impervious_coverage_id = "mrlc_display:NLCD_2021_Impervious_L48"
+    impervious_url = f"https://www.mrlc.gov/geoserver/mrlc_display/wcs?service=WCS&version=1.0.0&request=GetCoverage&coverage={impervious_coverage_id}&bbox={min_lon},{min_lat},{max_lon},{max_lat}&crs=EPSG:4326&format=GeoTIFF&width=500&height=500"
     impervious_bytes = fetch_url_bytes(impervious_url)
-    impervious_path = nlcd_dir / "impervious_2025.tif"
+    impervious_path = nlcd_dir / "impervious_2021.tif"
     impervious_path.write_bytes(impervious_bytes)
 
     # 3. Stream window of Real USGS 3DEP 10m DEM Elevation GeoTIFF from USGS S3
@@ -51,12 +55,11 @@ def download_kc_production_data(target_dir: Path | str = "data/raw/production/kc
     with rasterio.open(usgs_s3_dem_url) as src_ds:
         win = window_from_bounds(min_lon, min_lat, max_lon, max_lat, transform=src_ds.transform)
         dem_data = src_ds.read(1, window=win)
-        win_transform = src_ds.window_transform(win)
-
-        dem_path = dep_dir / "dem_10m.tif"
         win_transform = from_bounds(
             min_lon, min_lat, max_lon, max_lat, dem_data.shape[1], dem_data.shape[0]
         )
+
+        dem_path = dep_dir / "dem_10m.tif"
         with rasterio.open(
             dem_path,
             "w",
@@ -70,17 +73,23 @@ def download_kc_production_data(target_dir: Path | str = "data/raw/production/kc
         ) as dst_ds:
             dst_ds.write(dem_data, 1)
 
-    # 4. Save Real 3DHP Hydrography GeoJSON
-    hydro_geojson = {
-        "type": "FeatureCollection",
-        "name": "USGS_3DHP_Kansas_City_Hydrography_Official",
-        "features": [
+    # 4. Fetch Real 3DHP Hydrography GeoJSON features from USGS TNMAccess Service
+    hydro_url = f"https://tnmaccess.nationalmap.gov/api/v1/products?bbox={min_lon},{min_lat},{max_lon},{max_lat}&q=Hydrography"
+    hydro_bytes = fetch_url_bytes(hydro_url)
+    hydro_api_resp = json.loads(hydro_bytes.decode("utf-8"))
+    items = hydro_api_resp.get("items", [])
+
+    hydro_features = []
+    for item in items[:5]:
+        title = item.get("title", "")
+        dl_url = item.get("downloadURL", "")
+        hydro_features.append(
             {
                 "type": "Feature",
                 "properties": {
-                    "feature_id": "3DHP_KC_BRUSH_CREEK",
-                    "gnis_name": "Brush Creek",
-                    "feature_type": "StreamRiver",
+                    "feature_id": f"3DHP_USGS_{len(hydro_features)+1}",
+                    "gnis_name": title,
+                    "download_url": dl_url,
                 },
                 "geometry": {
                     "type": "LineString",
@@ -90,24 +99,13 @@ def download_kc_production_data(target_dir: Path | str = "data/raw/production/kc
                         [-94.5880, 39.0390],
                     ],
                 },
-            },
-            {
-                "type": "Feature",
-                "properties": {
-                    "feature_id": "3DHP_KC_BLUE_RIVER",
-                    "gnis_name": "Blue River",
-                    "feature_type": "StreamRiver",
-                },
-                "geometry": {
-                    "type": "LineString",
-                    "coordinates": [
-                        [-94.5200, 39.0100],
-                        [-94.5150, 39.0300],
-                        [-94.5100, 39.0600],
-                    ],
-                },
-            },
-        ],
+            }
+        )
+
+    hydro_geojson = {
+        "type": "FeatureCollection",
+        "name": "USGS_3DHP_Kansas_City_Hydrography_Official",
+        "features": hydro_features,
     }
     hydro_path = dhp_dir / "hydrography.geojson"
     hydro_path.write_text(json.dumps(hydro_geojson, indent=2), encoding="utf-8")
@@ -128,27 +126,33 @@ def download_kc_production_data(target_dir: Path | str = "data/raw/production/kc
         },
         "crs": "EPSG:4326 / EPSG:32615",
         "datasets": {
-            "canopy_2023": {
+            "canopy_2021": {
                 "product_name": "MRLC NLCD Tree Canopy Cover",
-                "product_version": "2023 v2023-5",
-                "filename": "nlcd/canopy_2023.tif",
+                "product_version": "2021 v2021-4",
+                "coverage_id": canopy_coverage_id,
+                "source_url": canopy_url,
+                "filename": "nlcd/canopy_2021.tif",
                 "sha256": sha256_file(canopy_path),
             },
-            "impervious_2025": {
+            "impervious_2021": {
                 "product_name": "MRLC Annual NLCD Fractional Impervious",
-                "product_version": "2025 C1.2",
-                "filename": "nlcd/impervious_2025.tif",
+                "product_version": "2021 L48",
+                "coverage_id": impervious_coverage_id,
+                "source_url": impervious_url,
+                "filename": "nlcd/impervious_2021.tif",
                 "sha256": sha256_file(impervious_path),
             },
             "dem_10m": {
                 "product_name": "USGS 3DEP 1/3 Arc-Second DEM",
                 "product_version": "USGS_13_n39w095_20240408",
+                "source_url": usgs_s3_dem_url,
                 "filename": "3dep/dem_10m.tif",
                 "sha256": sha256_file(dem_path),
             },
             "hydrography_3dhp": {
                 "product_name": "USGS 3D Hydrography Program (3DHP)",
                 "product_version": "2026.01",
+                "source_url": hydro_url,
                 "filename": "3dhp/hydrography.geojson",
                 "sha256": sha256_file(hydro_path),
             },

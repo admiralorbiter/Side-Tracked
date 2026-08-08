@@ -94,33 +94,48 @@ class RouteEvidenceService:
                 if vis != EvidenceVisibility.HIDDEN:
                     visible_occs.append(o)
 
-            if not visible_occs:
-                # Fail closed when no evidence provider is configured or no occurrences exist
-                species_evidence_list.append(
-                    SpeciesRouteEvidence(
-                        concept_id=concept_id,
-                        common_name=sp.common_name,
-                        scientific_name=sp.scientific_name,
-                        recent_reports_count=0,
-                        seasonal_reports_count=0,
-                        nearest_displayable_report=None,
-                        nearest_distance_m=None,
-                        distance_claim_allowed=False,
-                        eligible_checklist_count=0,
-                        checklist_detection_count=0,
-                        checklist_detection_rate=0.0,
-                        evidence_score=0.0,
-                        evidence_score_status="no_configured_evidence_provider",
-                        source_names=(),
-                        freshness_days=None,
-                        visibility_policy=EvidenceVisibility.COARSE_DISPLAY_ONLY,
-                        display_note="Historical checklist evidence pipeline not configured for this area.",
-                    )
-                )
-                historical_count += 1
-                continue
+            if visible_occs:
+                recent_count += 1
 
-            recent_count += 1
+            # Query historical checklist repository dynamically (independent of recent evidence!)
+            from packages.ovon_core.evidence.historical_repository import (
+                HistoricalChecklistRepository,
+            )
+
+            hist_repo = HistoricalChecklistRepository()
+            hist_events = hist_repo.query_sampling_events(bounding_box=bbox, complete_only=True)
+
+            # Cyclic week window filter (dT <= 2 weeks)
+            seasonal_events = [
+                e
+                for e in hist_events
+                if min(
+                    abs(getattr(e, "cyclic_week", cyclic_week) - cyclic_week),
+                    52 - abs(getattr(e, "cyclic_week", cyclic_week) - cyclic_week),
+                )
+                <= 2
+            ]
+            if not seasonal_events:
+                seasonal_events = hist_events
+
+            hist_obs = hist_repo.query_observations(
+                event_ids=[e.event_id for e in seasonal_events], concept_ids=[concept_id]
+            )
+
+            # Distinct checklist event detection count D
+            detection_event_ids = {obs.event_id for obs in hist_obs}
+            eligible_n = len(seasonal_events)
+            detection_d = len(detection_event_ids)
+
+            det_rate = (
+                calculate_beta_binomial_detection_rate(detection_d, eligible_n)
+                if eligible_n > 0
+                else 0.0
+            )
+            ev_score = round(det_rate * 0.9, 2) if eligible_n > 0 else 0.0
+
+            if eligible_n > 0:
+                historical_count += 1
 
             # Find nearest displayable occurrence and compute metric distance
             nearest_coord = None
@@ -142,31 +157,16 @@ class RouteEvidenceService:
                         nearest_coord = o.coordinate
                         dist_allowed = True
 
-            # Determine dominant visibility policy
-            primary_vis = self.visibility_policy.evaluate_visibility(visible_occs[0])
+            primary_vis = (
+                self.visibility_policy.evaluate_visibility(visible_occs[0])
+                if visible_occs
+                else EvidenceVisibility.COARSE_DISPLAY_ONLY
+            )
             note = ""
-            if not dist_allowed:
+            if visible_occs and not dist_allowed:
                 note = "Reported in broader area (obscured location)."
-
-            # Query historical checklist repository dynamically
-            from packages.ovon_core.evidence.historical_repository import (
-                HistoricalChecklistRepository,
-            )
-
-            hist_repo = HistoricalChecklistRepository()
-            hist_events = hist_repo.query_sampling_events(bounding_box=bbox, complete_only=True)
-            hist_obs = hist_repo.query_observations(
-                event_ids=[e.event_id for e in hist_events], concept_ids=[concept_id]
-            )
-
-            eligible_n = len(hist_events)
-            detection_k = len(hist_obs)
-            det_rate = (
-                calculate_beta_binomial_detection_rate(detection_k, eligible_n)
-                if eligible_n > 0
-                else 0.0
-            )
-            ev_score = round(det_rate * 0.9, 2) if eligible_n > 0 else 0.0
+            elif not visible_occs:
+                note = "Historical checklist evidence available; no recent nearby reports in last 30 days."
 
             species_evidence_list.append(
                 SpeciesRouteEvidence(
@@ -174,19 +174,27 @@ class RouteEvidenceService:
                     common_name=sp.common_name,
                     scientific_name=sp.scientific_name,
                     recent_reports_count=len(visible_occs),
-                    seasonal_reports_count=detection_k,
+                    seasonal_reports_count=detection_d,
                     nearest_displayable_report=nearest_coord,
                     nearest_distance_m=min_dist_m,
                     distance_claim_allowed=dist_allowed,
                     eligible_checklist_count=eligible_n,
-                    checklist_detection_count=detection_k,
+                    checklist_detection_count=detection_d,
                     checklist_detection_rate=det_rate,
                     evidence_score=ev_score,
-                    evidence_score_status="recent_reports_available"
-                    if eligible_n > 0
-                    else "historical_unavailable",
-                    source_names=tuple(sorted(sources)),
-                    freshness_days=round(min_freshness, 1),
+                    evidence_score_status="recent_and_historical_available"
+                    if (visible_occs and eligible_n > 0)
+                    else (
+                        "recent_reports_available"
+                        if visible_occs
+                        else (
+                            "historical_available" if eligible_n > 0 else "historical_unavailable"
+                        )
+                    ),
+                    source_names=tuple(sorted(sources))
+                    if sources
+                    else ("Historical eBird/SED Repository",),
+                    freshness_days=round(min_freshness, 1) if visible_occs else None,
                     visibility_policy=primary_vis,
                     display_note=note,
                 )

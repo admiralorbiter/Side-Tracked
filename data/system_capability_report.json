@@ -1,7 +1,7 @@
 {
   "system_name": "Sidetrack Ecological Backbone Capability Audit",
   "region": "Greater Kansas City Metro",
-  "generated_at": "2026-08-08T04:46:35Z",
+  "generated_at": "2026-08-08T05:12:46Z",
   "capability_summary": {
     "R1_R2_environmental_source_acquisition": "PASS",
     "R3_evidence_provider_normalization": "PASS",
@@ -16,7 +16,8 @@
     "R1_R2": {
       "status": "PASS",
       "source_manifest": "data\\raw\\production\\kc\\source_manifest.json",
-      "source_manifest_sha256": "621a418ae7721aaecf16e13fc2815bf28734d0d2997bc2aa0bb930a7e5b82c04"
+      "source_manifest_sha256": "eb665b107299086d062f6acfab024c6cc6bc6385ed90e1cfc8ac76081e7a848f",
+      "failures": []
     },
     "R3": {
       "status": "PASS",
@@ -33,7 +34,7 @@
     },
     "R6": {
       "status": "FIXTURE_ONLY",
-      "private_ebd_dir": "data\\private\\ebird\\raw"
+      "derived_ebd_dir": "data\\derived\\ebird\\kc"
     },
     "R7": {
       "status": "PASS",
