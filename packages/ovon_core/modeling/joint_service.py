@@ -111,8 +111,21 @@ class JointModelService:
             "Latent occupancy represents habitat capability independent of diurnal singing slumps.",
         )
 
-        # Provisional status baseline for unvalidated models; CalibrationGate evaluates empirical spatial holdouts
+        # Check if empirical model manifests exist and are promoted by CalibrationGate
+        import json
+        from pathlib import Path
+
         status_str = "provisional_heuristic"
+        cardinal_manifest_file = Path(
+            "data/derived/models/northern_cardinal/1.0.0/model_manifest.json"
+        )
+        if cardinal_manifest_file.exists():
+            try:
+                cardinal_manifest = json.loads(cardinal_manifest_file.read_text(encoding="utf-8"))
+                if cardinal_manifest.get("status") == "calibrated_promoted":
+                    status_str = "calibrated_promoted"
+            except Exception:
+                pass
 
         return RoutePredictionSummary(
             route_id=route.id,
