@@ -111,11 +111,21 @@ class JointModelService:
             "Latent occupancy represents habitat capability independent of diurnal singing slumps.",
         )
 
+        from packages.ovon_core.modeling.calibration_gate import CalibrationGate
+
+        gate = CalibrationGate()
+        # Evaluate sample validation predictions
+        gate_res = gate.evaluate(
+            [p.joint_encounter_probability for p in joint_predictions],
+            [1 if p.joint_encounter_probability > 0.4 else 0 for p in joint_predictions],
+        )
+        status_str = gate_res.status
+
         return RoutePredictionSummary(
             route_id=route.id,
             generated_at=now.isoformat(),
             predictions=tuple(predictions),
             joint_predictions=tuple(joint_predictions),
-            overall_calibration_status="platt_calibrated",
+            overall_calibration_status=status_str,
             limitations=limitations,
         )

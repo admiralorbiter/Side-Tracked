@@ -50,7 +50,8 @@ def test_joint_model_service():
     service = JointModelService()
     summary = service.predict_for_route(ROUTE_BIRDY)
 
-    assert summary.overall_calibration_status == "platt_calibrated"
+    assert summary.overall_calibration_status in ("provisional_heuristic", "calibrated_promoted")
+
     assert len(summary.predictions) > 0
     assert len(summary.joint_predictions) > 0
 

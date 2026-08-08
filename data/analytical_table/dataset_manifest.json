@@ -14,6 +14,6 @@
   },
   "source_release_id": "EBD-2026.07_SED-2026.07",
   "environment_release_id": "NLCD-2025.1_3DEP-10M_3DHP-2026.07",
-  "schema_hash": "1bf558975000fae60abbaaa0177a97ce0bfa4d03a3f1fcd04e6eaf8920be7feb",
+  "schema_hash": "f978d8fefd0a85b7a38f3924e95ee2e00c769563cc1797fb16524b39b9d0a2b4",
   "status": "immutable_analytical_table"
 }
