@@ -23,6 +23,18 @@ class BaseOccurrenceProvider:
         raise NotImplementedError
 
 
+class NoConfiguredEvidenceProvider(BaseOccurrenceProvider):
+    """Production fallback provider when no live occurrence database is configured."""
+
+    def fetch_occurrences(
+        self,
+        bounding_box: tuple[float, float, float, float],
+        concept_ids: Sequence[str],
+        days_window: int = 30,
+    ) -> list[NormalizedOccurrenceEvidence]:
+        return []
+
+
 class MockRecentOccurrenceProvider(BaseOccurrenceProvider):
     """Provider adapter serving deterministic recent occurrence reports for pilot region."""
 

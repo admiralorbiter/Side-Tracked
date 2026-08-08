@@ -13,6 +13,7 @@ from packages.ovon_core.evidence.deduplicator import EvidenceDeduplicator
 from packages.ovon_core.evidence.providers import (
     BaseOccurrenceProvider,
     MockRecentOccurrenceProvider,
+    NoConfiguredEvidenceProvider,
 )
 from packages.ovon_core.evidence.spatial_engine import (
     calculate_beta_binomial_detection_rate,
@@ -30,7 +31,7 @@ class RouteEvidenceService:
         deduplicator: EvidenceDeduplicator | None = None,
         visibility_policy: EvidenceVisibilityPolicy | None = None,
     ) -> None:
-        self.provider = provider or MockRecentOccurrenceProvider()
+        self.provider = provider or NoConfiguredEvidenceProvider()
         self.deduplicator = deduplicator or EvidenceDeduplicator()
         self.visibility_policy = visibility_policy or EvidenceVisibilityPolicy()
 
@@ -94,26 +95,26 @@ class RouteEvidenceService:
                     visible_occs.append(o)
 
             if not visible_occs:
-                # No visible reports
+                # Fail closed when no evidence provider is configured or no occurrences exist
                 species_evidence_list.append(
                     SpeciesRouteEvidence(
                         concept_id=concept_id,
                         common_name=sp.common_name,
                         scientific_name=sp.scientific_name,
                         recent_reports_count=0,
-                        seasonal_reports_count=12,
+                        seasonal_reports_count=0,
                         nearest_displayable_report=None,
                         nearest_distance_m=None,
                         distance_claim_allowed=False,
-                        eligible_checklist_count=38,
-                        checklist_detection_count=14,
-                        checklist_detection_rate=calculate_beta_binomial_detection_rate(14, 38),
-                        evidence_score=0.35,
-                        evidence_score_status="historical_seasonal_only",
-                        source_names=("eBird EBD",),
+                        eligible_checklist_count=0,
+                        checklist_detection_count=0,
+                        checklist_detection_rate=0.0,
+                        evidence_score=0.0,
+                        evidence_score_status="no_configured_evidence_provider",
+                        source_names=(),
                         freshness_days=None,
                         visibility_policy=EvidenceVisibility.COARSE_DISPLAY_ONLY,
-                        display_note="Regularly reported in this area during May in previous years.",
+                        display_note="Historical checklist evidence pipeline not configured for this area.",
                     )
                 )
                 historical_count += 1

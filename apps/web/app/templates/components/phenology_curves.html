@@ -5,10 +5,10 @@
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
     <div>
       <h3 style="font-size: 1.2rem; font-weight: 800; color: #f8fafc; margin-bottom: 0.2rem;">
-        📈 When to Walk — Timing Explorer
+        📈 Timing & Phenology Explorer (Provisional)
       </h3>
       <p style="font-size: 0.82rem; color: var(--brand-sky);">
-        Drag the sliders to explore how time-of-day and month affect your encounter chances.
+        Explore provisional time-of-day and seasonal activity curves.
       </p>
     </div>
     <span class="route-badge badge-birdy" style="font-size: 0.78rem;" id="phenology-live-badge">
@@ -57,11 +57,12 @@
   <!-- Dynamic Probability Readout -->
   <div id="phenology-readout" style="margin-top: 1rem; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: var(--radius-sm); padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
     <div style="font-size: 0.85rem; color: #f8fafc;">
-      <strong>Adjusted Encounter Estimate:</strong>
+      <strong>Provisional Timing-Adjusted Score:</strong>
       <span id="readout-species" style="color: var(--brand-sky);"></span>
     </div>
     <span id="readout-probability" style="font-size: 1.1rem; font-weight: 800; color: #38bdf8;"></span>
   </div>
+
 </div>
 
 <script>

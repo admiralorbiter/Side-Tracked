@@ -128,49 +128,75 @@ function initSidetrackMap() {
       map.fitBounds(bounds, { padding: [40, 40] });
 
       // Interactive hover highlight for timeline segments
-      const segmentCards = document.querySelectorAll('.segment-card[data-segment-index]');
+      const segmentCards = document.querySelectorAll('.timeline-segment-card[data-segment-index], .segment-card[data-segment-index]');
       let highlightLayer = null;
+
 
       segmentCards.forEach((card) => {
         const highlightSegment = () => {
-          const segIdx = parseInt(card.getAttribute('data-segment-index'), 10);
           if (sidetrackMainPolyline) sidetrackMainPolyline.setStyle({ opacity: 0.35 });
 
-          const geojsonRaw = mapElement.getAttribute('data-geojson');
-          if (geojsonRaw && geojsonRaw.trim()) {
+          const segGeoRaw = card.getAttribute('data-segment-geojson') || card.dataset.segmentGeojson;
+          let subGeo = null;
+
+          if (segGeoRaw && segGeoRaw.trim()) {
             try {
-              const fullGeo = JSON.parse(geojsonRaw);
-              const totalCoords = fullGeo.coordinates.length;
-
-              const startIdx = Math.floor((segIdx / segmentCards.length) * totalCoords);
-              const endIdx = Math.min(
-                totalCoords,
-                Math.ceil(((segIdx + 1) / segmentCards.length) * totalCoords) + 1
-              );
-
-              const subCoords = fullGeo.coordinates.slice(startIdx, endIdx);
-
-              if (highlightLayer) {
-                map.removeLayer(highlightLayer);
-              }
-
-              highlightLayer = L.geoJSON({
-                type: 'LineString',
-                coordinates: subCoords
-              }, {
-                style: {
-                  color: '#38bdf8',
-                  weight: 8,
-                  opacity: 1.0,
-                  lineCap: 'round',
-                  lineJoin: 'round'
-                }
-              }).addTo(map);
+              subGeo = JSON.parse(segGeoRaw);
             } catch (err) {
-              console.warn('Could not parse segment GeoJSON:', err);
+              console.warn('Could not parse card segment GeoJSON:', err);
+            }
+          }
+
+          if (highlightLayer) {
+            map.removeLayer(highlightLayer);
+            highlightLayer = null;
+          }
+
+          if (subGeo) {
+            highlightLayer = L.geoJSON(subGeo, {
+              style: {
+                color: '#38bdf8',
+                weight: 8,
+                opacity: 1.0,
+                lineCap: 'round',
+                lineJoin: 'round'
+              }
+            }).addTo(map);
+          } else {
+            const segIdx = parseInt(card.getAttribute('data-segment-index'), 10);
+            const geojsonRaw = mapElement.getAttribute('data-geojson');
+            if (geojsonRaw && geojsonRaw.trim()) {
+              try {
+                const fullGeo = JSON.parse(geojsonRaw);
+                const totalCoords = fullGeo.coordinates.length;
+
+                const startIdx = Math.floor((segIdx / segmentCards.length) * totalCoords);
+                const endIdx = Math.min(
+                  totalCoords,
+                  Math.ceil(((segIdx + 1) / segmentCards.length) * totalCoords) + 1
+                );
+
+                const subCoords = fullGeo.coordinates.slice(startIdx, endIdx);
+
+                highlightLayer = L.geoJSON({
+                  type: 'LineString',
+                  coordinates: subCoords
+                }, {
+                  style: {
+                    color: '#38bdf8',
+                    weight: 8,
+                    opacity: 1.0,
+                    lineCap: 'round',
+                    lineJoin: 'round'
+                  }
+                }).addTo(map);
+              } catch (err) {
+                console.warn('Could not parse segment GeoJSON:', err);
+              }
             }
           }
         };
+
 
         const resetHighlight = () => {
           if (sidetrackMainPolyline) sidetrackMainPolyline.setStyle({ opacity: 0.9, weight: 5 });

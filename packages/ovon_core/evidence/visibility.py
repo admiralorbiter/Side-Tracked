@@ -23,7 +23,11 @@ class EvidenceVisibilityPolicy:
         if occurrence.geoprivacy == "obscured":
             return EvidenceVisibility.UNCERTAINTY_DISPLAY_ONLY
 
-        # 4. Open precise records allow exact metric distance calculations
+        # 4. Open records with large coordinate uncertainty (> 500m) restrict exact distance claims
+        if occurrence.coordinate_uncertainty_m and occurrence.coordinate_uncertainty_m > 500.0:
+            return EvidenceVisibility.UNCERTAINTY_DISPLAY_ONLY
+
+        # 5. Open precise records allow exact metric distance calculations
         return EvidenceVisibility.EXACT_DISPLAY_ALLOWED
 
     def is_distance_claim_allowed(self, occurrence: NormalizedOccurrenceEvidence) -> bool:

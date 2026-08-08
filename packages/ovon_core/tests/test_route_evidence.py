@@ -106,10 +106,23 @@ def test_visibility_policy():
     assert not policy.is_distance_claim_allowed(obs_occ)
 
 
+from packages.ovon_core.evidence.providers import MockRecentOccurrenceProvider
+
+
 def test_route_evidence_service():
-    service = RouteEvidenceService()
-    summary = service.build_evidence_summary(ROUTE_BIRDY)
-    assert summary.status == "ok"
-    assert len(summary.species_evidence) > 0
-    assert summary.recent_species_count > 0
-    assert summary.total_checklist_coverage > 0
+    # 1. Test production default provider (NoConfiguredEvidenceProvider) fails closed cleanly
+    service_default = RouteEvidenceService()
+    summary_default = service_default.build_evidence_summary(ROUTE_BIRDY)
+    assert summary_default.status == "ok"
+    assert len(summary_default.species_evidence) > 0
+    assert summary_default.recent_species_count == 0
+    assert (
+        summary_default.species_evidence[0].evidence_score_status
+        == "no_configured_evidence_provider"
+    )
+
+    # 2. Test explicit MockRecentOccurrenceProvider for test/demo mode
+    service_mock = RouteEvidenceService(provider=MockRecentOccurrenceProvider())
+    summary_mock = service_mock.build_evidence_summary(ROUTE_BIRDY)
+    assert summary_mock.status == "ok"
+    assert summary_mock.recent_species_count > 0

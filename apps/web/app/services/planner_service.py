@@ -303,8 +303,12 @@ class RoutePlanRepository:
                     ),
                 )
             conn.close()
-        except Exception:
-            pass
+        except Exception as err:
+            import logging
+
+            logging.getLogger(__name__).error(
+                "Failed to persist route plan '%s' to SQLite database: %s", plan_id, err
+            )
 
         return plan_id
 

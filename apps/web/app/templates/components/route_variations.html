@@ -4,14 +4,14 @@
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
     <div>
       <h3 style="font-size: 1.2rem; font-weight: 800; color: #f8fafc; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem;">
-        🔀 Route Variations & Detours
+        🔀 Experimental Route Variations
       </h3>
       <p style="font-size: 0.82rem; color: var(--brand-sky);">
-        Compare path variations balancing walk duration against biodiversity opportunity. Click a card to preview on map.
+        Compare path variations balancing walk duration against biodiversity features. Click a card to preview on map.
       </p>
     </div>
     <span class="route-badge badge-easy" style="font-size: 0.78rem;">
-      Spatial Optimization • Pareto Optimal
+      Experimental • Graph Rerouting Preview
     </span>
   </div>
 
@@ -43,13 +43,14 @@
             <strong style="font-size: 0.98rem; color: #f8fafc; flex: 1; min-width: 140px;">{{ v.name }}</strong>
             
             {% if v.is_baseline %}
-              <span class="route-badge badge-easy" style="font-size: 0.72rem; padding: 0.2rem 0.5rem;">Default</span>
+              <span class="route-badge badge-easy" style="font-size: 0.72rem; padding: 0.2rem 0.5rem;">Default Path</span>
             {% elif 'Canopy' in v.name %}
-              <span class="route-badge badge-birdy" style="font-size: 0.72rem; padding: 0.2rem 0.5rem; background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.4);">+32% Opportunity</span>
+              <span class="route-badge badge-birdy" style="font-size: 0.72rem; padding: 0.2rem 0.5rem; background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.4);">Canopy Focus</span>
             {% else %}
-              <span class="route-badge badge-birdy" style="font-size: 0.72rem; padding: 0.2rem 0.5rem; background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4);">+45% Opportunity</span>
+              <span class="route-badge badge-birdy" style="font-size: 0.72rem; padding: 0.2rem 0.5rem; background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4);">Water Edge Focus</span>
             {% endif %}
           </div>
+
 
           <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.85rem; line-height: 1.45;">
             {{ v.description }}

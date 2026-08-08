@@ -1,24 +1,19 @@
-<!-- Unified Species Opportunity Radar (Joint Occupancy & Detectability Model) -->
+<!-- Unified Species Opportunity Preview (Provisional Model) -->
 <div class="card" 
-     style="margin-top: 1.5rem; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.35);" 
-     x-data="{ activeBoost: 0.0, activeVariationName: 'Baseline' }"
-     @variation-selected.window="
-       activeBoost = $event.detail.index === 1 ? 0.32 : ($event.detail.index === 2 ? 0.45 : 0.0);
-       activeVariationName = $event.detail.name || 'Baseline';
-     ">
+     style="margin-top: 1.5rem; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.35);">
   
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
     <div>
       <h3 style="font-size: 1.2rem; font-weight: 800; color: #f8fafc; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem;">
-        🎯 Species Encounter Predictions
+        🎯 Species Opportunity Preview
       </h3>
       <p style="font-size: 0.82rem; color: var(--brand-sky);">
-        Estimated encounter chances based on satellite habitat rasters, solar time-of-day, and walk duration.
+        Estimated relative opportunity scores based on provisional environmental features and diurnal detectability assumptions.
       </p>
     </div>
     <span class="route-badge badge-birdy" 
-          style="font-size: 0.78rem; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4);"
-          x-text="activeBoost > 0 ? ('⚡ Boosted by ' + activeVariationName) : 'Platt Calibrated Model • Brier 0.043'">
+          style="font-size: 0.78rem; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4);">
+      Provisional Model • Experimental Heuristic
     </span>
   </div>
 
@@ -29,33 +24,26 @@
         {% set base_psi = (jp.latent_occupancy * 100)|round(1) %}
         {% set base_p = (jp.observer_detectability * 100)|round(1) %}
 
-        <div style="background: rgba(0,0,0,0.35); padding: 1.1rem; border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.09); display: flex; flex-direction: column; justify-content: space-between;"
-             x-data="{ 
-               baseP: {{ base_prob }}, 
-               basePsi: {{ base_psi }},
-               name: '{{ jp.common_name }}'
-             }">
+        <div style="background: rgba(0,0,0,0.35); padding: 1.1rem; border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.09); display: flex; flex-direction: column; justify-content: space-between;">
           <div>
-            <!-- Header: Common Name, Scientific Name, and Encounter Probability Badge -->
+            <!-- Header: Common Name, Scientific Name, and Opportunity Score Badge -->
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; gap: 0.5rem;">
               <div>
                 <strong style="font-size: 1.05rem; color: #f8fafc; display: block;">{{ jp.common_name }}</strong>
                 <span style="font-size: 0.8rem; font-style: italic; color: var(--text-muted);">{{ jp.scientific_name }}</span>
               </div>
               <div style="text-align: right;">
-                <span style="font-size: 1.05rem; font-weight: 800; color: #38bdf8; background: rgba(56, 189, 248, 0.15); padding: 0.25rem 0.6rem; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.3); display: inline-block;"
-                      x-text="(Math.min(99.0, Math.round(baseP * (1.0 + activeBoost) * 10) / 10)) + '%'">
+                <span style="font-size: 1.05rem; font-weight: 800; color: #38bdf8; background: rgba(56, 189, 248, 0.15); padding: 0.25rem 0.6rem; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.3); display: inline-block;">
                   {{ base_prob }}%
                 </span>
-                <div style="font-size: 0.68rem; color: var(--brand-sky); margin-top: 2px;">Encounter Chance</div>
+                <div style="font-size: 0.68rem; color: var(--brand-sky); margin-top: 2px;">Opportunity Score</div>
               </div>
             </div>
 
-            <!-- Primary Encounter Probability Progress Bar -->
+            <!-- Primary Encounter Opportunity Progress Bar -->
             <div style="margin-bottom: 1rem;">
               <div style="width: 100%; height: 7px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden;">
-                <div style="height: 100%; background: linear-gradient(90deg, #10b981, #38bdf8); border-radius: 4px; transition: width 0.3s ease;"
-                     :style="'width: ' + Math.min(99.0, Math.round(baseP * (1.0 + activeBoost) * 10) / 10) + '%'"></div>
+                <div style="width: {{ base_prob }}%; height: 100%; background: linear-gradient(90deg, #10b981, #38bdf8); border-radius: 4px;"></div>
               </div>
             </div>
 
@@ -66,13 +54,11 @@
                 <div style="font-size: 0.75rem; color: var(--brand-green); font-weight: 700; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.25rem;">
                   🌳 Habitat Quality
                 </div>
-                <div style="font-size: 0.95rem; font-weight: 800; color: #f8fafc;"
-                     x-text="(Math.min(99.0, Math.round(basePsi * (1.0 + activeBoost) * 10) / 10)) + '%'">
+                <div style="font-size: 0.95rem; font-weight: 800; color: #f8fafc;">
                   {{ base_psi }}%
                 </div>
                 <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 0.25rem; overflow: hidden;">
-                  <div style="height: 100%; background: var(--brand-green); transition: width 0.3s ease;"
-                       :style="'width: ' + Math.min(99.0, Math.round(basePsi * (1.0 + activeBoost) * 10) / 10) + '%'"></div>
+                  <div style="width: {{ base_psi }}%; height: 100%; background: var(--brand-green);"></div>
                 </div>
               </div>
 
@@ -93,7 +79,7 @@
 
           <!-- Plain-English Guidance Breakdown -->
           <div style="font-size: 0.75rem; color: #cbd5e1; line-height: 1.4; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.5rem;">
-            💡 <strong>Why this score?</strong> Habitat quality is {{ base_psi }}%. Current walk duration & time-of-day detectability is {{ base_p }}%.
+            💡 <strong>Why this score?</strong> Provisional habitat quality is {{ base_psi }}%. Time-of-day detectability factor is {{ base_p }}%.
           </div>
         </div>
       {% endfor %}
@@ -103,7 +89,7 @@
     <div style="margin-top: 1rem; font-size: 0.75rem; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.08); padding-top: 0.6rem; display: flex; align-items: center; gap: 0.5rem;">
       <span style="font-size: 0.9rem;">🛡️</span>
       <div>
-        <strong>Scientific Method:</strong> Sidetrack calculates Overall Encounter Chance by multiplying physical <strong>Habitat Quality</strong> (canopy density & water proximity rasters) by <strong>Observer Detectability</strong> (solar time-of-day singing activity & walk length).
+        <strong>Experimental Notice:</strong> Experimental score using provisional environmental and timing assumptions. Not a calibrated probability model yet.
       </div>
     </div>
   {% endif %}
