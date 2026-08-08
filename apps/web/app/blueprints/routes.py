@@ -20,15 +20,15 @@ def detail(route_id):
     route_service = GetRouteDetail()
     field_pack_service = BuildFieldPack()
 
-    # Multi-source evidence aggregator with eBird, GBIF, iNat + demo mock fallback
+    # Multi-source evidence aggregator with real eBird, GBIF, and iNat adapters
     evidence_aggregator = MultiSourceEvidenceAggregator(
         providers=[
             eBirdRecentAdapter(),
             GBIFOccurrenceAdapter(),
             INaturalistOccurrenceAdapter(),
-            MockRecentOccurrenceProvider(),
         ]
     )
+
     evidence_service = RouteEvidenceService(provider=evidence_aggregator)
     model_service = JointModelService()
     variation_engine = AlternativeLoopEngine()

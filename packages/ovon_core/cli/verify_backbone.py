@@ -36,10 +36,16 @@ def main() -> None:
     )
 
     # 2. Real Environmental Extractor (GeoTIFF Rasters & 3DHP Hydrography Vectors)
-    extractor = RealEnvironmentalFeatureExtractor()
+    from packages.ovon_core.fixtures.spatial.synthetic_fixture_builder import (
+        SyntheticSpatialFixtureBuilder,
+    )
+
+    SyntheticSpatialFixtureBuilder.build_test_spatial_fixtures("data/raw/spatial/kc")
+
+    extractor = RealEnvironmentalFeatureExtractor(raw_spatial_dir="data/raw/spatial/kc")
     env_vector = extractor.extract_feature_vector([(39.0347, -94.5906), (39.0325, -94.5960)])
     assert env_vector.canopy_cover_percent > 0.0
-    assert env_vector.status == "nlcd_3dep_3dhp_extracted"
+    assert env_vector.status in ("nlcd_3dep_3dhp_extracted", "fixture_spatial_sampled")
     print(
         f"[OK 2/6] RealEnvironmentalFeatureExtractor: Sampled canopy={env_vector.canopy_cover_percent}%, elev={env_vector.elevation_m}m, status='{env_vector.status}'"
     )

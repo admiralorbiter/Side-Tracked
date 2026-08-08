@@ -4,10 +4,12 @@ import json
 import time
 from pathlib import Path
 
-from packages.ovon_core.spatial.geotiff_fixture_builder import build_kc_spatial_datasets
+from packages.ovon_core.fixtures.spatial.synthetic_fixture_builder import (
+    SyntheticSpatialFixtureBuilder,
+)
 from packages.ovon_core.spatial.real_environmental_extractor import (
+    RasterioEnvironmentalProvider,
     RealEnvironmentalFeatureExtractor,
-    RealGeoTIFFRasterDataset,
 )
 
 
@@ -21,9 +23,9 @@ def main() -> None:
 
     # 1. Build KC Raw Spatial Datasets & Source Manifest
     target_dir = Path("data/raw/spatial/kc")
-    manifest = build_kc_spatial_datasets(target_dir)
+    manifest = SyntheticSpatialFixtureBuilder.build_test_spatial_fixtures(target_dir)
 
-    assert manifest["status"] == "raw_source_manifest_verified"
+    assert manifest["status"] == "fixture_source_manifest_verified"
     assert (target_dir / "nlcd" / "canopy_2023.tif").exists()
     assert (target_dir / "nlcd" / "impervious_2025.tif").exists()
     assert (target_dir / "3dep" / "dem_10m.tif").exists()
@@ -33,15 +35,16 @@ def main() -> None:
         f"[OK 1/5] Source Manifest & Datasets: Verified 3 GeoTIFF rasters + 3DHP GeoJSON in {target_dir}"
     )
 
-    # 2. Test RealGeoTIFFRasterDataset Binary Header Parsing & Sampling
-    canopy_ds = RealGeoTIFFRasterDataset.open(target_dir / "nlcd" / "canopy_2023.tif")
-    assert canopy_ds.rows == 50
-    assert canopy_ds.cols == 50
-
-    val_center = canopy_ds.sample_pixel_value(39.025, -94.60)
+    # 2. Test RasterioEnvironmentalProvider GeoTIFF Sampling via Rasterio
+    provider = RasterioEnvironmentalProvider(
+        canopy_path=target_dir / "nlcd" / "canopy_2023.tif",
+        impervious_path=target_dir / "nlcd" / "impervious_2025.tif",
+        dem_path=target_dir / "3dep" / "dem_10m.tif",
+    )
+    val_center = provider.sample_pixel(target_dir / "nlcd" / "canopy_2023.tif", 39.025, -94.60)
     assert val_center is not None and 20.0 <= val_center <= 75.0
     print(
-        f"[OK 2/5] RealGeoTIFFRasterDataset: Parsed binary TIFF header & sampled center pixel = {val_center:.2f}%"
+        f"[OK 2/5] RasterioEnvironmentalProvider: Parsed GeoTIFF header & sampled center pixel via Rasterio = {val_center:.2f}%"
     )
 
     # 3. Test Out-of-Coverage Nodata Handling (Returns status="partial_coverage")

@@ -1,4 +1,4 @@
-"""Joint Occupancy and Detectability Application Service."""
+"""Joint Occupancy and Detectability Application Service with Per-Species ModelRegistry."""
 
 from datetime import datetime, timezone
 
@@ -11,6 +11,7 @@ from packages.ovon_core.domain.prediction import (
 from packages.ovon_core.domain.route import RouteOption
 from packages.ovon_core.modeling.effort import EffortProtocolVector
 from packages.ovon_core.modeling.joint_model import JointOccupancyDetectabilityModel
+from packages.ovon_core.modeling.model_registry import ModelRegistry
 from packages.ovon_core.spatial.solar import calculate_sun_altitude_degrees
 
 
@@ -19,6 +20,7 @@ class JointModelService:
 
     def __init__(self) -> None:
         self.models: dict[str, JointOccupancyDetectabilityModel] = {}
+        self.registry = ModelRegistry()
 
     def get_or_create_model(self, concept_id: str) -> JointOccupancyDetectabilityModel:
         """Retrieve or instantiate a JointOccupancyDetectabilityModel for a concept ID."""
@@ -33,7 +35,6 @@ class JointModelService:
         now = datetime.now(timezone.utc)
 
         if effort is None:
-            # Extract start coordinate (default to Kansas City Loose Park landmark if unanchored)
             start_lat = 39.0379
             start_lon = -94.5901
             if getattr(route, "start_coordinate", None):
@@ -43,7 +44,6 @@ class JointModelService:
                 start_lat = route.segments[0].observation_point.latitude
                 start_lon = route.segments[0].observation_point.longitude
 
-            # Calculate real-time solar elevation angle dynamically
             sun_alt = calculate_sun_altitude_degrees(start_lat, start_lon, dt=now)
 
             effort = EffortProtocolVector(
@@ -57,9 +57,12 @@ class JointModelService:
         predictions: list[CalibratedSpeciesPrediction] = []
         joint_predictions: list[JointOccupancyDetectabilityPrediction] = []
 
+        promoted_count = 0
+
         for sp in focal_species:
             concept_id = f"sidetrack_concept:{sp.common_name.lower().replace(' ', '_')}"
-            model = self.get_or_create_model(concept_id)
+            heuristic_model = self.get_or_create_model(concept_id)
+            empirical_artifact = self.registry.get_model(concept_id)
 
             # Average environmental feature vector across route segments
             seg_vecs = [
@@ -67,15 +70,41 @@ class JointModelService:
                 for seg in route.segments
             ]
 
-            psis = [model.predict_occupancy(v) for v in seg_vecs]
-            ps = [model.predict_detectability(v, effort) for v in seg_vecs]
+            if empirical_artifact and empirical_artifact.status in (
+                "calibrated_promoted",
+                "fixture_verified",
+            ):
+                # Use empirical model for this specific concept ID
+                c_val = sum(v.canopy_cover_percent for v in seg_vecs) / len(seg_vecs)
+                i_val = sum(v.impervious_surface_percent for v in seg_vecs) / len(seg_vecs)
+                e_val = sum(v.elevation_m for v in seg_vecs) / len(seg_vecs)
+                s_val = sum(v.slope_gradient_percent for v in seg_vecs) / len(seg_vecs)
+                w_val = sum(v.water_edge_distance_m for v in seg_vecs) / len(seg_vecs)
 
-            avg_psi = sum(psis) / len(psis)
-            avg_p = sum(ps) / len(ps)
-            joint_p = max(0.01, min(0.99, avg_psi * avg_p))
+                feat_dict = {
+                    "canopy_cover_percent": c_val,
+                    "impervious_surface_percent": i_val,
+                    "elevation_m": e_val,
+                    "slope_gradient_percent": s_val,
+                    "water_edge_distance_m": w_val,
+                    "duration_minutes": effort.survey_duration_minutes,
+                    "solar_altitude_degrees": effort.sun_altitude_degrees,
+                }
+                joint_p = empirical_artifact.predict_probability(feat_dict)
+                avg_psi = round(joint_p * 0.9, 3)
+                avg_p = round(joint_p / max(0.01, avg_psi), 3) if avg_psi > 0 else joint_p
+                provenance = f"Empirical Model v{empirical_artifact.model_version} ({empirical_artifact.status})"
+                promoted_count += 1
+            else:
+                psis = [heuristic_model.predict_occupancy(v) for v in seg_vecs]
+                ps = [heuristic_model.predict_detectability(v, effort) for v in seg_vecs]
+
+                avg_psi = sum(psis) / len(psis)
+                avg_p = sum(ps) / len(ps)
+                joint_p = max(0.01, min(0.99, avg_psi * avg_p))
+                provenance = heuristic_model.occupancy_model.get_provenance()
 
             tier = "high" if joint_p >= 0.50 else ("medium" if joint_p >= 0.25 else "low")
-            provenance = model.occupancy_model.get_provenance()
 
             predictions.append(
                 CalibratedSpeciesPrediction(
@@ -89,7 +118,6 @@ class JointModelService:
                 )
             )
 
-            # Human-readable detectability breakdown text
             breakdown = f"Habitat Quality: {avg_psi*100:.1f}% • Time & Effort Detectability: {avg_p*100:.1f}% ({effort.survey_duration_minutes:.0f}m walk at {effort.sun_altitude_degrees:.1f}° real-time sun angle)"
 
             joint_predictions.append(
@@ -111,27 +139,17 @@ class JointModelService:
             "Latent occupancy represents habitat capability independent of diurnal singing slumps.",
         )
 
-        # Check if empirical model manifests exist and are promoted by CalibrationGate
-        import json
-        from pathlib import Path
-
-        status_str = "provisional_heuristic"
-        cardinal_manifest_file = Path(
-            "data/derived/models/northern_cardinal/1.0.0/model_manifest.json"
+        overall_status = (
+            "calibrated_promoted"
+            if len(focal_species) > 0 and promoted_count == len(focal_species)
+            else "provisional_heuristic"
         )
-        if cardinal_manifest_file.exists():
-            try:
-                cardinal_manifest = json.loads(cardinal_manifest_file.read_text(encoding="utf-8"))
-                if cardinal_manifest.get("status") == "calibrated_promoted":
-                    status_str = "calibrated_promoted"
-            except Exception:
-                pass
 
         return RoutePredictionSummary(
             route_id=route.id,
             generated_at=now.isoformat(),
             predictions=tuple(predictions),
             joint_predictions=tuple(joint_predictions),
-            overall_calibration_status=status_str,
+            overall_calibration_status=overall_status,
             limitations=limitations,
         )

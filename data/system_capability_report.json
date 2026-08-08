@@ -1,0 +1,46 @@
+{
+  "system_name": "Sidetrack Ecological Backbone Capability Audit",
+  "region": "Greater Kansas City Metro",
+  "generated_at": "2026-08-08T04:46:35Z",
+  "capability_summary": {
+    "R1_R2_environmental_source_acquisition": "PASS",
+    "R3_evidence_provider_normalization": "PASS",
+    "R4_analytical_parquet_table": "PROVISIONAL",
+    "R5_empirical_model_fitting": "FIXTURE_ONLY",
+    "R6_historical_ebd_sed_repository": "FIXTURE_ONLY",
+    "R7_osm_dijkstra_graph_rerouting": "PASS",
+    "R8_capability_report_verified": "PASS"
+  },
+  "focal_species_count": 30,
+  "phases_audited": {
+    "R1_R2": {
+      "status": "PASS",
+      "source_manifest": "data\\raw\\production\\kc\\source_manifest.json",
+      "source_manifest_sha256": "621a418ae7721aaecf16e13fc2815bf28734d0d2997bc2aa0bb930a7e5b82c04"
+    },
+    "R3": {
+      "status": "PASS",
+      "ttl_cache_days": 7
+    },
+    "R4": {
+      "status": "PROVISIONAL",
+      "parquet_table": "data\\derived\\modeling\\rows.parquet"
+    },
+    "R5": {
+      "status": "FIXTURE_ONLY",
+      "model_manifest": "data\\derived\\models\\northern_cardinal\\1.0.0\\model_manifest.json",
+      "cardinal_manifest_sha256": "3e5406626ad8154c5b896f3bd4b58585ae125d323398a99a122c99f8f58145ce"
+    },
+    "R6": {
+      "status": "FIXTURE_ONLY",
+      "private_ebd_dir": "data\\private\\ebird\\raw"
+    },
+    "R7": {
+      "status": "PASS",
+      "routing_solver": "NetworkX Dijkstra Graph Pathfinding"
+    },
+    "R8": {
+      "status": "PASS"
+    }
+  }
+}

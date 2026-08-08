@@ -1,6 +1,6 @@
-"""Unit tests for Phase R8 End-to-End System Reproducibility & Integrity Proof."""
+"""Unit tests for Phase R8 End-to-End System Capability Audit."""
 
-from packages.ovon_core.cli.system_integrity_manifest import generate_system_integrity_manifest
+from packages.ovon_core.cli.system_capability_report import generate_system_capability_report
 from packages.ovon_core.domain.concept import AuthorityName
 from packages.ovon_core.fixtures.kc_species_fixtures import ALL_KC_TAXA
 from packages.ovon_core.taxonomy.concept_registry import TaxonConceptRegistry
@@ -22,9 +22,8 @@ def test_30_species_focal_catalog():
     assert concept_robin.common_name == "American Robin"
 
 
-def test_system_integrity_manifest_generation(tmp_path):
-    manifest = generate_system_integrity_manifest(output_dir=tmp_path)
-    assert manifest["status"] == "system_integrity_manifest_verified"
-    assert manifest["focal_species_count"] == 30
-    assert len(manifest["focal_species_catalog"]) == 30
-    assert (tmp_path / "system_integrity_manifest.json").exists()
+def test_system_capability_report_generation(tmp_path):
+    report = generate_system_capability_report(output_dir=tmp_path)
+    assert report["capability_summary"]["R8_capability_report_verified"] == "PASS"
+    assert report["focal_species_count"] == 30
+    assert (tmp_path / "system_capability_report.json").exists()

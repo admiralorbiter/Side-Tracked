@@ -1,0 +1,32 @@
+[
+  {
+    "event_id": "SED_KC_001",
+    "concept_id": "sidetrack_concept:northern_cardinal",
+    "common_name": "Northern Cardinal",
+    "scientific_name": "Cardinalis cardinalis",
+    "how_many": 3,
+    "observation_date": "2026-05-15",
+    "latitude": 39.0347,
+    "longitude": -94.5906
+  },
+  {
+    "event_id": "SED_KC_001",
+    "concept_id": "sidetrack_concept:american_robin",
+    "common_name": "American Robin",
+    "scientific_name": "Turdus migratorius",
+    "how_many": 5,
+    "observation_date": "2026-05-15",
+    "latitude": 39.0347,
+    "longitude": -94.5906
+  },
+  {
+    "event_id": "SED_KC_002",
+    "concept_id": "sidetrack_concept:northern_cardinal",
+    "common_name": "Northern Cardinal",
+    "scientific_name": "Cardinalis cardinalis",
+    "how_many": 2,
+    "observation_date": "2026-05-16",
+    "latitude": 39.0325,
+    "longitude": -94.596
+  }
+]

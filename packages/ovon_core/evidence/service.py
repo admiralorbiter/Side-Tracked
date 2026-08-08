@@ -148,21 +148,43 @@ class RouteEvidenceService:
             if not dist_allowed:
                 note = "Reported in broader area (obscured location)."
 
+            # Query historical checklist repository dynamically
+            from packages.ovon_core.evidence.historical_repository import (
+                HistoricalChecklistRepository,
+            )
+
+            hist_repo = HistoricalChecklistRepository()
+            hist_events = hist_repo.query_sampling_events(bounding_box=bbox, complete_only=True)
+            hist_obs = hist_repo.query_observations(
+                event_ids=[e.event_id for e in hist_events], concept_ids=[concept_id]
+            )
+
+            eligible_n = len(hist_events)
+            detection_k = len(hist_obs)
+            det_rate = (
+                calculate_beta_binomial_detection_rate(detection_k, eligible_n)
+                if eligible_n > 0
+                else 0.0
+            )
+            ev_score = round(det_rate * 0.9, 2) if eligible_n > 0 else 0.0
+
             species_evidence_list.append(
                 SpeciesRouteEvidence(
                     concept_id=concept_id,
                     common_name=sp.common_name,
                     scientific_name=sp.scientific_name,
                     recent_reports_count=len(visible_occs),
-                    seasonal_reports_count=18,
+                    seasonal_reports_count=detection_k,
                     nearest_displayable_report=nearest_coord,
                     nearest_distance_m=min_dist_m,
                     distance_claim_allowed=dist_allowed,
-                    eligible_checklist_count=42,
-                    checklist_detection_count=21,
-                    checklist_detection_rate=calculate_beta_binomial_detection_rate(21, 42),
-                    evidence_score=0.78,
-                    evidence_score_status="recent_reports_available",
+                    eligible_checklist_count=eligible_n,
+                    checklist_detection_count=detection_k,
+                    checklist_detection_rate=det_rate,
+                    evidence_score=ev_score,
+                    evidence_score_status="recent_reports_available"
+                    if eligible_n > 0
+                    else "historical_unavailable",
                     source_names=tuple(sorted(sources)),
                     freshness_days=round(min_freshness, 1),
                     visibility_policy=primary_vis,
@@ -177,12 +199,16 @@ class RouteEvidenceService:
             "Recent report density is an empirical occurrence index, not a presence probability.",
         )
 
+        total_cov = sum(s.eligible_checklist_count for s in species_evidence_list) // max(
+            1, len(focal_species)
+        )
+
         return RouteEvidenceSummary(
             route_id=route.id,
             generated_at=now.isoformat(),
             recent_species_count=recent_count,
             historical_species_count=historical_count,
-            total_checklist_coverage=42,
+            total_checklist_coverage=total_cov,
             species_evidence=tuple(species_evidence_list),
             by_segment={},
             limitations=limitations,

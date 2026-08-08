@@ -4,10 +4,11 @@ import hashlib
 import json
 import os
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Sequence
 
+from packages.ovon_core.domain.concept import AuthorityName
 from packages.ovon_core.domain.evidence import (
     EvidenceLocation,
     NormalizedOccurrenceEvidence,
@@ -16,6 +17,7 @@ from packages.ovon_core.evidence.providers import (
     BaseOccurrenceProvider,
     ProviderFetchResult,
 )
+from packages.ovon_core.taxonomy.concept_registry import TaxonConceptRegistry
 
 
 class eBirdRecentAdapter(BaseOccurrenceProvider):
@@ -121,12 +123,22 @@ class eBirdRecentAdapter(BaseOccurrenceProvider):
 
             return []
 
+        registry = TaxonConceptRegistry()
         occurrences: list[NormalizedOccurrenceEvidence] = []
         now = datetime.now(timezone.utc)
 
         for item in raw_records:
+            species_code = item.get("speciesCode", "")
             species_name = item.get("comName", "Bird")
-            c_id = f"sidetrack_concept:{species_name.lower().replace(' ', '_')}"
+
+            concept = registry.resolve_authority(
+                AuthorityName.EBIRD_CLEMENTS, f"species:ebird:{species_code}"
+            )
+            c_id = (
+                f"sidetrack_concept:{concept.common_name.lower().replace(' ', '_')}"
+                if concept
+                else f"sidetrack_concept:{species_name.lower().replace(' ', '_')}"
+            )
 
             if concept_ids and c_id not in concept_ids:
                 continue
