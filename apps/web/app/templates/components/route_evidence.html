@@ -64,13 +64,20 @@
           </div>
           <div style="margin-top: 0.4rem; font-size: 0.82rem; color: #cbd5e1;">
             <p>Regularly reported near this corridor during this time of spring in previous years.</p>
-            <p style="margin-top: 0.25rem; font-size: 0.78rem; color: var(--accent-green);">
-              📊 Historical checklist detection rate: <strong>{{ ((sp.checklist_detection_rate or 0.3) * 100)|round(1) }}%</strong> (based on {{ sp.eligible_checklist_count }} complete checklists).
-            </p>
+            {% if sp.eligible_checklist_count > 0 %}
+              <p style="margin-top: 0.25rem; font-size: 0.78rem; color: var(--accent-green);">
+                📊 Historical checklist detection rate: <strong>{{ ((sp.checklist_detection_rate or 0.0) * 100)|round(1) }}%</strong> (based on {{ sp.eligible_checklist_count }} complete checklists).
+              </p>
+            {% else %}
+              <p style="margin-top: 0.25rem; font-size: 0.78rem; color: var(--brand-sky);">
+                📊 Historical checklist pipeline pending for this area (Sprint 16.8 analytical table).
+              </p>
+            {% endif %}
           </div>
         </div>
       {% endfor %}
     </div>
+
 
     <!-- My Sightings Tab Panel -->
     <div x-show="tab === 'sightings'" style="padding: 1rem; background: rgba(0,0,0,0.2); border-radius: var(--radius-sm); font-size: 0.85rem; color: #cbd5e1; text-align: center;">

@@ -51,6 +51,7 @@ class NormalizedOccurrenceEvidence:
     observation_license: str = "Unspecified"
     lineage_id: str | None = None
     duplicate_cluster_id: str | None = None
+    raw_payload: dict | None = None
     retrieved_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     @property

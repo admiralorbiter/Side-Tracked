@@ -73,17 +73,45 @@ function initSidetrackMap() {
             if (item.type === 'exact' && item.lat && item.lon) {
               const name = item.common_name || '';
               let emoji = '🐦';
-              if (name.includes('Woodpecker')) emoji = '🪵';
-              else if (name.includes('Waxwing')) emoji = '🪶';
-              else if (name.includes('Owl')) emoji = '🦉';
-              else if (name.includes('Duck') || name.includes('Goose')) emoji = '🦆';
+              let color = '#38bdf8';
+
+              if (name.includes('Cardinal')) {
+                emoji = '🔴';
+                color = '#ef4444';
+              } else if (name.includes('Blue Jay') || name.includes('Jay')) {
+                emoji = '🪶';
+                color = '#3b82f6';
+              } else if (name.includes('Robin')) {
+                emoji = '🧡';
+                color = '#f97316';
+              } else if (name.includes('Woodpecker')) {
+                emoji = '🪵';
+                color = '#a855f7';
+              } else if (name.includes('Waxwing')) {
+                emoji = '🪶';
+                color = '#eab308';
+              } else if (name.includes('Owl')) {
+                emoji = '🦉';
+                color = '#94a3b8';
+              } else if (name.includes('Duck') || name.includes('Goose') || name.includes('Mallard')) {
+                emoji = '🦆';
+                color = '#06b6d4';
+              }
+
+              const iconHtml = `
+                <div class="map-evidence-pin-badge" style="border-color: ${color}; background: rgba(15, 23, 42, 0.95); box-shadow: 0 4px 14px rgba(0,0,0,0.6), 0 0 12px ${color}66;">
+                  <span class="map-evidence-pin-emoji">${emoji}</span>
+                  <span class="map-evidence-pin-name" style="color: ${color};">${name}</span>
+                </div>
+              `;
 
               const icon = L.divIcon({
-                className: 'map-evidence-icon-pin',
-                html: `<div class="map-evidence-emoji-box" title="${name}">${emoji}</div>`,
-                iconSize: [32, 32],
-                iconAnchor: [16, 16]
+                className: 'map-evidence-custom-pin',
+                html: iconHtml,
+                iconSize: [120, 28],
+                iconAnchor: [60, 14]
               });
+
 
               const marker = L.marker([item.lat, item.lon], { icon: icon }).addTo(map);
 

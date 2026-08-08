@@ -8,13 +8,28 @@ routes_bp = Blueprint("routes", __name__)
 @routes_bp.route("/routes/<route_id>")
 def detail(route_id):
     """Step 6 & 7: Route Detail & Text-Equivalent Field Pack & Route Evidence."""
+    from packages.ovon_core.evidence.aggregator import MultiSourceEvidenceAggregator
+    from packages.ovon_core.evidence.ebird_recent_adapter import eBirdRecentAdapter
+    from packages.ovon_core.evidence.gbif_adapter import GBIFOccurrenceAdapter
+    from packages.ovon_core.evidence.inaturalist_adapter import INaturalistOccurrenceAdapter
+    from packages.ovon_core.evidence.providers import MockRecentOccurrenceProvider
     from packages.ovon_core.evidence.service import RouteEvidenceService
     from packages.ovon_core.modeling.joint_service import JointModelService
     from packages.ovon_core.routing.alternative_loops import AlternativeLoopEngine
 
     route_service = GetRouteDetail()
     field_pack_service = BuildFieldPack()
-    evidence_service = RouteEvidenceService()
+
+    # Multi-source evidence aggregator with eBird, GBIF, iNat + demo mock fallback
+    evidence_aggregator = MultiSourceEvidenceAggregator(
+        providers=[
+            eBirdRecentAdapter(),
+            GBIFOccurrenceAdapter(),
+            INaturalistOccurrenceAdapter(),
+            MockRecentOccurrenceProvider(),
+        ]
+    )
+    evidence_service = RouteEvidenceService(provider=evidence_aggregator)
     model_service = JointModelService()
     variation_engine = AlternativeLoopEngine()
 
