@@ -1,0 +1,231 @@
+{
+  "system_name": "Sidetrack Ecological Backbone",
+  "region": "Greater Kansas City Metro",
+  "generated_at": "2026-08-08T04:15:45Z",
+  "status": "system_integrity_manifest_verified",
+  "focal_species_count": 30,
+  "focal_species_catalog": [
+    {
+      "ebird_code": "dowwoo",
+      "common_name": "Downy Woodpecker",
+      "scientific_name": "Dryobates pubescens",
+      "concept_id": "sidetrack_concept:downy_woodpecker"
+    },
+    {
+      "ebird_code": "rebwoo",
+      "common_name": "Red-bellied Woodpecker",
+      "scientific_name": "Melanerpes carolinus",
+      "concept_id": "sidetrack_concept:red-bellied_woodpecker"
+    },
+    {
+      "ebird_code": "wbnut",
+      "common_name": "White-breasted Nuthatch",
+      "scientific_name": "Sitta carolinensis",
+      "concept_id": "sidetrack_concept:white-breasted_nuthatch"
+    },
+    {
+      "ebird_code": "bkcchi",
+      "common_name": "Black-capped Chickadee",
+      "scientific_name": "Poecile atricapillus",
+      "concept_id": "sidetrack_concept:black-capped_chickadee"
+    },
+    {
+      "ebird_code": "tuftit",
+      "common_name": "Tufted Titmouse",
+      "scientific_name": "Baeolophus bicolor",
+      "concept_id": "sidetrack_concept:tufted_titmouse"
+    },
+    {
+      "ebird_code": "ghowl",
+      "common_name": "Great Horned Owl",
+      "scientific_name": "Bubo virginianus",
+      "concept_id": "sidetrack_concept:great_horned_owl"
+    },
+    {
+      "ebird_code": "coohaw",
+      "common_name": "Cooper's Hawk",
+      "scientific_name": "Accipiter cooperii",
+      "concept_id": "sidetrack_concept:cooper's_hawk"
+    },
+    {
+      "ebird_code": "barowl",
+      "common_name": "Barred Owl",
+      "scientific_name": "Strix varia",
+      "concept_id": "sidetrack_concept:barred_owl"
+    },
+    {
+      "ebird_code": "amerob",
+      "common_name": "American Robin",
+      "scientific_name": "Turdus migratorius",
+      "concept_id": "sidetrack_concept:american_robin"
+    },
+    {
+      "ebird_code": "norcar",
+      "common_name": "Northern Cardinal",
+      "scientific_name": "Cardinalis cardinalis",
+      "concept_id": "sidetrack_concept:northern_cardinal"
+    },
+    {
+      "ebird_code": "blujay",
+      "common_name": "Blue Jay",
+      "scientific_name": "Cyanocitta cristata",
+      "concept_id": "sidetrack_concept:blue_jay"
+    },
+    {
+      "ebird_code": "rehwoo",
+      "common_name": "Red-headed Woodpecker",
+      "scientific_name": "Melanerpes erythrocephalus",
+      "concept_id": "sidetrack_concept:red-headed_woodpecker"
+    },
+    {
+      "ebird_code": "easblu",
+      "common_name": "Eastern Bluebird",
+      "scientific_name": "Sialia sialis",
+      "concept_id": "sidetrack_concept:eastern_bluebird"
+    },
+    {
+      "ebird_code": "amegfi",
+      "common_name": "American Goldfinch",
+      "scientific_name": "Spinus tristis",
+      "concept_id": "sidetrack_concept:american_goldfinch"
+    },
+    {
+      "ebird_code": "sonspa",
+      "common_name": "Song Sparrow",
+      "scientific_name": "Melospiza melodia",
+      "concept_id": "sidetrack_concept:song_sparrow"
+    },
+    {
+      "ebird_code": "houwre",
+      "common_name": "House Wren",
+      "scientific_name": "Troglodytes aedon",
+      "concept_id": "sidetrack_concept:house_wren"
+    },
+    {
+      "ebird_code": "moudov",
+      "common_name": "Mourning Dove",
+      "scientific_name": "Zenaida macroura",
+      "concept_id": "sidetrack_concept:mourning_dove"
+    },
+    {
+      "ebird_code": "norfli",
+      "common_name": "Northern Flicker",
+      "scientific_name": "Colaptes auratus",
+      "concept_id": "sidetrack_concept:northern_flicker"
+    },
+    {
+      "ebird_code": "grbher",
+      "common_name": "Great Blue Heron",
+      "scientific_name": "Ardea herodias",
+      "concept_id": "sidetrack_concept:great_blue_heron"
+    },
+    {
+      "ebird_code": "belkin",
+      "common_name": "Belted Kingfisher",
+      "scientific_name": "Megaceryle alcyon",
+      "concept_id": "sidetrack_concept:belted_kingfisher"
+    },
+    {
+      "ebird_code": "mallar3",
+      "common_name": "Mallard",
+      "scientific_name": "Anas platyrhynchos",
+      "concept_id": "sidetrack_concept:mallard"
+    },
+    {
+      "ebird_code": "wooduc",
+      "common_name": "Wood Duck",
+      "scientific_name": "Aix sponsa",
+      "concept_id": "sidetrack_concept:wood_duck"
+    },
+    {
+      "ebird_code": "greher",
+      "common_name": "Green Heron",
+      "scientific_name": "Butorides virescens",
+      "concept_id": "sidetrack_concept:green_heron"
+    },
+    {
+      "ebird_code": "sposand",
+      "common_name": "Spotted Sandpiper",
+      "scientific_name": "Actitis macularius",
+      "concept_id": "sidetrack_concept:spotted_sandpiper"
+    },
+    {
+      "ebird_code": "cedwax",
+      "common_name": "Cedar Waxwing",
+      "scientific_name": "Bombycilla cedrorum",
+      "concept_id": "sidetrack_concept:cedar_waxwing"
+    },
+    {
+      "ebird_code": "barswa",
+      "common_name": "Barn Swallow",
+      "scientific_name": "Hirundo rustica",
+      "concept_id": "sidetrack_concept:barn_swallow"
+    },
+    {
+      "ebird_code": "chiswi",
+      "common_name": "Chimney Swift",
+      "scientific_name": "Chaetura pelagica",
+      "concept_id": "sidetrack_concept:chimney_swift"
+    },
+    {
+      "ebird_code": "balori",
+      "common_name": "Baltimore Oriole",
+      "scientific_name": "Icterus galbula",
+      "concept_id": "sidetrack_concept:baltimore_oriole"
+    },
+    {
+      "ebird_code": "rbgros",
+      "common_name": "Rose-breasted Grosbeak",
+      "scientific_name": "Pheucticus ludovicianus",
+      "concept_id": "sidetrack_concept:rose-breasted_grosbeak"
+    },
+    {
+      "ebird_code": "rethaw",
+      "common_name": "Red-tailed Hawk",
+      "scientific_name": "Buteo jamaicensis",
+      "concept_id": "sidetrack_concept:red-tailed_hawk"
+    }
+  ],
+  "phases_audited": {
+    "R1_R2_spatial_rasters": {
+      "status": "nlcd_3dep_3dhp_verified",
+      "source_manifest_sha256": "b41449310b7d8d03622db6900ff7ec1742d64bc310a9f860cbdfc0ab3c5c2d0a",
+      "rasters": [
+        "data/raw/spatial/kc/nlcd/canopy_2023.tif",
+        "data/raw/spatial/kc/nlcd/impervious_2025.tif",
+        "data/raw/spatial/kc/3dep/dem_10m.tif",
+        "data/raw/spatial/kc/3dhp/hydrography.geojson"
+      ]
+    },
+    "R3_evidence_normalization": {
+      "status": "taxon_concept_ttl_cached",
+      "providers": [
+        "eBirdRecentAdapter",
+        "GBIFOccurrenceAdapter",
+        "INaturalistOccurrenceAdapter"
+      ],
+      "ttl_cache_days": 7
+    },
+    "R4_analytical_parquet": {
+      "status": "immutable_parquet_verified",
+      "zero_filling_boundary": "complete_checklists_only (all_species_reported == True)",
+      "spatial_resolution": "H3 Res 7"
+    },
+    "R5_empirical_model_fitting": {
+      "status": "calibrated_promoted",
+      "cardinal_model_manifest_sha256": "3e5406626ad8154c5b896f3bd4b58585ae125d323398a99a122c99f8f58145ce",
+      "evaluation_metrics": "out_of_fold_spatial_holdout (Brier <= 0.15, ECE <= 0.08)"
+    },
+    "R6_historical_repository": {
+      "status": "ebd_sed_queried",
+      "zero_placeholder_queries": true
+    },
+    "R7_osm_graph_rerouting": {
+      "status": "bi_criterion_dijkstra_verified",
+      "max_detour_budget_ratio": 1.25
+    },
+    "R8_reproducibility_proof": {
+      "status": "system_integrity_manifest_verified"
+    }
+  }
+}
