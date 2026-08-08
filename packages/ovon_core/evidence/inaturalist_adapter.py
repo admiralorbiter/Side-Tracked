@@ -67,6 +67,30 @@ class INaturalistOccurrenceAdapter(BaseOccurrenceProvider):
         now = datetime.now(timezone.utc)
 
         for item in results:
+            geo_raw = item.get("geojson") or {}
+            coords = geo_raw.get("coordinates")
+            if not coords or len(coords) < 2:
+                continue  # Exclude records without valid coordinates
+
+            lon = float(coords[0])
+            lat = float(coords[1])
+
+            obs_date_raw = item.get("time_observed_at") or item.get("observed_on_string")
+            obs_dt = now
+            if obs_date_raw:
+                try:
+                    obs_dt = datetime.fromisoformat(obs_date_raw.replace("Z", "+00:00")).replace(
+                        tzinfo=timezone.utc
+                    )
+                except Exception:
+                    continue  # Require valid parseable observation date
+            else:
+                continue
+
+            days_old = (now - obs_dt).total_seconds() / 86400.0
+            if days_old > days_window or days_old < 0:
+                continue  # Enforce days_window strictly
+
             taxon_info = item.get("taxon") or {}
             species_name = (
                 taxon_info.get("preferred_common_name") or taxon_info.get("name") or "Organism"
@@ -75,11 +99,6 @@ class INaturalistOccurrenceAdapter(BaseOccurrenceProvider):
 
             if concept_ids and c_id not in concept_ids:
                 continue
-
-            geo_raw = item.get("geojson") or {}
-            coords = geo_raw.get("coordinates") or [min_lon, min_lat]
-            lon = float(coords[0])
-            lat = float(coords[1])
 
             geoprivacy = "open"
             uncertainty_m = 50.0
@@ -101,7 +120,7 @@ class INaturalistOccurrenceAdapter(BaseOccurrenceProvider):
                     source_occurrence_id=str(item.get("id")),
                     original_scientific_name=taxon_info.get("name", species_name),
                     taxonomy_authority="iNaturalist-2026",
-                    observed_at=now,
+                    observed_at=obs_dt,
                     latitude=lat,
                     longitude=lon,
                     location_semantics=loc_semantics,

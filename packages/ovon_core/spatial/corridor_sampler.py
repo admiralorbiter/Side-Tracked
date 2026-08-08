@@ -1,69 +1,115 @@
-"""Spatial Corridor Sampler with Metric CRS Projection for Environmental Extraction."""
+"""Metric Spatial Corridor Sampler using UTM Zone 15N (EPSG:32615) projection and 25m buffer sampling."""
 
-import math
+from dataclasses import dataclass
 from typing import Sequence
+
+import pyproj
+from shapely.geometry import LineString, Point
+
+
+@dataclass(frozen=True, slots=True)
+class MetricCorridorSamplePoint:
+    """Sample point along route corridor with lat/lon and projected metric coordinates."""
+
+    index: int
+    latitude: float
+    longitude: float
+    metric_x: float
+    metric_y: float
+    distance_along_route_m: float
+    buffer_radius_m: float = 25.0
 
 
 class CorridorSampler:
-    """Projects route LineStrings to planar metric CRS (UTM Zone 15N EPSG:32615) and samples 25m corridor vertices."""
+    """Samples points along route LineStrings using UTM Zone 15N (EPSG:32615) metric projection and 25m corridor buffers."""
 
     def __init__(
         self,
-        ref_lat: float = 39.0,
-        ref_lon: float = -94.5,
+        ref_crs: str = "EPSG:4326",
+        target_crs: str = "EPSG:32615",
         step_meters: float = 25.0,
         buffer_radius_m: float = 25.0,
     ) -> None:
-        self.ref_lat = ref_lat
-        self.ref_lon = ref_lon
         self.step_meters = step_meters
         self.buffer_radius_m = buffer_radius_m
+        self.transformer_to_metric = pyproj.Transformer.from_crs(
+            ref_crs, target_crs, always_xy=True
+        )
+        self.transformer_to_wgs84 = pyproj.Transformer.from_crs(target_crs, ref_crs, always_xy=True)
 
-        # Conversion factors for WGS84 to local metric projection
-        self.meters_per_lat = 111000.0
-        self.meters_per_lon = 111000.0 * math.cos(math.radians(ref_lat))
+    def project_to_metric(self, coordinates: Sequence[tuple[float, float]]) -> LineString:
+        """Project (lat, lon) coordinates to UTM Zone 15N metric LineString."""
+        metric_pts = []
+        for lat, lon in coordinates:
+            mx, my = self.transformer_to_metric.transform(lon, lat)
+            metric_pts.append((mx, my))
 
-    def project_to_metric(self, lat: float, lon: float) -> tuple[float, float]:
-        """Project WGS84 (lat, lon) to local planar metric coordinates (x_m, y_m)."""
-        x_m = (lon - self.ref_lon) * self.meters_per_lon
-        y_m = (lat - self.ref_lat) * self.meters_per_lat
-        return (x_m, y_m)
-
-    def unproject_to_wgs84(self, x_m: float, y_m: float) -> tuple[float, float]:
-        """Convert local planar metric coordinates (x_m, y_m) back to WGS84 (lat, lon)."""
-        lat = self.ref_lat + (y_m / self.meters_per_lat)
-        lon = self.ref_lon + (x_m / self.meters_per_lon)
-        return (round(lat, 6), round(lon, 6))
+        return LineString(metric_pts)
 
     def sample_corridor_points(
-        self, coords: Sequence[tuple[float, float]]
-    ) -> list[tuple[float, float]]:
-        """Sample route LineString vertices every step_meters along metric corridor."""
-        if not coords:
-            return [(39.0347, -94.5906)]
+        self, coordinates: Sequence[tuple[float, float]]
+    ) -> list[MetricCorridorSamplePoint]:
+        """Sample corridor points every 25 meters along route LineString."""
+        if not coordinates:
+            return []
 
-        metric_pts = [self.project_to_metric(c[0], c[1]) for c in coords]
-        sampled_metric: list[tuple[float, float]] = [metric_pts[0]]
+        if len(coordinates) == 1:
+            lat, lon = coordinates[0]
+            mx, my = self.transformer_to_metric.transform(lon, lat)
+            return [
+                MetricCorridorSamplePoint(
+                    index=0,
+                    latitude=lat,
+                    longitude=lon,
+                    metric_x=mx,
+                    metric_y=my,
+                    distance_along_route_m=0.0,
+                    buffer_radius_m=self.buffer_radius_m,
+                )
+            ]
 
-        accumulated = 0.0
-        for i in range(len(metric_pts) - 1):
-            x1, y1 = metric_pts[i]
-            x2, y2 = metric_pts[i + 1]
-            seg_len = math.hypot(x2 - x1, y2 - y1)
+        metric_line = self.project_to_metric(coordinates)
+        line_length_m = metric_line.length
 
-            if seg_len == 0.0:
-                continue
+        sample_points: list[MetricCorridorSamplePoint] = []
+        current_dist = 0.0
+        idx = 0
 
-            accumulated += seg_len
-            if accumulated >= self.step_meters:
-                # Interpolate sample point
-                frac = (self.step_meters - (accumulated - seg_len)) / seg_len
-                sx = x1 + frac * (x2 - x1)
-                sy = y1 + frac * (y2 - y1)
-                sampled_metric.append((sx, sy))
-                accumulated = 0.0
+        while current_dist <= line_length_m:
+            point_geom = metric_line.interpolate(current_dist)
+            mx, my = point_geom.x, point_geom.y
+            lon, lat = self.transformer_to_wgs84.transform(mx, my)
 
-        if metric_pts[-1] not in sampled_metric:
-            sampled_metric.append(metric_pts[-1])
+            sample_points.append(
+                MetricCorridorSamplePoint(
+                    index=idx,
+                    latitude=round(lat, 6),
+                    longitude=round(lon, 6),
+                    metric_x=round(mx, 2),
+                    metric_y=round(my, 2),
+                    distance_along_route_m=round(current_dist, 2),
+                    buffer_radius_m=self.buffer_radius_m,
+                )
+            )
 
-        return [self.unproject_to_wgs84(mx, my) for mx, my in sampled_metric]
+            current_dist += self.step_meters
+            idx += 1
+
+        # Ensure end point is included if not exact multiple
+        if sample_points and sample_points[-1].distance_along_route_m < line_length_m:
+            end_geom = metric_line.interpolate(line_length_m)
+            mx, my = end_geom.x, end_geom.y
+            lon, lat = self.transformer_to_wgs84.transform(mx, my)
+            sample_points.append(
+                MetricCorridorSamplePoint(
+                    index=idx,
+                    latitude=round(lat, 6),
+                    longitude=round(lon, 6),
+                    metric_x=round(mx, 2),
+                    metric_y=round(my, 2),
+                    distance_along_route_m=round(line_length_m, 2),
+                    buffer_radius_m=self.buffer_radius_m,
+                )
+            )
+
+        return sample_points

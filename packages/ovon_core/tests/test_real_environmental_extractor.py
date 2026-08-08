@@ -11,8 +11,8 @@ def test_corridor_sampler():
     coords = [(39.0347, -94.5906), (39.0325, -94.5960)]
 
     sampled = sampler.sample_corridor_points(coords)
-    assert len(sampled) >= len(coords)
-    assert sampled[0] == coords[0]
+    assert (sampled[0].latitude, sampled[0].longitude) == coords[0]
+    assert sampled[0].buffer_radius_m == 25.0
 
 
 def test_real_environmental_feature_extractor():

@@ -34,7 +34,7 @@ def test_analytical_dataset_builder_zero_filling():
     assert cardinal_row.spatial_block_id != ""
 
 
-def test_parquet_exporter_manifest():
+def test_parquet_exporter_manifest(tmp_path):
     builder = AnalyticalDatasetBuilder()
     events = [
         {
@@ -48,11 +48,12 @@ def test_parquet_exporter_manifest():
     observations = [{"event_id": "S102", "concept_id": "sidetrack_concept:cardinal"}]
     rows = builder.build_analytical_rows(events, observations, ["sidetrack_concept:cardinal"])
 
-    exporter = ParquetDatasetExporter()
+    exporter = ParquetDatasetExporter(output_dir=tmp_path)
     data_file, manifest_file = exporter.export_dataset(rows, dataset_name="test_analytical_table")
 
     assert data_file.exists()
     assert manifest_file.exists()
+    assert (tmp_path / "test_analytical_table.parquet").exists()
 
     manifest = json.loads(manifest_file.read_text(encoding="utf-8"))
     assert manifest["row_count"] == 1

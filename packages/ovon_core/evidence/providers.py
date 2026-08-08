@@ -10,6 +10,20 @@ from packages.ovon_core.domain.evidence import (
 from packages.ovon_core.fixtures.routes_fixtures import CARDINAL, ROBIN, WOODPECKER
 
 
+from dataclasses import dataclass, field
+
+
+@dataclass(frozen=True, slots=True)
+class ProviderFetchResult:
+    """Structured result of an occurrence provider fetch attempt."""
+
+    records: tuple[NormalizedOccurrenceEvidence, ...]
+    status: str  # "ok", "unconfigured", "timeout", "error"
+    retrieved_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    cache_age_seconds: float = 0.0
+    error_kind: str | None = None
+
+
 class BaseOccurrenceProvider:
     """Base interface for occurrence evidence providers."""
 
@@ -21,6 +35,16 @@ class BaseOccurrenceProvider:
     ) -> list[NormalizedOccurrenceEvidence]:
         """Fetch normalized occurrences within spatial bounding box and time window."""
         raise NotImplementedError
+
+    def fetch_result(
+        self,
+        bounding_box: tuple[float, float, float, float],
+        concept_ids: Sequence[str],
+        days_window: int = 30,
+    ) -> ProviderFetchResult:
+        """Fetch structured ProviderFetchResult with status and error metadata."""
+        recs = self.fetch_occurrences(bounding_box, concept_ids, days_window=days_window)
+        return ProviderFetchResult(records=tuple(recs), status="ok")
 
 
 class NoConfiguredEvidenceProvider(BaseOccurrenceProvider):

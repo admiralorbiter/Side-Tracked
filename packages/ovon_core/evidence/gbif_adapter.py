@@ -67,6 +67,22 @@ class GBIFOccurrenceAdapter(BaseOccurrenceProvider):
         now = datetime.now(timezone.utc)
 
         for item in results:
+            obs_date_raw = item.get("eventDate") or item.get("dateIdentified")
+            obs_dt = now
+            if obs_date_raw:
+                try:
+                    obs_dt = datetime.fromisoformat(obs_date_raw.replace("Z", "+00:00")).replace(
+                        tzinfo=timezone.utc
+                    )
+                except Exception:
+                    continue  # Skip records with unparseable dates for recent window queries
+            else:
+                continue  # Require valid date for recent occurrence evidence
+
+            days_old = (now - obs_dt).total_seconds() / 86400.0
+            if days_old > days_window or days_old < 0:
+                continue  # Enforce days_window filter strictly
+
             species_name = (
                 item.get("vernacularName")
                 or item.get("species")
@@ -93,7 +109,7 @@ class GBIFOccurrenceAdapter(BaseOccurrenceProvider):
                     source_occurrence_id=str(item.get("key")),
                     original_scientific_name=item.get("scientificName", species_name),
                     taxonomy_authority="GBIF-2026",
-                    observed_at=now,
+                    observed_at=obs_dt,
                     latitude=lat,
                     longitude=lon,
                     location_semantics=EvidenceLocation.OBSERVATION_POINT,

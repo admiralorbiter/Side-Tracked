@@ -69,19 +69,18 @@ class eBirdRecentAdapter(BaseOccurrenceProvider):
         now = datetime.now(timezone.utc)
 
         for item in raw_records:
-            species_name = item.get("comName", "Bird")
-            c_id = f"sidetrack_concept:{species_name.lower().replace(' ', '_')}"
-
-            if concept_ids and c_id not in concept_ids:
-                continue
-
             obs_dt_str = item.get("obsDt")
-            obs_dt = now
             if obs_dt_str:
                 try:
                     obs_dt = datetime.fromisoformat(obs_dt_str).replace(tzinfo=timezone.utc)
                 except Exception:
-                    obs_dt = now
+                    continue  # Require valid parseable date for recent evidence
+            else:
+                continue
+
+            days_old = (now - obs_dt).total_seconds() / 86400.0
+            if days_old > days_window or days_old < 0:
+                continue  # Enforce days_window strictly
 
             occurrences.append(
                 NormalizedOccurrenceEvidence(

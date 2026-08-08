@@ -69,9 +69,22 @@ function initSidetrackMap() {
       if (evidenceRaw && evidenceRaw.trim()) {
         try {
           const evidenceItems = JSON.parse(evidenceRaw);
+          const escapeHtml = (str) => {
+            if (!str) return '';
+            return String(str).replace(/[&<>"']/g, (m) => ({
+              '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[m]));
+          };
+
           evidenceItems.forEach((item) => {
             if (item.type === 'exact' && item.lat && item.lon) {
-              const name = item.common_name || '';
+              const name = escapeHtml(item.common_name || item.name || 'Species Report');
+              const scientificName = escapeHtml(item.scientific_name || '');
+              const distanceM = Math.round(item.distance_from_walk_m ?? item.dist ?? 0);
+              const sourceDataset = escapeHtml(item.source_dataset || item.source || 'Community Biodiversity Record');
+              const observedDate = escapeHtml(item.observed_date || item.date || 'Recent');
+              const visibility = escapeHtml(item.visibility || 'open');
+
               let emoji = '🐦';
               let color = '#38bdf8';
 
@@ -119,8 +132,8 @@ function initSidetrackMap() {
               const tooltipContent = `
                 <div class="map-evidence-tooltip">
                   <strong>📍 ${name}</strong><br>
-                  <span style="font-size: 0.75rem; color: #38bdf8;">Reported ~${Math.round(item.distance_from_walk_m)}m from walk</span><br>
-                  <span style="font-size: 0.7rem; color: #94a3b8;">Source: ${item.source_dataset}</span>
+                  <span style="font-size: 0.75rem; color: #38bdf8;">Reported ~${distanceM}m from walk</span><br>
+                  <span style="font-size: 0.7rem; color: #94a3b8;">Source: ${sourceDataset}</span>
                 </div>
               `;
               marker.bindTooltip(tooltipContent, {
@@ -133,12 +146,12 @@ function initSidetrackMap() {
               const popupContent = `
                 <div style="font-family: inherit; font-size: 0.85rem; padding: 4px;">
                   <strong style="color: #0f172a; font-size: 0.95rem;">${name}</strong><br>
-                  <span style="color: #475569; font-size: 0.8rem;">${item.scientific_name || ''}</span>
+                  <span style="color: #475569; font-size: 0.8rem;">${scientificName}</span>
                   <hr style="margin: 6px 0; border: none; border-top: 1px solid #e2e8f0;">
                   <div style="font-size: 0.78rem; color: #334155;">
-                    📍 Reported ~${Math.round(item.distance_from_walk_m)}m from walking loop<br>
-                    🛡️ Visibility: ${item.visibility}<br>
-                    📅 Reported: ${item.observed_date || 'Recent'}
+                    📍 Reported ~${distanceM}m from walking loop<br>
+                    🛡️ Visibility: ${visibility}<br>
+                    📅 Reported: ${observedDate}
                   </div>
                 </div>
               `;

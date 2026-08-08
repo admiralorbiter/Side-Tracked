@@ -5,6 +5,9 @@ import json
 from pathlib import Path
 from typing import Sequence
 
+import pyarrow as pa
+import pyarrow.parquet as pq
+
 from packages.ovon_core.modeling.dataset_builder import AnalyticalSamplingRow
 
 
@@ -20,14 +23,19 @@ class ParquetDatasetExporter:
         rows: Sequence[AnalyticalSamplingRow],
         dataset_name: str = "kc_analytical_modeling_table",
     ) -> tuple[Path, Path]:
-        """Export rows to immutable data file and write dataset_manifest.json."""
         row_dicts = [r.to_dict() for r in rows]
 
-        # 1. Write structured JSON dataset file (with Parquet interoperability)
+        # 1. Write binary Parquet dataset file
+        table = pa.Table.from_pylist(row_dicts) if row_dicts else pa.Table.from_batches([])
+
+        parquet_file = self.output_dir / f"{dataset_name}.parquet"
+        pq.write_table(table, parquet_file)
+
+        # 2. Write structured JSON dataset file
         data_file = self.output_dir / f"{dataset_name}.json"
         data_file.write_text(json.dumps(row_dicts, indent=2), encoding="utf-8")
 
-        # 2. Calculate SHA-256 schema & content hash
+        # 3. Calculate SHA-256 schema & content hash
         schema_hash = hashlib.sha256(
             json.dumps(row_dicts, sort_keys=True).encode("utf-8")
         ).hexdigest()
