@@ -100,6 +100,11 @@ class RouteOption:
             )
 
     @property
+    def geojson(self) -> dict | None:
+        """Alias for geojson_geometry."""
+        return self.geojson_geometry
+
+    @property
     def unique_focal_species(self) -> tuple[TaxonRef, ...]:
         """Return tuple of distinct focal species across all route segments."""
         species = []

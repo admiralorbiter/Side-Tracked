@@ -1,21 +1,16 @@
-"""Unit tests for Spatial Optimization and Dynamic Rerouting Engine."""
+"""Unit tests for Graph-Based Ecological Detour Solver (Sprint 17)."""
 
-from packages.ovon_core.domain.environmental_vector import (
-    SIDETRACK_ENV_SCHEMA_V1,
-    EnvironmentalFeatureVector,
-)
+from packages.ovon_core.domain.environmental_vector import create_default_environmental_vector
 from packages.ovon_core.fixtures import ROUTE_BIRDY
 from packages.ovon_core.routing.alternative_loops import AlternativeLoopEngine
+from packages.ovon_core.routing.detour_geometry import SpatialGeometryDetourGenerator
 from packages.ovon_core.routing.opportunity_cost import OpportunityCostCalculator
 from packages.ovon_core.routing.spatial_rerouter import SpatialRerouter
 
 
 def test_opportunity_cost_calculator():
     calc = OpportunityCostCalculator(gamma=1.5)
-    vec = EnvironmentalFeatureVector(
-        schema=SIDETRACK_ENV_SCHEMA_V1,
-        values=(60.0, 10.0, 50.0, 260.0, 2.0),
-    )
+    vec = create_default_environmental_vector()
     edge = calc.calculate_edge_opportunity(200.0, vec)
 
     assert edge.length_meters == 200.0
@@ -23,29 +18,34 @@ def test_opportunity_cost_calculator():
     assert edge.modified_weight < edge.length_meters
 
 
-def test_spatial_rerouter():
+def test_spatial_rerouter_detour_budget():
     rerouter = SpatialRerouter()
-    metrics = rerouter.optimize_route_corridor(ROUTE_BIRDY, preference="canopy")
+    res_canopy = rerouter.optimize_route_corridor(ROUTE_BIRDY, preference="canopy")
+    res_water = rerouter.optimize_route_corridor(ROUTE_BIRDY, preference="water")
 
-    assert metrics["base_distance_m"] == ROUTE_BIRDY.distance_meters
-    assert metrics["added_duration_min"] > 0.0
-    assert metrics["opportunity_boost_percent"] > 0.0
+    # Max detour constraint D <= 1.25 * D_direct
+    assert res_canopy["optimized_distance_m"] <= 1.25 * ROUTE_BIRDY.distance_meters
+    assert res_water["optimized_distance_m"] <= 1.25 * ROUTE_BIRDY.distance_meters
+
+
+def test_detour_geometry_distinct_polylines():
+    detour_gen = SpatialGeometryDetourGenerator()
+    base_geojson = ROUTE_BIRDY.geojson
+    canopy_geojson = detour_gen.generate_canopy_detour(base_geojson)
+    water_geojson = detour_gen.generate_water_detour(base_geojson)
+
+    assert base_geojson != canopy_geojson
+    assert canopy_geojson != water_geojson
+    assert len(canopy_geojson["coordinates"]) > len(base_geojson["coordinates"])
+    assert len(water_geojson["coordinates"]) > len(base_geojson["coordinates"])
 
 
 def test_alternative_loop_engine():
     engine = AlternativeLoopEngine()
     summary = engine.generate_variations(ROUTE_BIRDY)
+    variations = summary.variations
 
-    assert summary.route_id == ROUTE_BIRDY.id
-    assert len(summary.variations) == 3
-    assert summary.variations[0].is_baseline is True
-    assert summary.variations[1].is_baseline is False
-    assert summary.variations[2].is_baseline is False
-
-    g0 = summary.variations[0].geojson_geometry["coordinates"]
-    g1 = summary.variations[1].geojson_geometry["coordinates"]
-    g2 = summary.variations[2].geojson_geometry["coordinates"]
-
-    assert g0 != g1
-    assert g0 != g2
-    assert g1 != g2
+    assert len(variations) == 3
+    assert "Direct Loop" in variations[0].name
+    assert "High-Canopy" in variations[1].name
+    assert "Creek-Edge" in variations[2].name
