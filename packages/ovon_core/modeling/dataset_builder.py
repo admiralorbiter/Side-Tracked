@@ -58,20 +58,29 @@ class AnalyticalDatasetBuilder:
         h3_resolution: int = 7,
     ) -> list[AnalyticalSamplingRow]:
         """Build immutable analytical rows with group deduplication, zero-filling, and environmental feature joining."""
-        # 1. Group checklist deduplication
+        # 1. Complete checklist validation and group checklist deduplication
         deduped_events: dict[str, dict] = {}
         for ev in sampling_events:
-            # Filter for complete checklists only (ALL SPECIES REPORTED = 1)
-            if not ev.get("all_species_reported", True):
+            # Filter for complete checklists ONLY (all_species_reported == True); fail closed if missing
+            if ev.get("all_species_reported") is not True:
                 continue
 
-            lat = float(ev.get("latitude", 39.03))
-            lon = float(ev.get("longitude", -94.59))
-            date_str = str(ev.get("date", "2026-05-15"))
-            key = f"{lat:.3f}_{lon:.3f}_{date_str}_{ev.get('time', '07:00')}"
+            # Reject records missing required scientific inputs (latitude, longitude, date)
+            if "latitude" not in ev or "longitude" not in ev or "date" not in ev:
+                continue
 
-            if key not in deduped_events:
-                deduped_events[key] = ev
+            lat = float(ev["latitude"])
+            lon = float(ev["longitude"])
+            date_str = str(ev["date"])
+
+            # Use official group/sampling event identifier if present
+            group_id = ev.get("sampling_event_identifier") or ev.get("group_identifier")
+            if not group_id:
+                time_str = ev.get("time", "07:00")
+                group_id = f"group_{lat:.4f}_{lon:.4f}_{date_str}_{time_str}"
+
+            if group_id not in deduped_events:
+                deduped_events[group_id] = ev
 
         # 2. Map detected concept IDs by event
         event_detections: dict[str, set[str]] = {}
@@ -83,11 +92,25 @@ class AnalyticalDatasetBuilder:
 
         rows: list[AnalyticalSamplingRow] = []
 
-        for key, ev in deduped_events.items():
-            event_id = str(ev.get("event_id", f"S_{key}"))
-            lat = float(ev.get("latitude", 39.0347))
-            lon = float(ev.get("longitude", -94.5906))
-            date_str = str(ev.get("date", "2026-05-15"))
+        for group_id, ev in deduped_events.items():
+            event_id = str(ev.get("event_id", group_id))
+            lat = float(ev["latitude"])
+            lon = float(ev["longitude"])
+            date_str = str(ev["date"])
+            time_str = str(ev.get("time", "07:00"))
+
+            # Calculate event-time solar elevation angle from recorded date & time
+            try:
+                recorded_dt = datetime.fromisoformat(f"{date_str}T{time_str}:00").replace(
+                    tzinfo=timezone.utc
+                )
+            except Exception:
+                try:
+                    recorded_dt = datetime.fromisoformat(date_str).replace(tzinfo=timezone.utc)
+                except Exception:
+                    recorded_dt = datetime.now(timezone.utc)
+
+            solar_alt = calculate_sun_altitude_degrees(lat, lon, recorded_dt)
 
             # H3 Spatial Cell Block ID for spatial holdout cross-validation
             try:
@@ -95,12 +118,8 @@ class AnalyticalDatasetBuilder:
             except Exception:
                 spatial_block = f"h3_r7_{int(lat * 100)}_{int(lon * 100)}"
 
-            # Extract continuous environmental vector
+            # Extract continuous environmental feature vector
             env_vector = self.env_extractor.extract_feature_vector([(lat, lon)])
-
-            # Compute astronomical solar altitude
-            dt = datetime.now(timezone.utc)
-            solar_alt = calculate_sun_altitude_degrees(lat, lon, dt)
 
             detected_set = event_detections.get(event_id, set())
 
