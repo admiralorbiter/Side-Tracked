@@ -1,0 +1,66 @@
+{
+  "type": "FeatureCollection",
+  "name": "USGS_3DHP_Kansas_City_Hydrography",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_id": "3DHP_KC_001",
+        "gnis_name": "Loose Creek",
+        "feature_type": "StreamRiver"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -94.592,
+            39.032
+          ],
+          [
+            -94.59,
+            39.035
+          ],
+          [
+            -94.588,
+            39.039
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_id": "3DHP_KC_002",
+        "gnis_name": "Loose Park Duck Pond",
+        "feature_type": "LakePond"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -94.5895,
+              39.0345
+            ],
+            [
+              -94.5885,
+              39.0345
+            ],
+            [
+              -94.5885,
+              39.0355
+            ],
+            [
+              -94.5895,
+              39.0355
+            ],
+            [
+              -94.5895,
+              39.0345
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

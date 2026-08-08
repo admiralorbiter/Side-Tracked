@@ -13,6 +13,45 @@ def test_ebird_recent_adapter():
     assert isinstance(recs, list)
 
 
+def test_ebird_recent_adapter_frozen_payload(tmp_path):
+    import json
+    from datetime import datetime, timezone
+
+    adapter = eBirdRecentAdapter(cache_dir=tmp_path)
+    bbox = (39.0347, -94.5906, 39.0347, -94.5906)
+
+    now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")
+    sample_payload = [
+        {
+            "speciesCode": "norcar",
+            "comName": "Northern Cardinal",
+            "sciName": "Cardinalis cardinalis",
+            "locId": "L12345",
+            "locName": "Loose Park",
+            "obsDt": now_iso,
+            "howMany": 3,
+            "lat": 39.0347,
+            "lng": -94.5906,
+            "subId": "S998877",
+        }
+    ]
+
+    # Pre-populate cache
+    import hashlib
+
+    lat, lon = 39.0347, -94.5906
+    cache_key = hashlib.sha256(f"ebird_{lat:.3f}_{lon:.3f}_30".encode()).hexdigest()[:12]
+    cache_file = tmp_path / f"{cache_key}.json"
+    cache_file.write_text(json.dumps(sample_payload), encoding="utf-8")
+
+    recs = adapter.fetch_occurrences(bbox, [])
+    assert len(recs) == 1
+    assert recs[0].concept_id == "sidetrack_concept:northern_cardinal"
+    assert recs[0].original_scientific_name == "Cardinalis cardinalis"
+    assert recs[0].latitude == 39.0347
+    assert recs[0].source_occurrence_id == "S998877"
+
+
 def test_gbif_occurrence_adapter():
     adapter = GBIFOccurrenceAdapter()
     bbox = (39.02, -94.61, 39.05, -94.57)

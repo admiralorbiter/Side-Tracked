@@ -1,0 +1,37 @@
+{
+  "region": "Kansas City Metro",
+  "extent_wgs84": {
+    "min_lat": 38.9,
+    "min_lon": -94.75,
+    "max_lat": 39.15,
+    "max_lon": -94.45
+  },
+  "crs": "EPSG:4326 / EPSG:32615",
+  "datasets": {
+    "canopy_2023": {
+      "product_id": "nlcd_tcc_2023_v2023-5",
+      "filename": "nlcd/canopy_2023.tif",
+      "sha256": "1418aa41cdafc72ae927c419276c4791f045de354f6ba8625f3f4ce3613927de",
+      "units": "%"
+    },
+    "impervious_2025": {
+      "product_id": "annual_nlcd_impervious_2025_c1.2",
+      "filename": "nlcd/impervious_2025.tif",
+      "sha256": "19ee7f9e9ec78b95447e92d8352a493ee8ca54a5a1643c977288dffaf18409ce",
+      "units": "%"
+    },
+    "dem_10m": {
+      "product_id": "usgs_3dep_10m",
+      "filename": "3dep/dem_10m.tif",
+      "sha256": "c8d00e60263c27a1534980af83441fd887af020283ad2eb0f9a5994e376d11aa",
+      "units": "meters"
+    },
+    "hydrography_3dhp": {
+      "product_id": "usgs_3dhp_2026.07",
+      "filename": "3dhp/hydrography.geojson",
+      "sha256": "1897c367b80d9da37dd6f55c122790d190998e89f5a50f1b353f3755a6296515",
+      "features_count": 2
+    }
+  },
+  "status": "raw_source_manifest_verified"
+}

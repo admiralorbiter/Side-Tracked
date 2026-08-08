@@ -69,6 +69,12 @@ class eBirdRecentAdapter(BaseOccurrenceProvider):
         now = datetime.now(timezone.utc)
 
         for item in raw_records:
+            species_name = item.get("comName", "Bird")
+            c_id = f"sidetrack_concept:{species_name.lower().replace(' ', '_')}"
+
+            if concept_ids and c_id not in concept_ids:
+                continue
+
             obs_dt_str = item.get("obsDt")
             if obs_dt_str:
                 try:
