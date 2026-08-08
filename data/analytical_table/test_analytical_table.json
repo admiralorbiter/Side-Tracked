@@ -1,0 +1,21 @@
+[
+  {
+    "event_id": "S102",
+    "concept_id": "sidetrack_concept:cardinal",
+    "detected": 1,
+    "date": "2026-05-16",
+    "latitude": 39.0325,
+    "longitude": -94.596,
+    "spatial_block_id": "872656721ffffff",
+    "duration_minutes": 45.0,
+    "effort_distance_km": 1.5,
+    "number_observers": 1,
+    "solar_altitude_degrees": -15.3,
+    "canopy_cover_percent": 69.5,
+    "impervious_surface_percent": 5.1,
+    "water_edge_distance_m": 5.0,
+    "elevation_m": 242.0,
+    "slope_gradient_percent": 2.6,
+    "data_release_id": "EBD-2026.07_SED-2026.07"
+  }
+]

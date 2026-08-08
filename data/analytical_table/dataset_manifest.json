@@ -1,0 +1,19 @@
+{
+  "dataset_name": "test_analytical_table",
+  "row_count": 1,
+  "positive_counts_by_concept": {
+    "sidetrack_concept:cardinal": 1
+  },
+  "spatial_block_count": 1,
+  "spatial_block_ids": [
+    "872656721ffffff"
+  ],
+  "date_range": {
+    "min": "2026-05-16",
+    "max": "2026-05-16"
+  },
+  "source_release_id": "EBD-2026.07_SED-2026.07",
+  "environment_release_id": "NLCD-2025.1_3DEP-10M_3DHP-2026.07",
+  "schema_hash": "1bf558975000fae60abbaaa0177a97ce0bfa4d03a3f1fcd04e6eaf8920be7feb",
+  "status": "immutable_analytical_table"
+}
