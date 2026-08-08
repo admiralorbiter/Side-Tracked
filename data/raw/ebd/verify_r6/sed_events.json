@@ -1,0 +1,38 @@
+[
+  {
+    "event_id": "SED_KC_001",
+    "sampling_event_identifier": "EBD_S001122",
+    "all_species_reported": true,
+    "latitude": 39.0347,
+    "longitude": -94.5906,
+    "date": "2026-05-15",
+    "time": "06:30",
+    "duration_minutes": 45.0,
+    "effort_distance_km": 1.5,
+    "number_observers": 1
+  },
+  {
+    "event_id": "SED_KC_002",
+    "sampling_event_identifier": "EBD_S001123",
+    "all_species_reported": true,
+    "latitude": 39.0325,
+    "longitude": -94.596,
+    "date": "2026-05-16",
+    "time": "07:15",
+    "duration_minutes": 60.0,
+    "effort_distance_km": 2.0,
+    "number_observers": 2
+  },
+  {
+    "event_id": "SED_KC_INC",
+    "sampling_event_identifier": "EBD_S001124",
+    "all_species_reported": false,
+    "latitude": 39.0347,
+    "longitude": -94.5906,
+    "date": "2026-05-17",
+    "time": "08:00",
+    "duration_minutes": 15.0,
+    "effort_distance_km": 0.5,
+    "number_observers": 1
+  }
+]
