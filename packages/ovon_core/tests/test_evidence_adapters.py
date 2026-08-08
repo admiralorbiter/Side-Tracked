@@ -36,13 +36,24 @@ def test_ebird_recent_adapter_frozen_payload(tmp_path):
         }
     ]
 
-    # Pre-populate cache
+    # Pre-populate cache envelope with valid TTL
     import hashlib
+    from datetime import timedelta
 
     lat, lon = 39.0347, -94.5906
     cache_key = hashlib.sha256(f"ebird_{lat:.3f}_{lon:.3f}_30".encode()).hexdigest()[:12]
     cache_file = tmp_path / f"{cache_key}.json"
-    cache_file.write_text(json.dumps(sample_payload), encoding="utf-8")
+
+    now_dt = datetime.now(timezone.utc)
+    exp_dt = now_dt + timedelta(days=7)
+    cache_envelope = {
+        "fetched_at": now_dt.isoformat(),
+        "expires_at": exp_dt.isoformat(),
+        "ttl_seconds": 604800,
+        "provider": "ebird_recent",
+        "raw_records": sample_payload,
+    }
+    cache_file.write_text(json.dumps(cache_envelope, indent=2), encoding="utf-8")
 
     recs = adapter.fetch_occurrences(bbox, [])
     assert len(recs) == 1

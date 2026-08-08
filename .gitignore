@@ -66,6 +66,12 @@ media/cached/*
 !media/cached/.gitkeep
 *.pickle
 
+# Large Production Spatial Datasets (Keep lightweight KC fixtures in data/raw/spatial/kc/ tracked)
+data/raw/production/*
+*.large.tif
+*.large.tiff
+
+
 
 # Experiments & Temp Files
 cache/

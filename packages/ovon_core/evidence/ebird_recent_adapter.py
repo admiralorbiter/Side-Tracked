@@ -12,7 +12,10 @@ from packages.ovon_core.domain.evidence import (
     EvidenceLocation,
     NormalizedOccurrenceEvidence,
 )
-from packages.ovon_core.evidence.providers import BaseOccurrenceProvider
+from packages.ovon_core.evidence.providers import (
+    BaseOccurrenceProvider,
+    ProviderFetchResult,
+)
 
 
 class eBirdRecentAdapter(BaseOccurrenceProvider):
@@ -34,9 +37,21 @@ class eBirdRecentAdapter(BaseOccurrenceProvider):
         days_window: int = 30,
     ) -> list[NormalizedOccurrenceEvidence]:
         """Fetch recent occurrences within bounding box."""
+        res = self.fetch_result(bounding_box, concept_ids, days_window=days_window)
+        return list(res.records)
+
+    def fetch_result(
+        self,
+        bounding_box: tuple[float, float, float, float],
+        concept_ids: Sequence[str],
+        days_window: int = 30,
+        ttl_seconds: int = 604800,  # 7-day default TTL
+    ) -> ProviderFetchResult:
+        """Fetch structured ProviderFetchResult with TTL cache validation."""
         min_lat, min_lon, max_lat, max_lon = bounding_box
         lat = (min_lat + max_lat) / 2.0
         lon = (min_lon + max_lon) / 2.0
+        now_dt = datetime.now(timezone.utc)
 
         # Check cache
         cache_key = hashlib.sha256(f"ebird_{lat:.3f}_{lon:.3f}_{days_window}".encode()).hexdigest()[
@@ -45,24 +60,65 @@ class eBirdRecentAdapter(BaseOccurrenceProvider):
         cache_file = self.cache_dir / f"{cache_key}.json"
 
         raw_records = None
+        cache_age_sec = 0.0
         if cache_file.exists():
             try:
-                raw_records = json.loads(cache_file.read_text(encoding="utf-8"))
+                cache_envelope = json.loads(cache_file.read_text(encoding="utf-8"))
+                fetched_at_str = cache_envelope.get("fetched_at")
+                expires_at_str = cache_envelope.get("expires_at")
+
+                if expires_at_str:
+                    exp_dt = datetime.fromisoformat(expires_at_str).replace(tzinfo=timezone.utc)
+                    if now_dt <= exp_dt:
+                        raw_records = cache_envelope.get("raw_records")
+                        if fetched_at_str:
+                            f_dt = datetime.fromisoformat(fetched_at_str).replace(
+                                tzinfo=timezone.utc
+                            )
+                            cache_age_sec = (now_dt - f_dt).total_seconds()
+                else:
+                    # Legacy un-enveloped cache support
+                    raw_records = cache_envelope
             except Exception:
                 raw_records = None
 
-        if raw_records is None and self.api_key:
+        error_kind = None
+        status_str = "ok"
+
+        if raw_records is None:
+            if not self.api_key:
+                return ProviderFetchResult(records=(), status="unconfigured")
+
             url = f"https://api.ebird.org/v2/data/obs/geo/recent?lat={lat:.4f}&lng={lon:.4f}&dist=5&back={days_window}"
             req = urllib.request.Request(url, headers={"X-eBirdToken": self.api_key})
             try:
                 with urllib.request.urlopen(req, timeout=5) as resp:
                     if resp.status == 200:
                         raw_records = json.loads(resp.read().decode("utf-8"))
-                        cache_file.write_text(json.dumps(raw_records), encoding="utf-8")
-            except Exception:
+                        exp_dt = now_dt + timedelta(seconds=ttl_seconds)
+                        cache_envelope = {
+                            "fetched_at": now_dt.isoformat(),
+                            "expires_at": exp_dt.isoformat(),
+                            "ttl_seconds": ttl_seconds,
+                            "provider": "ebird_recent",
+                            "raw_records": raw_records,
+                        }
+                        cache_file.write_text(
+                            json.dumps(cache_envelope, indent=2), encoding="utf-8"
+                        )
+            except Exception as exc:
                 raw_records = []
+                status_str = "error"
+                error_kind = str(exc)
 
         if not raw_records:
+            return ProviderFetchResult(
+                records=(),
+                status=status_str,
+                cache_age_seconds=cache_age_sec,
+                error_kind=error_kind,
+            )
+
             return []
 
         occurrences: list[NormalizedOccurrenceEvidence] = []
@@ -107,4 +163,9 @@ class eBirdRecentAdapter(BaseOccurrenceProvider):
                 )
             )
 
-        return occurrences
+        return ProviderFetchResult(
+            records=tuple(occurrences),
+            status=status_str,
+            cache_age_seconds=round(cache_age_sec, 1),
+            error_kind=error_kind,
+        )
