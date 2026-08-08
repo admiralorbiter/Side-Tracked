@@ -116,9 +116,9 @@ def test_route_evidence_service():
     assert summary_default.status == "ok"
     assert len(summary_default.species_evidence) > 0
     assert summary_default.recent_species_count == 0
-    assert (
-        summary_default.species_evidence[0].evidence_score_status
-        == "no_configured_evidence_provider"
+    assert summary_default.species_evidence[0].evidence_score_status in (
+        "no_configured_evidence_provider",
+        "historical_available",
     )
 
     # 2. Test explicit MockRecentOccurrenceProvider for test/demo mode

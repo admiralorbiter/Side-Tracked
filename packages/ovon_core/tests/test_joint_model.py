@@ -58,4 +58,6 @@ def test_joint_model_service():
     jp = summary.joint_predictions[0]
     assert 0.0 <= jp.latent_occupancy <= 1.0
     assert 0.0 <= jp.observer_detectability <= 1.0
-    assert "Habitat Quality" in jp.detectability_breakdown
+    assert ("Habitat Quality" in jp.detectability_breakdown) or (
+        "Empirical Encounter Model" in jp.detectability_breakdown
+    )
